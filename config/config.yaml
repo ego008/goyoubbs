@@ -1,0 +1,41 @@
+Main:
+    ListenAddr: "localhost"
+    ListenPort: 8082
+    PubDir: "static"
+    ViewDir: "view/default"
+    Youdb: "mydata.db"
+    CookieSecure: false
+    CookieHttpOnly: true
+    OldSiteDomain: ""
+Site:
+    Name: "youBBS"
+    Desc: "Yet another bbs"
+    AdminEmail: ""
+    MainDomain: "https://www.youbbs.org"
+    MainNodeIds: "1,2,3"
+    HomeShowNum: 20
+    PageShowNum: 20
+    TagShowNum: 20
+    TitleMaxLen: 180
+    ContentMaxLen: 9000
+    PostInterval: 60
+    CommentListNum: 10
+    CommentInterval: 20
+    Authorized: false
+    RegReview: false
+    CloseReg: false
+    AutoDataBackup: true
+    AutoGetTag: true
+    GetTagApi: "http://youbbs.sinaapp.com/fencigoapi.php"
+    QQClientID: 0
+    QQClientSecret: ""
+    WeiboClientID: 0
+    WeiboClientSecret: ""
+    QiniuAccessKey: ""
+    QiniuSecretKey: ""
+    QiniuDomain: ""
+    QiniuBucket: ""
+    UpyunDomain: ""
+    UpyunBucket: ""
+    UpyunUser: ""
+    UpyunPw: ""
