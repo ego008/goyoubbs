@@ -61,12 +61,12 @@
             {{if .SiteCf.QQClientID}}
             <a href="/qqlogin" rel="nofollow"><img src="/static/img/qq_login_55_24.png" alt="QQ登录"/></a>
             {{end}}
-            <!--&nbsp;<a href="/login" rel="nofollow">登录</a>-->
+            &nbsp;<a href="/login" rel="nofollow">登录</a>
 
             {{if and .SiteCf.WeiboClientID .SiteCf.QQClientID}}
             {{else}}
-            {{if .SiteCf.CloseReg}}
-            &nbsp;&nbsp;<a href="/sigin">注册</a>
+            {{if not .SiteCf.CloseReg}}
+            &nbsp;&nbsp;<a href="/register">注册</a>
             {{end}}
             {{end}}
 
