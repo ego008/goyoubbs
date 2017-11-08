@@ -6,7 +6,7 @@ golang 实现的youBBS https://www.youbbs.org
 
 如果你没有接触过golang 按照下面步骤也能快速部署
 
-1）下载并解压 https://github.com/ego008/goyoubbs/archive/v3.0.zip
+1）下载并解压 https://github.com/ego008/goyoubbs/archive/master.zip
 
 2）准备网站必须的文件
 
