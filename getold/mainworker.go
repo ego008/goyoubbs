@@ -207,15 +207,11 @@ func (h *BaseHandler) GetLocal() error {
 						if rs.State == "ok" {
 							commentId, _ := db.HnextSequence("article_comment:" + t.Aid)
 
-							newContent := strings.Replace(t.Content, "http://youbbs.sinaapp.com", "https://www.youbbs.org", -1)
-							newContent = strings.Replace(newContent, "https://www.youbbs.org/t-", "https://www.youbbs.org/t/", -1)
-							newContent = strings.Replace(newContent, "https://www.youbbs.org/n-", "https://www.youbbs.org/n/", -1)
-
 							obj := model.Comment{
 								Id:      commentId,
 								Aid:     youdb.DS2i(t.Aid),
 								Uid:     youdb.DS2i(t.Uid),
-								Content: newContent,
+								Content: t.Content,
 								AddTime: youdb.DS2i(t.AddTime),
 							}
 							jb, _ := json.Marshal(obj)
