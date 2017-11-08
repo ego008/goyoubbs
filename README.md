@@ -8,28 +8,38 @@ golang 实现的youBBS https://www.youbbs.org
 
 1）下载并解压 https://github.com/ego008/goyoubbs/archive/master.zip
 
-2）准备网站必须的文件
+2）本地运行，切换到上面解压的文件夹，运行网站主程序
 
-新建一个文件夹保存部署所需的文件，如mysite
+默认有下面几个包
 
-把下面的文件夹copy 到mysite：
+- goyoubbs_linux -- linux 64bit 系统
+- goyoubbs.exe   -- windows 系统
+- goyoubbs_mac   -- mac 系统
+
+如果你的电脑是windows 系统只需双击 `goyoubbs.exe`
+
+在浏览器打开 `http://127.0.0.1:8082` 即可看到网站内容
+
+3）部署到服务器
+
+准备网站必须的文件，新建一个文件夹保存部署所需的文件，如mysite
+
+把下面的文件夹拷贝到mysite：
 
 - config
 - databackup
 - static
 - view
 
-根据你的服务器环境copy 对应的主程序包到mysite
+根据你的服务器环境拷贝对应的主程序包到mysite
 
 - goyoubbs_linux -- linux 64bit 系统
 - goyoubbs.exe   -- windows 系统
 - goyoubbs_mac   -- mac 系统
 
-3）运行程序
+默认端口是8082，修改配置文件 `config/config.yaml` 更改网站运行及网站基本信息
 
-切换到mysite 文件夹，运行主程序包，默认端口是8082，在浏览器打开 `http://127.0.0.1:8082` 即可看到网站内容
-
-4）修改配置文件 `config/config.yaml` 更改网站基本信息
+把文件夹`mysite` 的内容上传到服务器、运行。。。
 
 若有疑问可以到官方论坛提问 https://www.youbbs.org
 
