@@ -1,6 +1,10 @@
 # goyoubbs
 
-golang 实现的youBBS https://www.youbbs.org
+golang 实现的youBBS 官方论坛&示例 https://www.youbbs.org
+
+```
+go get github.com/ego008/goyoubbs
+```
 
 ## 轻论坛功能
 
