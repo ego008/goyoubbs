@@ -11,7 +11,7 @@ import (
 
 var (
 	codeRegexp    = regexp.MustCompile("(?s:```(.+?)```)")
-	imgRegexp     = regexp.MustCompile(`(https?://[\w./]+/[\w./]+\.(jpg|jpe|jpeg|gif|png))`)
+	imgRegexp     = regexp.MustCompile(`(https?://[\w./:]+/[\w./]+\.(jpg|jpe|jpeg|gif|png))`)
 	gistRegexp    = regexp.MustCompile(`(https?://gist\.github\.com/([a-zA-Z0-9-]+/)?[\d]+)`)
 	mentionRegexp = regexp.MustCompile(`\B@([a-zA-Z0-9\p{Han}]{1,32})\s?`)
 	urlRegexp     = regexp.MustCompile(`([^;"='>])(https?://[^\s<]+[^\s<.)])`)

@@ -11,7 +11,7 @@ Site:
     Name: "youBBS"
     Desc: "Yet another bbs"
     AdminEmail: ""
-    MainDomain: "https://www.youbbs.org"
+    MainDomain: "http://localhost:8082"
     MainNodeIds: "1,2,3"
     HomeShowNum: 20
     PageShowNum: 20
