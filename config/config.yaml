@@ -1,5 +1,5 @@
 Main:
-    ListenAddr: "localhost"
+    ListenAddr: "127.0.0.1"
     ListenPort: 8082
     PubDir: "static"
     ViewDir: "view/default"
@@ -11,7 +11,7 @@ Site:
     Name: "youBBS"
     Desc: "Yet another bbs"
     AdminEmail: ""
-    MainDomain: "http://localhost:8082"
+    MainDomain: "http://127.0.0.1:8082"
     MainNodeIds: "1,2,3"
     HomeShowNum: 20
     PageShowNum: 20
