@@ -15,9 +15,20 @@ go get github.com/ego008/goyoubbs
 - 站内搜索标题、内容
 - 内容里链接点击计数
 
-## 简单安装
+## 快速使用
 
-如果你没有接触过golang 按照下面步骤也能快速部署
+即使你没有接触过golang， 按照下面步骤也能快速部署
+
+以linux 系统为例，依次输入下面几行命令即可：
+
+```
+wget https://github.com/ego008/goyoubbs/archive/master.zip
+unzip master.zip
+cd goyoubbs-master
+./goyoubbs_linux
+```
+
+### 详细步骤
 
 1）下载并解压 https://github.com/ego008/goyoubbs/archive/master.zip
 
