@@ -1,5 +1,7 @@
 Main:
     ListenAddr: "127.0.0.1"
+    Domain: "ssl5.youbbs.org"
+    HttpsOn: true
     ListenPort: 8082
     PubDir: "static"
     ViewDir: "view/default"
@@ -9,9 +11,9 @@ Main:
     OldSiteDomain: ""
 Site:
     Name: "youBBS"
-    Desc: "Yet another bbs"
+    Desc: "Yet another bbs in go"
     AdminEmail: ""
-    MainDomain: "http://127.0.0.1:8082"
+    MainDomain: "https://ssl5.youbbs.org"
     MainNodeIds: "1,2,3"
     HomeShowNum: 20
     PageShowNum: 20

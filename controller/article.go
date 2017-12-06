@@ -431,6 +431,14 @@ func (h *BaseHandler) ArticleDetail(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(`{"retcode":404,"retmsg":"not found"}`))
 		return
 	}
+
+	// Authorized
+	if h.App.Cf.Site.Authorized && currentUser.Flag < 5 {
+		w.WriteHeader(http.StatusUnauthorized)
+		w.Write([]byte(`{"retcode":401,"retmsg":"Unauthorized"}`))
+		return
+	}
+
 	cobj.Articles = db.Zget("category_article_num", youdb.I2b(cobj.Id)).Uint64()
 	pageInfo := model.CommentList(db, cmd, "article_comment:"+aid, key, h.App.Cf.Site.CommentListNum)
 

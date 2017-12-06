@@ -10,9 +10,7 @@ import (
 	"github.com/ego008/goyoubbs/util"
 	"github.com/ego008/youdb"
 	"github.com/weint/httpclient"
-	"io"
 	"io/ioutil"
-	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -293,52 +291,4 @@ func (h *BaseHandler) GetLocal() error {
 	}
 	fmt.Println("local done")
 	return nil
-}
-
-func (h *BaseHandler) DelOldData() {
-	db := h.App.Db
-	for _, tb := range tbs {
-		db.HdelBucket("old_data:" + tb)
-	}
-}
-
-func downloadFromUrl(url string) (string, int) {
-	// fmt.Println("url:", url)
-	tokens := strings.Split(url, "/")
-	fileName := tokens[len(tokens)-1]
-	newFilePath := "static/avatar/" + fileName
-
-	if _, err := os.Stat(newFilePath); err == nil {
-		// path exists
-		return newFilePath, 0
-	}
-
-	hc := httpclient.NewHttpClientRequest("GET", url)
-	hc.SetTimeout(600 * time.Second)
-	resp, err := hc.Response()
-	defer resp.Body.Close()
-	if err != nil {
-		fmt.Println("Error while downloading", url, "-", err)
-		return "", 1
-	}
-	if resp.StatusCode != 200 {
-		fmt.Println("qiniu resp.StatusCode != 200", resp.StatusCode)
-		if resp.StatusCode == 404 {
-			return "", 404
-		}
-		return "", 3
-	}
-
-	//fmt.Println("newFilePath", newFilePath)
-	out, err := os.Create(newFilePath)
-	defer out.Close()
-
-	nb, err := io.Copy(out, resp.Body)
-	if err != nil {
-		fmt.Println("Error while downloading", url, "-", err)
-		return "", 2
-	}
-	fmt.Println(nb, "bytes downloaded.")
-
-	return newFilePath, 0
 }

@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"crypto/tls"
 	"flag"
 	"github.com/ego008/goyoubbs/cronjob"
 	"github.com/ego008/goyoubbs/getold"
@@ -9,6 +10,8 @@ import (
 	"github.com/ego008/goyoubbs/system"
 	"goji.io"
 	"goji.io/pat"
+	"golang.org/x/crypto/acme/autocert"
+	"golang.org/x/net/http2"
 	"log"
 	"net/http"
 	"os"
@@ -16,18 +19,19 @@ import (
 	"strconv"
 	"syscall"
 	"time"
+	"xi2.org/x/httpgzip"
 )
 
 func main() {
 	configFile := flag.String("config", "config/config.yaml", "full path of config.yaml file")
-	getOldSite := flag.String("getoldsite", "0", "get or not old site, 0 or 1, 2, 3")
+	getOldSite := flag.String("getoldsite", "0", "get or not old site, 0 or 1, 2")
 	flag.Parse()
 
 	c := system.LoadConfig(*configFile)
 	app := &system.Application{}
 	app.Init(c, os.Args[0])
 
-	if *getOldSite == "1" || *getOldSite == "2" || *getOldSite == "3" {
+	if *getOldSite == "1" || *getOldSite == "2" {
 		bh := &getold.BaseHandler{
 			App: app,
 		}
@@ -35,8 +39,6 @@ func main() {
 			bh.GetRemote()
 		} else if *getOldSite == "2" {
 			bh.GetLocal()
-		} else if *getOldSite == "3" {
-			bh.DelOldData()
 		}
 		app.Close()
 		return
@@ -58,10 +60,7 @@ func main() {
 
 	root.Handle(pat.New("/*"), router.NewRouter(app))
 
-	listenAddr := app.Cf.Main.ListenAddr + ":" + strconv.Itoa(app.Cf.Main.ListenPort)
-	log.Println("Web server Listen to", listenAddr)
-
-	// normal
+	// normal http
 	// http.ListenAndServe(listenAddr, root)
 
 	// graceful
@@ -69,23 +68,53 @@ func main() {
 	stopChan := make(chan os.Signal, 1)
 	signal.Notify(stopChan, os.Interrupt, syscall.SIGTERM, syscall.SIGINT)
 
-	srv := &http.Server{Addr: listenAddr, Handler: root}
+	var srv *http.Server
 
-	go func() {
-		// service connections
-		if err := srv.ListenAndServe(); err != nil {
-			log.Printf("listen: %s\n", err)
+	if app.Cf.Main.HttpsOn {
+		// https
+		log.Println("Register sll for domain:", app.Cf.Main.Domain)
+
+		certManager := autocert.Manager{
+			Prompt:     autocert.AcceptTOS,
+			HostPolicy: autocert.HostWhitelist(app.Cf.Main.Domain),
+			Cache:      autocert.DirCache("certs"),
 		}
-	}()
+
+		srv = &http.Server{
+			Addr:    ":https",
+			Handler: httpgzip.NewHandler(root, nil),
+			TLSConfig: &tls.Config{
+				GetCertificate: certManager.GetCertificate,
+				NextProtos:     []string{http2.NextProtoTLS, "http/1.1"},
+			},
+			MaxHeaderBytes: 100 << 20, // MB
+		}
+
+		go func() {
+			log.Fatal(srv.ListenAndServeTLS("", ""))
+		}()
+
+		log.Println("Web server Listen to", "https://"+app.Cf.Main.Domain)
+
+	} else {
+		// http
+		listenAddr := app.Cf.Main.ListenAddr + ":" + strconv.Itoa(app.Cf.Main.ListenPort)
+
+		srv = &http.Server{Addr: listenAddr, Handler: root}
+		go func() {
+			log.Fatal(srv.ListenAndServe())
+		}()
+
+		log.Println("Web server Listen to", "http://"+listenAddr)
+	}
 
 	<-stopChan // wait for SIGINT
 	log.Println("Shutting down server...")
 
 	// shut down gracefully, but wait no longer than 10 seconds before halting
-	ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
 	srv.Shutdown(ctx)
 	app.Close()
 
 	log.Println("Server gracefully stopped")
-
 }

@@ -9,10 +9,14 @@ import (
 	"github.com/gorilla/securecookie"
 	"github.com/qiniu/api.v7/storage"
 	"github.com/weint/config"
+	"net/url"
+	"strings"
 )
 
 type MainConf struct {
 	ListenAddr     string
+	Domain         string // 若启用https 则该domain 为注册的域名，eg: domain.com、www.domain.com
+	HttpsOn        bool
 	ListenPort     int
 	PubDir         string
 	ViewDir        string
@@ -28,7 +32,7 @@ type SiteConf struct {
 	Name              string
 	Desc              string
 	AdminEmail        string
-	MainDomain        string
+	MainDomain        string // 上传图片后添加网址前缀, eg: http://domian.com 、http://234.21.35.89:8082
 	MainNodeIds       string
 	HomeShowNum       int
 	PageShowNum       int
@@ -80,11 +84,26 @@ func (app *Application) Init(c *config.Engine, currentFilePath string) {
 
 	mcf := &MainConf{}
 	c.GetStruct("Main", mcf)
+
+	// check domain
+	if strings.HasPrefix(mcf.Domain, "http") {
+		dm, err := url.Parse(mcf.Domain)
+		if err != nil {
+			log.Fatal("domain fmt err", err)
+		}
+		mcf.Domain = dm.Host
+	} else {
+		mcf.Domain = strings.Trim(mcf.Domain, "/")
+	}
+
 	scf := &SiteConf{}
 	c.GetStruct("Site", scf)
 	scf.GoVersion = runtime.Version()
 	fMd5, _ := util.HashFileMD5(currentFilePath)
 	scf.MD5Sums = fMd5
+	scf.MainDomain = strings.Trim(scf.MainDomain, "/")
+	log.Println("MainDomain:", scf.MainDomain)
+
 	app.Cf = &AppConf{mcf, scf}
 	db, err := youdb.Open(mcf.Youdb)
 	if err != nil {
