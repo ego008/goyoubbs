@@ -14,10 +14,10 @@ import (
 )
 
 type MainConf struct {
-	ListenAddr     string
-	Domain         string // 若启用https 则该domain 为注册的域名，eg: domain.com、www.domain.com
+	HttpPort       int
 	HttpsOn        bool
-	ListenPort     int
+	Domain         string // 若启用https 则该domain 为注册的域名，eg: domain.com、www.domain.com
+	HttpsPort      int
 	PubDir         string
 	ViewDir        string
 	Youdb          string
@@ -37,6 +37,7 @@ type SiteConf struct {
 	HomeShowNum       int
 	PageShowNum       int
 	TagShowNum        int
+	CategoryShowNum   int
 	TitleMaxLen       int
 	ContentMaxLen     int
 	PostInterval      int
@@ -51,7 +52,12 @@ type SiteConf struct {
 	QQClientID        int
 	QQClientSecret    string
 	WeiboClientID     int
-	WeiboClientSecret string
+	WeiboClientSecret string // eg: "jpg,jpeg,gif,zip,pdf"
+	UploadSuffix      string
+	UploadImgOnly     bool
+	UploadImgResize   bool
+	UploadMaxSize     int
+	UploadMaxSizeByte int64
 	QiniuAccessKey    string
 	QiniuSecretKey    string
 	QiniuDomain       string
@@ -103,6 +109,10 @@ func (app *Application) Init(c *config.Engine, currentFilePath string) {
 	scf.MD5Sums = fMd5
 	scf.MainDomain = strings.Trim(scf.MainDomain, "/")
 	log.Println("MainDomain:", scf.MainDomain)
+	if scf.UploadMaxSize < 1 {
+		scf.UploadMaxSize = 1
+	}
+	scf.UploadMaxSizeByte = int64(scf.UploadMaxSize) << 20
 
 	app.Cf = &AppConf{mcf, scf}
 	db, err := youdb.Open(mcf.Youdb)

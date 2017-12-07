@@ -14,7 +14,7 @@ import (
 )
 
 var imgTable = map[string]string{
-	"image/jpeg": "jpg",
+	"image/jpeg": "jpeg",
 	"image/jpg":  "jpg",
 	"image/gif":  "gif",
 	"image/png":  "png",
@@ -38,8 +38,8 @@ func GetImageObj2(buff *bytes.Buffer) (image.Image, error) {
 func GetImageObj(buff *bytes.Buffer) (image.Image, error) {
 	var img image.Image
 	var err error
-	filetype := http.DetectContentType(buff.Bytes()[:512])
-	switch filetype {
+	fileType := http.DetectContentType(buff.Bytes()[:512])
+	switch fileType {
 	case "image/jpeg", "image/jpg":
 		img, err = jpeg.Decode(bytes.NewReader(buff.Bytes()))
 	case "image/gif":

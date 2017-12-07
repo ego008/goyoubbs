@@ -1,8 +1,8 @@
 Main:
-    ListenAddr: "127.0.0.1"
-    Domain: ""
+    HttpPort: 8082
     HttpsOn: false
-    ListenPort: 8082
+    Domain: ""
+    HttpsPort: 443
     PubDir: "static"
     ViewDir: "view/default"
     Youdb: "mydata.db"
@@ -14,10 +14,11 @@ Site:
     Desc: "Yet another bbs in go"
     AdminEmail: ""
     MainDomain: "http://127.0.0.1:8082"
-    MainNodeIds: "1,2,3"
+    MainNodeIds: "1,2,3,4,5,6,7,8,9,10"
     HomeShowNum: 20
     PageShowNum: 20
     TagShowNum: 20
+    CategoryShowNum: 20
     TitleMaxLen: 180
     ContentMaxLen: 9000
     PostInterval: 60
@@ -26,13 +27,17 @@ Site:
     Authorized: false
     RegReview: false
     CloseReg: false
-    AutoDataBackup: true
+    AutoDataBackup: false
     AutoGetTag: true
     GetTagApi: "http://youbbs.sinaapp.com/fencigoapi.php"
     QQClientID: 0
     QQClientSecret: ""
     WeiboClientID: 0
     WeiboClientSecret: ""
+    UploadSuffix: ""
+    UploadImgOnly: false
+    UploadImgResize: false
+    UploadMaxSize: 50
     QiniuAccessKey: ""
     QiniuSecretKey: ""
     QiniuDomain: ""

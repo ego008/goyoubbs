@@ -350,8 +350,8 @@ func (h *BaseHandler) ArticleHomeList(w http.ResponseWriter, r *http.Request) {
 	evn.CurrentUser = currentUser
 	evn.ShowSideAd = true
 	evn.PageName = "home"
-	evn.HotNodes = model.CategoryHot(db, 20)
-	evn.NewestNodes = model.CategoryNewest(db, 20)
+	evn.HotNodes = model.CategoryHot(db, h.App.Cf.Site.CategoryShowNum)
+	evn.NewestNodes = model.CategoryNewest(db, h.App.Cf.Site.CategoryShowNum)
 
 	evn.SiteInfo = si
 	evn.PageInfo = pageInfo
@@ -474,8 +474,8 @@ func (h *BaseHandler) ArticleDetail(w http.ResponseWriter, r *http.Request) {
 	evn.CurrentUser = currentUser
 	evn.ShowSideAd = true
 	evn.PageName = "article_detail"
-	evn.HotNodes = model.CategoryHot(db, 20)
-	evn.NewestNodes = model.CategoryNewest(db, 20)
+	evn.HotNodes = model.CategoryHot(db, h.App.Cf.Site.CategoryShowNum)
+	evn.NewestNodes = model.CategoryNewest(db, h.App.Cf.Site.CategoryShowNum)
 
 	author, _ := model.UserGetById(db, aobj.Uid)
 	viewsNum, _ := db.Hincr("article_views", youdb.I2b(aobj.Id), 1)

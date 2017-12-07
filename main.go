@@ -81,31 +81,37 @@ func main() {
 		}
 
 		srv = &http.Server{
-			Addr:    ":https",
+			Addr:    ":" + strconv.Itoa(app.Cf.Main.HttpsPort),
 			Handler: httpgzip.NewHandler(root, nil),
 			TLSConfig: &tls.Config{
 				GetCertificate: certManager.GetCertificate,
 				NextProtos:     []string{http2.NextProtoTLS, "http/1.1"},
 			},
-			MaxHeaderBytes: 100 << 20, // MB
+			MaxHeaderBytes: int(app.Cf.Site.UploadMaxSizeByte),
 		}
 
 		go func() {
 			log.Fatal(srv.ListenAndServeTLS("", ""))
 		}()
 
-		log.Println("Web server Listen to", "https://"+app.Cf.Main.Domain)
+		log.Println("Web server Listen port", app.Cf.Main.HttpsPort)
+		log.Println("Web server URL", "https://"+app.Cf.Main.Domain)
+
+		// rewrite
+		go func() {
+			if err := http.ListenAndServe(":"+strconv.Itoa(app.Cf.Main.HttpPort), http.HandlerFunc(redirectHandler)); err != nil {
+				log.Println("Http2https server failed ", err)
+			}
+		}()
 
 	} else {
 		// http
-		listenAddr := app.Cf.Main.ListenAddr + ":" + strconv.Itoa(app.Cf.Main.ListenPort)
-
-		srv = &http.Server{Addr: listenAddr, Handler: root}
+		srv = &http.Server{Addr: ":" + strconv.Itoa(app.Cf.Main.HttpPort), Handler: root}
 		go func() {
 			log.Fatal(srv.ListenAndServe())
 		}()
 
-		log.Println("Web server Listen to", "http://"+listenAddr)
+		log.Println("Web server Listen port", app.Cf.Main.HttpPort)
 	}
 
 	<-stopChan // wait for SIGINT
@@ -117,4 +123,14 @@ func main() {
 	app.Close()
 
 	log.Println("Server gracefully stopped")
+}
+
+func redirectHandler(w http.ResponseWriter, r *http.Request) {
+	target := "https://" + r.Host + r.URL.Path
+	if len(r.URL.RawQuery) > 0 {
+		target += "?" + r.URL.RawQuery
+	}
+	// consider HSTS if your clients are browsers
+	w.Header().Set("Connection", "close")
+	http.Redirect(w, r, target, 301)
 }
