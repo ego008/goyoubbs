@@ -10,6 +10,7 @@ import (
 	"github.com/ego008/goyoubbs/getold"
 	"github.com/ego008/goyoubbs/router"
 	"github.com/ego008/goyoubbs/system"
+	"github.com/xi2/httpgzip"
 	"goji.io"
 	"goji.io/pat"
 	"golang.org/x/crypto/acme/autocert"
@@ -23,7 +24,6 @@ import (
 	"strconv"
 	"syscall"
 	"time"
-	"xi2.org/x/httpgzip"
 )
 
 func main() {
