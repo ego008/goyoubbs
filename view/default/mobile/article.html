@@ -144,7 +144,7 @@
     <div class="c"></div>
 </div>
 <div class="main-box">
-    <form action="#new-comment" method="post">
+    <form action="#new-comment" method="POST" enctype="multipart/form-data">
         <p><textarea id="id-content" name="content" class="comment-text mll wb96"></textarea></p>
         <div class="c"></div>
 
@@ -181,6 +181,7 @@
                     url: "/content/preview",
                     data: JSON.stringify({"act": "preview", "content": content}),
                     dataType: "json",
+                    contentType: "application/json",
                     success: function(data){
                         $("#id_preview").html(data.html);
                         $("#id_preview").addClass("previews");
@@ -196,6 +197,7 @@
             }else{
                 $("#id-content").focus();
             }
+            return false;
         });
 
         $("#btn-submit").click(function(){
@@ -207,6 +209,7 @@
                     url: "/t/{{.Aobj.Id}}",
                     data: JSON.stringify({"act": "comment_submit", "content": content}),
                     dataType: "json",
+                    contentType: "application/json",
                     success: function(data){
                         if(data.retcode == 200) {
                             location.reload();
@@ -219,6 +222,7 @@
             }else{
                 $("#id-content").focus();
             }
+            return false;
         });
 
         $('#file_upload').uploadifive({
