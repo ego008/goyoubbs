@@ -38,6 +38,7 @@ func (h *BaseHandler) CategoryDetail(w http.ResponseWriter, r *http.Request) {
 	}
 
 	db := h.App.Db
+	scf := h.App.Cf.Site
 	cobj, err := model.CategoryGetById(db, cid)
 	if err != nil {
 		w.Write([]byte(err.Error()))
@@ -52,7 +53,7 @@ func (h *BaseHandler) CategoryDetail(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	cobj.Articles = db.Zget("category_article_num", youdb.I2b(cobj.Id)).Uint64()
-	pageInfo := model.ArticleList(db, cmd, "category_article_timeline:"+cid, key, score, h.App.Cf.Site.HomeShowNum)
+	pageInfo := model.ArticleList(db, cmd, "category_article_timeline:"+cid, key, score, scf.HomeShowNum, scf.TimeZone)
 
 	type pageData struct {
 		PageData
@@ -63,8 +64,8 @@ func (h *BaseHandler) CategoryDetail(w http.ResponseWriter, r *http.Request) {
 	tpl := h.CurrentTpl(r)
 
 	evn := &pageData{}
-	evn.SiteCf = h.App.Cf.Site
-	evn.Title = cobj.Name + " - " + h.App.Cf.Site.Name
+	evn.SiteCf = scf
+	evn.Title = cobj.Name + " - " + scf.Name
 	evn.Keywords = cobj.Name
 	evn.Description = cobj.About
 	evn.IsMobile = tpl == "mobile"
@@ -72,8 +73,8 @@ func (h *BaseHandler) CategoryDetail(w http.ResponseWriter, r *http.Request) {
 	evn.CurrentUser = currentUser
 	evn.ShowSideAd = true
 	evn.PageName = "category_detail"
-	evn.HotNodes = model.CategoryHot(db, h.App.Cf.Site.CategoryShowNum)
-	evn.NewestNodes = model.CategoryNewest(db, h.App.Cf.Site.CategoryShowNum)
+	evn.HotNodes = model.CategoryHot(db, scf.CategoryShowNum)
+	evn.NewestNodes = model.CategoryNewest(db, scf.CategoryShowNum)
 
 	evn.Cobj = cobj
 	evn.PageInfo = pageInfo

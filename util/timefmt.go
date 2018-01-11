@@ -5,7 +5,8 @@ import (
 	"time"
 )
 
-func TimeFmt(tp interface{}, sample string) string {
+func TimeFmt(tp interface{}, sample string, tz int) string {
+	offset := int64(time.Duration(tz) * time.Hour)
 	var t int64
 	switch tp.(type) {
 	case uint64:
@@ -22,7 +23,7 @@ func TimeFmt(tp interface{}, sample string) string {
 	if len(sample) == 0 {
 		sample = "2006-01-02 15:04:05"
 	}
-	tm := time.Unix(t, 0)
+	tm := time.Unix(t, offset).UTC()
 	return tm.Format(sample)
 }
 

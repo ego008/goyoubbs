@@ -27,6 +27,7 @@ func (h *BaseHandler) TagDetail(w http.ResponseWriter, r *http.Request) {
 	}
 
 	db := h.App.Db
+	scf := h.App.Cf.Site
 	rs := db.Hget("tag", []byte(tagLow))
 	if rs.State != "ok" {
 		w.Write([]byte(`{"retcode":404,"retmsg":"not found"}`))
@@ -35,7 +36,7 @@ func (h *BaseHandler) TagDetail(w http.ResponseWriter, r *http.Request) {
 
 	currentUser, _ := h.CurrentUser(w, r)
 
-	pageInfo := model.UserArticleList(db, cmd, "tag:"+tagLow, key, h.App.Cf.Site.PageShowNum)
+	pageInfo := model.UserArticleList(db, cmd, "tag:"+tagLow, key, scf.PageShowNum, scf.TimeZone)
 
 	type tagDetail struct {
 		Name   string
@@ -50,8 +51,8 @@ func (h *BaseHandler) TagDetail(w http.ResponseWriter, r *http.Request) {
 	tpl := h.CurrentTpl(r)
 
 	evn := &pageData{}
-	evn.SiteCf = h.App.Cf.Site
-	evn.Title = tag + " - " + h.App.Cf.Site.Name
+	evn.SiteCf = scf
+	evn.Title = tag + " - " + scf.Name
 	evn.Keywords = tag
 	evn.Description = tag
 	evn.IsMobile = tpl == "mobile"
@@ -59,8 +60,8 @@ func (h *BaseHandler) TagDetail(w http.ResponseWriter, r *http.Request) {
 	evn.CurrentUser = currentUser
 	evn.ShowSideAd = true
 	evn.PageName = "category_detail"
-	evn.HotNodes = model.CategoryHot(db, h.App.Cf.Site.CategoryShowNum)
-	evn.NewestNodes = model.CategoryNewest(db, h.App.Cf.Site.CategoryShowNum)
+	evn.HotNodes = model.CategoryHot(db, scf.CategoryShowNum)
+	evn.NewestNodes = model.CategoryNewest(db, scf.CategoryShowNum)
 
 	evn.Tag = tagDetail{
 		Name:   tag,

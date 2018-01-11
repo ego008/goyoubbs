@@ -184,21 +184,22 @@ func (h *BaseHandler) UserNotification(w http.ResponseWriter, r *http.Request) {
 	}
 
 	db := h.App.Db
+	scf := h.App.Cf.Site
 
 	tpl := h.CurrentTpl(r)
 
 	evn := &pageData{}
-	evn.SiteCf = h.App.Cf.Site
-	evn.Title = "站内提醒 - " + h.App.Cf.Site.Name
+	evn.SiteCf = scf
+	evn.Title = "站内提醒 - " + scf.Name
 	evn.IsMobile = tpl == "mobile"
 
 	evn.CurrentUser = currentUser
 	evn.ShowSideAd = true
 	evn.PageName = "user_notification"
-	evn.HotNodes = model.CategoryHot(db, h.App.Cf.Site.CategoryShowNum)
-	evn.NewestNodes = model.CategoryNewest(db, h.App.Cf.Site.CategoryShowNum)
+	evn.HotNodes = model.CategoryHot(db, scf.CategoryShowNum)
+	evn.NewestNodes = model.CategoryNewest(db, scf.CategoryShowNum)
 
-	evn.PageInfo = model.ArticleNotificationList(db, currentUser.Notice)
+	evn.PageInfo = model.ArticleNotificationList(db, currentUser.Notice, scf.TimeZone)
 
 	h.Render(w, tpl, evn, "layout.html", "notification.html")
 }
@@ -229,6 +230,7 @@ func (h *BaseHandler) UserDetail(w http.ResponseWriter, r *http.Request) {
 	}
 
 	db := h.App.Db
+	scf := h.App.Cf.Site
 
 	uid := pat.Param(r, "uid")
 	uidi, err := strconv.ParseUint(uid, 10, 64)
@@ -266,11 +268,11 @@ func (h *BaseHandler) UserDetail(w http.ResponseWriter, r *http.Request) {
 	if act == "reply" {
 		tb := "user_article_reply:" + uid
 		// pageInfo = model.UserArticleList(db, cmd, tb, key, h.App.Cf.Site.PageShowNum)
-		pageInfo = model.ArticleList(db, "z"+cmd, tb, key, score, h.App.Cf.Site.PageShowNum)
+		pageInfo = model.ArticleList(db, "z"+cmd, tb, key, score, scf.PageShowNum, scf.TimeZone)
 	} else {
 		act = "post"
 		tb := "user_article_timeline:" + uid
-		pageInfo = model.UserArticleList(db, "h"+cmd, tb, key, h.App.Cf.Site.PageShowNum)
+		pageInfo = model.UserArticleList(db, "h"+cmd, tb, key, scf.PageShowNum, scf.TimeZone)
 	}
 
 	type userDetail struct {
@@ -287,8 +289,8 @@ func (h *BaseHandler) UserDetail(w http.ResponseWriter, r *http.Request) {
 	tpl := h.CurrentTpl(r)
 
 	evn := &pageData{}
-	evn.SiteCf = h.App.Cf.Site
-	evn.Title = uobj.Name + " - " + h.App.Cf.Site.Name
+	evn.SiteCf = scf
+	evn.Title = uobj.Name + " - " + scf.Name
 	evn.Keywords = uobj.Name
 	evn.Description = uobj.About
 	evn.IsMobile = tpl == "mobile"
@@ -296,13 +298,13 @@ func (h *BaseHandler) UserDetail(w http.ResponseWriter, r *http.Request) {
 	evn.CurrentUser = currentUser
 	evn.ShowSideAd = true
 	evn.PageName = "category_detail"
-	evn.HotNodes = model.CategoryHot(db, h.App.Cf.Site.CategoryShowNum)
-	evn.NewestNodes = model.CategoryNewest(db, h.App.Cf.Site.CategoryShowNum)
+	evn.HotNodes = model.CategoryHot(db, scf.CategoryShowNum)
+	evn.NewestNodes = model.CategoryNewest(db, scf.CategoryShowNum)
 
 	evn.Act = act
 	evn.Uobj = userDetail{
 		User:       uobj,
-		RegTimeFmt: util.TimeFmt(uobj.RegTime, "2006-01-02 15:04"),
+		RegTimeFmt: util.TimeFmt(uobj.RegTime, "2006-01-02 15:04", scf.TimeZone),
 	}
 	evn.PageInfo = pageInfo
 

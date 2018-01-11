@@ -275,7 +275,8 @@ func (h *BaseHandler) ArticleHomeList(w http.ResponseWriter, r *http.Request) {
 	}
 
 	db := h.App.Db
-	pageInfo := model.ArticleList(db, cmd, "article_timeline", key, score, h.App.Cf.Site.HomeShowNum)
+	scf := h.App.Cf.Site
+	pageInfo := model.ArticleList(db, cmd, "article_timeline", key, score, scf.HomeShowNum, scf.TimeZone)
 
 	type siteInfo struct {
 		Days     int
@@ -341,17 +342,17 @@ func (h *BaseHandler) ArticleHomeList(w http.ResponseWriter, r *http.Request) {
 
 	tpl := h.CurrentTpl(r)
 	evn := &pageData{}
-	evn.SiteCf = h.App.Cf.Site
-	evn.Title = h.App.Cf.Site.Name
+	evn.SiteCf = scf
+	evn.Title = scf.Name
 	evn.Keywords = evn.Title
-	evn.Description = h.App.Cf.Site.Desc
+	evn.Description = scf.Desc
 	evn.IsMobile = tpl == "mobile"
 	currentUser, _ := h.CurrentUser(w, r)
 	evn.CurrentUser = currentUser
 	evn.ShowSideAd = true
 	evn.PageName = "home"
-	evn.HotNodes = model.CategoryHot(db, h.App.Cf.Site.CategoryShowNum)
-	evn.NewestNodes = model.CategoryNewest(db, h.App.Cf.Site.CategoryShowNum)
+	evn.HotNodes = model.CategoryHot(db, scf.CategoryShowNum)
+	evn.NewestNodes = model.CategoryNewest(db, scf.CategoryShowNum)
 
 	evn.SiteInfo = si
 	evn.PageInfo = pageInfo
@@ -390,6 +391,7 @@ func (h *BaseHandler) ArticleDetail(w http.ResponseWriter, r *http.Request) {
 	}
 
 	db := h.App.Db
+	scf := h.App.Cf.Site
 	aobj, err := model.ArticleGetById(db, aid)
 	if err != nil {
 		w.Write([]byte(err.Error()))
@@ -433,14 +435,14 @@ func (h *BaseHandler) ArticleDetail(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Authorized
-	if h.App.Cf.Site.Authorized && currentUser.Flag < 5 {
+	if scf.Authorized && currentUser.Flag < 5 {
 		w.WriteHeader(http.StatusUnauthorized)
 		w.Write([]byte(`{"retcode":401,"retmsg":"Unauthorized"}`))
 		return
 	}
 
 	cobj.Articles = db.Zget("category_article_num", youdb.I2b(cobj.Id)).Uint64()
-	pageInfo := model.CommentList(db, cmd, "article_comment:"+aid, key, h.App.Cf.Site.CommentListNum)
+	pageInfo := model.CommentList(db, cmd, "article_comment:"+aid, key, scf.CommentListNum, scf.TimeZone)
 
 	type articleForDetail struct {
 		model.Article
@@ -465,8 +467,8 @@ func (h *BaseHandler) ArticleDetail(w http.ResponseWriter, r *http.Request) {
 
 	tpl := h.CurrentTpl(r)
 	evn := &pageData{}
-	evn.SiteCf = h.App.Cf.Site
-	evn.Title = aobj.Title + " - " + cobj.Name + " - " + h.App.Cf.Site.Name
+	evn.SiteCf = scf
+	evn.Title = aobj.Title + " - " + cobj.Name + " - " + scf.Name
 	evn.Keywords = aobj.Tags
 	evn.Description = cobj.Name + " - " + aobj.Title + " - " + aobj.Tags
 	evn.IsMobile = tpl == "mobile"
@@ -474,8 +476,8 @@ func (h *BaseHandler) ArticleDetail(w http.ResponseWriter, r *http.Request) {
 	evn.CurrentUser = currentUser
 	evn.ShowSideAd = true
 	evn.PageName = "article_detail"
-	evn.HotNodes = model.CategoryHot(db, h.App.Cf.Site.CategoryShowNum)
-	evn.NewestNodes = model.CategoryNewest(db, h.App.Cf.Site.CategoryShowNum)
+	evn.HotNodes = model.CategoryHot(db, scf.CategoryShowNum)
+	evn.NewestNodes = model.CategoryNewest(db, scf.CategoryShowNum)
 
 	author, _ := model.UserGetById(db, aobj.Uid)
 	viewsNum, _ := db.Hincr("article_views", youdb.I2b(aobj.Id), 1)
@@ -485,8 +487,8 @@ func (h *BaseHandler) ArticleDetail(w http.ResponseWriter, r *http.Request) {
 		Name:        author.Name,
 		Avatar:      author.Avatar,
 		Views:       viewsNum,
-		AddTimeFmt:  util.TimeFmt(aobj.AddTime, "2006-01-02 15:04"),
-		EditTimeFmt: util.TimeFmt(aobj.EditTime, "2006-01-02 15:04"),
+		AddTimeFmt:  util.TimeFmt(aobj.AddTime, "2006-01-02 15:04", scf.TimeZone),
+		EditTimeFmt: util.TimeFmt(aobj.EditTime, "2006-01-02 15:04", scf.TimeZone),
 	}
 
 	if len(aobj.Tags) > 0 {

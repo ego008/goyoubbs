@@ -34,6 +34,7 @@ type SiteConf struct {
 	AdminEmail        string
 	MainDomain        string // 上传图片后添加网址前缀, eg: http://domian.com 、http://234.21.35.89:8082
 	MainNodeIds       string
+	TimeZone          int
 	HomeShowNum       int
 	PageShowNum       int
 	TagShowNum        int
@@ -109,6 +110,9 @@ func (app *Application) Init(c *config.Engine, currentFilePath string) {
 	scf.MD5Sums = fMd5
 	scf.MainDomain = strings.Trim(scf.MainDomain, "/")
 	log.Println("MainDomain:", scf.MainDomain)
+	if scf.TimeZone < -12 || scf.TimeZone > 12 {
+		scf.TimeZone = 0
+	}
 	if scf.UploadMaxSize < 1 {
 		scf.UploadMaxSize = 1
 	}

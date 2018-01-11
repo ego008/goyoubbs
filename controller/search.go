@@ -23,6 +23,7 @@ func (h *BaseHandler) SearchDetail(w http.ResponseWriter, r *http.Request) {
 	qLow := strings.ToLower(q)
 
 	db := h.App.Db
+	scf := h.App.Cf.Site
 
 	where := "title"
 	if strings.HasPrefix(qLow, "c:") {
@@ -30,7 +31,7 @@ func (h *BaseHandler) SearchDetail(w http.ResponseWriter, r *http.Request) {
 		qLow = qLow[2:]
 	}
 
-	pageInfo := model.ArticleSearchList(db, where, qLow, h.App.Cf.Site.PageShowNum)
+	pageInfo := model.ArticleSearchList(db, where, qLow, scf.PageShowNum, scf.TimeZone)
 
 	type pageData struct {
 		PageData
@@ -41,15 +42,15 @@ func (h *BaseHandler) SearchDetail(w http.ResponseWriter, r *http.Request) {
 	tpl := h.CurrentTpl(r)
 
 	evn := &pageData{}
-	evn.SiteCf = h.App.Cf.Site
-	evn.Title = qLow + " - " + h.App.Cf.Site.Name
+	evn.SiteCf = scf
+	evn.Title = qLow + " - " + scf.Name
 	evn.IsMobile = tpl == "mobile"
 
 	evn.CurrentUser = currentUser
 	evn.ShowSideAd = true
 	evn.PageName = "category_detail"
-	evn.HotNodes = model.CategoryHot(db, h.App.Cf.Site.CategoryShowNum)
-	evn.NewestNodes = model.CategoryNewest(db, h.App.Cf.Site.CategoryShowNum)
+	evn.HotNodes = model.CategoryHot(db, scf.CategoryShowNum)
+	evn.NewestNodes = model.CategoryNewest(db, scf.CategoryShowNum)
 
 	evn.Q = qLow
 	evn.PageInfo = pageInfo

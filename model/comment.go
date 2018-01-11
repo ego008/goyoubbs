@@ -56,7 +56,7 @@ func CommentDelByKey(db *youdb.DB, aid string, cid uint64) error {
 	return db.Hdel("article_comment:"+aid, youdb.I2b(cid))
 }
 
-func CommentList(db *youdb.DB, cmd, tb, key string, limit int) CommentPageInfo {
+func CommentList(db *youdb.DB, cmd, tb, key string, limit, tz int) CommentPageInfo {
 	var items []CommentListItem
 	var citems []Comment
 	userMap := map[uint64]UserMini{}
@@ -108,7 +108,7 @@ func CommentList(db *youdb.DB, cmd, tb, key string, limit int) CommentPageInfo {
 				Name:       user.Name,
 				Avatar:     user.Avatar,
 				AddTime:    citem.AddTime,
-				AddTimeFmt: util.TimeFmt(citem.AddTime, "2006-01-02 15:04"),
+				AddTimeFmt: util.TimeFmt(citem.AddTime, "2006-01-02 15:04", tz),
 				ContentFmt: template.HTML(util.ContentFmt(db, citem.Content)),
 			}
 			items = append(items, item)
