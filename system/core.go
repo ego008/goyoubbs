@@ -24,6 +24,8 @@ type MainConf struct {
 	CookieSecure   bool
 	CookieHttpOnly bool
 	OldSiteDomain  string
+	TLSCrtFile     string
+	TLSKeyFile     string
 }
 
 type SiteConf struct {

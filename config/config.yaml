@@ -9,6 +9,8 @@ Main:
     CookieSecure: false
     CookieHttpOnly: true
     OldSiteDomain: ""
+    TLSCrtFile: ""
+    TLSKeyFile: ""
 Site:
     Name: "youBBS"
     Desc: "Yet another bbs in go"

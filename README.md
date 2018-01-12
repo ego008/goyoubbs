@@ -59,6 +59,7 @@ HttpsOn: true
 
 打开浏览器，输入网址 `https://yourdomain.com`
 
+Let’s Encrypt 停用 tls-sni 后上面开启HTTPS 的方式已不在适用，请移步 https://www.youbbs.org/t/2169
 
 ## 问题、建议、贡献
 
