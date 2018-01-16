@@ -11,6 +11,7 @@ import (
 	"github.com/xi2/httpgzip"
 	"goji.io"
 	"goji.io/pat"
+	"golang.org/x/crypto/acme/autocert"
 	"golang.org/x/net/http2"
 	"log"
 	"net/http"
@@ -50,6 +51,7 @@ func main() {
 	root := goji.NewMux()
 
 	mcf := app.Cf.Main
+	scf := app.Cf.Site
 
 	// static file server
 	staticPath := mcf.PubDir
@@ -82,12 +84,39 @@ func main() {
 
 		root.Use(stlAge)
 
+		tlsCf := &tls.Config{
+			NextProtos: []string{http2.NextProtoTLS, "http/1.1"},
+		}
+
+		if mcf.Domain != "" && mcf.TLSCrtFile == "" && mcf.TLSKeyFile == "" {
+
+			certManager := autocert.Manager{
+				Prompt:     autocert.AcceptTOS,
+				HostPolicy: autocert.HostWhitelist(mcf.Domain),
+				Cache:      autocert.DirCache("certs"),
+				Email:      scf.AdminEmail,
+			}
+			tlsCf.GetCertificate = certManager.GetCertificate
+			tlsCf.ServerName = mcf.Domain
+
+			go func() {
+				// 必须是 80 端口
+				log.Fatal(http.ListenAndServe(":http", certManager.HTTPHandler(nil)))
+			}()
+
+		} else {
+			// rewrite
+			go func() {
+				if err := http.ListenAndServe(":"+strconv.Itoa(mcf.HttpPort), http.HandlerFunc(redirectHandler)); err != nil {
+					log.Println("Http2https server failed ", err)
+				}
+			}()
+		}
+
 		srv = &http.Server{
-			Addr:    ":" + strconv.Itoa(mcf.HttpsPort),
-			Handler: httpgzip.NewHandler(root, nil),
-			TLSConfig: &tls.Config{
-				NextProtos: []string{http2.NextProtoTLS, "http/1.1"},
-			},
+			Addr:           ":" + strconv.Itoa(mcf.HttpsPort),
+			Handler:        httpgzip.NewHandler(root, nil),
+			TLSConfig:      tlsCf,
 			MaxHeaderBytes: int(app.Cf.Site.UploadMaxSizeByte),
 		}
 
@@ -98,13 +127,6 @@ func main() {
 
 		log.Println("Web server Listen port", mcf.HttpsPort)
 		log.Println("Web server URL", "https://"+mcf.Domain)
-
-		// rewrite
-		go func() {
-			if err := http.ListenAndServe(":"+strconv.Itoa(mcf.HttpPort), http.HandlerFunc(redirectHandler)); err != nil {
-				log.Println("Http2https server failed ", err)
-			}
-		}()
 
 	} else {
 		// http
