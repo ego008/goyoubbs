@@ -90,14 +90,15 @@ func main() {
 
 		if mcf.Domain != "" && mcf.TLSCrtFile == "" && mcf.TLSKeyFile == "" {
 
+			domains := strings.Split(mcf.Domain, ",")
 			certManager := autocert.Manager{
 				Prompt:     autocert.AcceptTOS,
-				HostPolicy: autocert.HostWhitelist(mcf.Domain),
+				HostPolicy: autocert.HostWhitelist(domains...),
 				Cache:      autocert.DirCache("certs"),
 				Email:      scf.AdminEmail,
 			}
 			tlsCf.GetCertificate = certManager.GetCertificate
-			tlsCf.ServerName = mcf.Domain
+			//tlsCf.ServerName = domains[0]
 
 			go func() {
 				// 必须是 80 端口
