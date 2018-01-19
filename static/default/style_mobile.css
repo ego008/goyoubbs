@@ -97,7 +97,7 @@ img.avatar {-moz-border-radius: 4px;border-radius: 4px;}
 
                 .detail-avatar {width:48px;height:48px;float:right;}
                 .detail-avatar img {border-radius: 4px;width:48px;height:48px;}
-                .topic-content {WORD-WRAP: break-word;}
+                .topic-content {WORD-WRAP: break-word;line-height: 1.5em;}
                 .topic-content img {display:block;margin-top:10px;max-width:100%;}
                 .topic-content embed {display:block;margin-top:10px;max-width:100%;}
                 .post-list {border-bottom: 1px solid #EFEFEF;padding:0 10px 0 10px;margin-bottom:10px;background: url("img/bg_item.png") repeat-x bottom center;}
@@ -136,7 +136,7 @@ img.avatar {-moz-border-radius: 4px;border-radius: 4px;}
 
                 .commonet-count {font-size: 12px;line-height: 12px;font-weight: 500;border-radius: 10px;display: inline-block;background-color: #E0E0E0;color: #808080;padding: 2px 5px 2px 5px;}
                 .comment-text {width: 95%; height: 150px;}
-                .commont-content {WORD-WRAP: break-word;}
+                .commont-content {WORD-WRAP: break-word;line-height: 1.5em;}
                 .commont-content img {display:block;margin-top:10px;max-width:100%;}
                 .commont-content embed {display:block;margin-top:10px;max-width:100%;}
                 .main-box-node .btn a {display:block;padding:4px 8px;font-size:12px;border:1px solid #ECECEC;float:left;margin:0 4px 6px 0;color:#666;background-color:#F9F9F9;white-space: nowrap;border-radius: 4px;}
