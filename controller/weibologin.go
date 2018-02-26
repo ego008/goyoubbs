@@ -115,13 +115,13 @@ func (h *BaseHandler) WeiboOauthCallback(w http.ResponseWriter, r *http.Request)
 	var nameLow string
 	i := 1
 	for {
-		nameLow = strings.ToLower(name)
+		nameLow = name + strconv.Itoa(i)
 		if db.Hget("user_name2uid", []byte(nameLow)).State == "ok" {
-			name = name + strconv.Itoa(i)
+			i++
 		} else {
+			name = nameLow
 			break
 		}
-		i++
 	}
 
 	userId, _ := db.HnextSequence("user")
@@ -167,7 +167,7 @@ func (h *BaseHandler) WeiboOauthCallback(w http.ResponseWriter, r *http.Request)
 	db.Hset("user_name2uid", []byte(nameLow), youdb.I2b(userId))
 	db.Hset("user_flag:"+strconv.Itoa(flag), youdb.I2b(uobj.Id), []byte(""))
 
-	obj := model.QQ{
+	obj := model.WeiBo{
 		Uid:    userId,
 		Name:   name,
 		Openid: wbUserID,
