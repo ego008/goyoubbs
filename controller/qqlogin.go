@@ -123,13 +123,13 @@ func (h *BaseHandler) QQOauthCallback(w http.ResponseWriter, r *http.Request) {
 	var nameLow string
 	i := 1
 	for {
-		nameLow = strings.ToLower(name)
+		nameLow = name + strconv.Itoa(i)
 		if db.Hget("user_name2uid", []byte(nameLow)).State == "ok" {
-			name = name + strconv.Itoa(i)
+			i++
 		} else {
+			name = nameLow
 			break
 		}
-		i++
 	}
 
 	userId, _ := db.HnextSequence("user")
