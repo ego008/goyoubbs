@@ -112,12 +112,12 @@ func (h *BaseHandler) WeiboOauthCallback(w http.ResponseWriter, r *http.Request)
 	if len(name) == 0 {
 		name = "wb"
 	}
-	var nameLow string
+	nameLow := strings.ToLower(name)
 	i := 1
 	for {
-		nameLow = name + strconv.Itoa(i)
 		if db.Hget("user_name2uid", []byte(nameLow)).State == "ok" {
 			i++
+			nameLow = name + strconv.Itoa(i)
 		} else {
 			name = nameLow
 			break
