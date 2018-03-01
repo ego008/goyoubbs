@@ -31,7 +31,8 @@ func ContentFmt(db *youdb.DB, input string) string {
 		input = codeRegexp.ReplaceAllStringFunc(input, func(m string) string {
 			m = strings.Trim(m, "```")
 			m = strings.Trim(m, "\n")
-			m = strings.TrimSpace(m)
+			//m = strings.TrimSpace(m)
+			m = strings.Replace(m, "&", "&amp;", -1)
 			m = strings.Replace(m, "<", "&lt;", -1)
 			m = strings.Replace(m, ">", "&gt;", -1)
 
