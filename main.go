@@ -158,7 +158,7 @@ func redirectHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	// consider HSTS if your clients are browsers
 	w.Header().Set("Connection", "close")
-	http.Redirect(w, r, target, 301)
+	http.Redirect(w, r, target, 302)
 }
 
 func stlAge(h http.Handler) http.Handler {
