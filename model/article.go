@@ -5,6 +5,7 @@ import (
 	"errors"
 	"github.com/ego008/goyoubbs/util"
 	"github.com/ego008/youdb"
+	"html"
 	"sort"
 	"strings"
 	"time"
@@ -667,6 +668,7 @@ func ArticleFeedList(db *youdb.DB, limit, tz int) []ArticleFeedListItem {
 			} else {
 				item.Des = article.Content
 			}
+			item.Des = html.EscapeString(item.Des)
 
 			items = append(items, item)
 		}
