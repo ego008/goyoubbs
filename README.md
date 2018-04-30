@@ -2,7 +2,7 @@
 GoXForum 基于youBBS做了若干调整
 
 ```
-go get github.com/goxforum/xforum
+go get github.com/goxforum/xforum/pkg
 ```
 
 ## 计划支持功能
