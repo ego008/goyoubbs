@@ -1,4 +1,4 @@
-# goxforum
+# Go-XForum
 GoXForum 基于youBBS做了若干调整
 
 ```
