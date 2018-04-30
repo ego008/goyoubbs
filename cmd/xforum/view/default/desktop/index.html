@@ -1,0 +1,52 @@
+{{ define "content" }}
+
+<div class="nav-title">
+    <div class="float-left fs14">
+        <a href="/">{{.SiteCf.Name}}</a>
+    </div>
+    {{if ge .CurrentUser.Flag 5}}
+    <div class="float-right"><a href="/newpost/1" class="newpostbtn">+发新帖</a></div>
+    {{end}}
+    <div class="c"></div>
+</div>
+
+<div class="main-box home-box-list">
+
+    {{range $_, $item := .PageInfo.Items}}
+    <div class="post-list">
+        <div class="item-avatar">
+            <a href="/member/{{$item.Uid}}">
+            <img src="/static/avatar/{{$item.Avatar}}.jpg" alt="{{$item.Name}}" />
+            </a></div>
+        <div class="item-content">
+            <h1><a href="/t/{{$item.Id}}">{{$item.Title}}</a></h1>
+            <span class="item-date"><a href="/n/{{$item.Cid}}">{{$item.Cname}}</a>  •  <a href="/member/{{$item.Uid}}">{{$item.Name}}</a>
+                • {{$item.EditTimeFmt}}
+                {{if $item.Comments}}
+                 • 最后回复 <a href="/member/{{$item.Ruid}}">{{$item.Rname}}</a>
+                {{end}}
+            </span>
+        </div>
+        {{if $item.Comments}}
+        <div class="item-count"><a href="/t/{{$item.Id}}#reply{{$item.Comments}}">{{$item.Comments}}</a></div>
+        {{end}}
+        <div class="c"></div>
+    </div>
+
+    {{end}}
+
+
+    <div class="pagination">
+        {{if .PageInfo.HasPrev}}
+        <a href="/?btn=prev&key={{.PageInfo.FirstKey}}&score={{.PageInfo.FirstScore}}" class="float-left">&laquo; 上一页</a>
+        {{end}}
+        {{if .PageInfo.HasNext}}
+        <a href="/?btn=next&key={{.PageInfo.LastKey}}&score={{.PageInfo.LastScore}}" class="float-right">下一页 &raquo;</a>
+        {{end}}
+        <div class="c"></div>
+    </div>
+
+</div>
+
+{{ end}}
+

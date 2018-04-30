@@ -1,0 +1,49 @@
+{{ define "content" }}
+
+<div class="nav-title">
+    <a href="/">{{.SiteCf.Name}}</a> &raquo; 标签：{{.Tag.Name}} ({{.Tag.Number}})
+</div>
+
+<div class="main-box home-box-list">
+
+    {{range $_, $item := .PageInfo.Items}}
+    <div class="post-list">
+        <div class="item-avatar">
+            <a href="/member/{{$item.Uid}}"><img src="/static/avatar/{{$item.Avatar}}.jpg" alt="{{$item.Name}}" /></a>
+        </div>
+        <div class="item-content">
+            <h1><a href="/t/{{$item.Id}}">{{$item.Title}}</a></h1>
+            <span class="item-date">
+                <a href="/n/{{$item.Cid}}">{{$item.Cname}}</a>
+                • {{$item.EditTimeFmt}}
+                {{if $item.Comments}}
+                • <a href="/member/{{$item.Ruid}}">{{$item.Rname}}</a>
+                {{else}}
+                • <a href="/member/{{$item.Uid}}">{{$item.Name}}</a>
+                {{end}}
+            </span>
+        </div>
+        {{if $item.Comments}}
+        <div class="item-count"><a href="/t/{{$item.Id}}#reply{{$item.Comments}}">{{$item.Comments}}</a></div>
+        {{end}}
+        <div class="c"></div>
+    </div>
+
+    {{end}}
+
+    <div class="pagination">
+        {{if .PageInfo.HasPrev}}
+        <a href="/tag/{{.Tag.Name}}?btn=prev&key={{.PageInfo.FirstKey}}" class="float-left">&laquo; 上一页</a>
+        {{end}}
+        {{if .PageInfo.HasNext}}
+        <a href="/tag/{{.Tag.Name}}?btn=next&key={{.PageInfo.LastKey}}" class="float-right">下一页 &raquo;</a>
+        {{end}}
+        <div class="c"></div>
+    </div>
+
+</div>
+
+
+
+{{ end}}
+

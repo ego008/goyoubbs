@@ -1,0 +1,83 @@
+{{ define "content" }}
+
+<div class="nav-title">
+    <a href="/">{{.SiteCf.Name}}</a> &raquo; 分类列表
+</div>
+
+<div class="main-box">
+
+    <ul style="margin-left: 30px;padding: 0;">
+    {{range $_, $item := .PageInfo.Items}}
+    <li style="margin-bottom: 8px;">
+        id:{{$item.Id}} - {{$item.Name}} - Articles: {{$item.Articles}} - Hidden: {{$item.Hidden}}
+        <a href="/n/{{$item.Id}}">查看</a>
+        <a href="/admin/category/list?cid={{$item.Id}}">编辑</a>
+    </li>
+    {{end}}
+    </ul>
+
+    <div class="pagination">
+        {{if .PageInfo.HasPrev}}
+        <a href="/admin/category/list?btn=prev&key={{.PageInfo.FirstKey}}" class="float-left">&laquo; 上一页</a>
+        {{end}}
+        {{if .PageInfo.HasNext}}
+        <a href="/admin/category/list?btn=next&key={{.PageInfo.LastKey}}" class="float-right">下一页 &raquo;</a>
+        {{end}}
+        <div class="c"></div>
+    </div>
+
+</div>
+
+<div class="nav-title">
+    <a href="/">{{.SiteCf.Name}}</a> &raquo; {{if .Cobj.Id}}修改{{else}}添加{{end}}分类
+</div>
+
+<div class="main-box">
+
+    <form action="" method="post" onsubmit="return form_post();">
+        <p>
+            <label><input type="checkbox" id="id-hidden" value="1" {{if .Cobj.Hidden}}checked="checked"{{end}} /> 隐藏</label>
+        </p>
+        <p>分类名称： <input type="text" class="sl w200" id="name" value="{{.Cobj.Name}}" /><br/>
+            分类简介： (255个字节以内)<br/>
+            <textarea class="ml wb96" id="about">{{.Cobj.About}}</textarea><br/>
+            <input type="submit" value=" 提交 " id="submit" class="textbtn" /></p>
+        <p class="grey fs12">注：分类添加后不能删除，只能修改。</p>
+    </form>
+
+</div>
+
+<script>
+
+    function form_post(){
+        var hidden = $("#id-hidden:checked").val();
+        var name = $('#name').val();
+        var about = $('#about').val();
+        var cid = '{{.Cobj.Id}}';
+        if(name){
+            $.ajax({
+                type: "POST",
+                url: "/admin/category/list",
+                data: JSON.stringify({'cid': parseInt(cid, 10), 'hidden': hidden, 'name': name, 'about': about}),
+                dataType: "json",
+                success: function(data){
+                    if(data.retcode==200){
+                        window.location.href = "/admin/category/list";
+                    }else{
+                        $.toast(data.retmsg);
+                    }
+                },
+                fail: function(errMsg) {
+                    $.toast(errMsg);
+                }
+            });
+        }else{
+            $.toast('分类名必填');
+        }
+        return false;
+    }
+
+</script>
+
+{{ end}}
+
