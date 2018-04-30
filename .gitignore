@@ -1,3 +1,4 @@
+static/avatar/*
 config.yaml
 debug
 *.db
