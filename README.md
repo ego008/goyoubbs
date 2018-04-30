@@ -1,9 +1,8 @@
-# goyoubbs
-
-golang 实现的youBBS 官方论坛&示例 https://www.youbbs.org
+# goxforum
+GoXForum 基于youBBS做了若干调整
 
 ```
-go get github.com/ego008/goyoubbs
+go get github.com/goxforum/xforum
 ```
 
 ## 轻论坛功能
@@ -87,7 +86,7 @@ Main:
 
 ## 问题、建议、贡献
 
-官方网站 https://www.youbbs.org
+官方网站 -
 
 
 
