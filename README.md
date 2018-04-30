@@ -82,7 +82,6 @@ Main:
     TLSKeyFile: "/root/ssl/domain.key"
 ```
 
-具体过程请移步 https://www.youbbs.org/t/2169
 
 ## 问题、建议、贡献
 
