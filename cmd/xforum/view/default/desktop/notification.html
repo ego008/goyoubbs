@@ -1,0 +1,38 @@
+{{ define "content" }}
+
+<div class="nav-title">
+    <div class="float-left fs14">
+        <a href="/">{{.SiteCf.Name}}</a> &raquo; 站内提醒  （ 有人在下面的文章回复或提起了你 ）
+    </div>
+    <div class="c"></div>
+</div>
+
+<div class="main-box home-box-list">
+
+    {{range $_, $item := .PageInfo.Items}}
+    <div class="post-list">
+        <div class="item-avatar">
+            <a href="/member/{{$item.Uid}}">
+            <img src="/static/avatar/{{$item.Avatar}}.jpg" alt="{{$item.Name}}" />
+            </a></div>
+        <div class="item-content">
+            <h1><a href="/t/{{$item.Id}}">{{$item.Title}}</a></h1>
+            <span class="item-date"><a href="/n/{{$item.Cid}}">{{$item.Cname}}</a>  •  <a href="/member/{{$item.Uid}}">{{$item.Name}}</a>
+                • {{$item.EditTimeFmt}}
+                {{if $item.Comments}}
+                 • 最后回复 <a href="/member/{{$item.Ruid}}">{{$item.Rname}}</a>
+                {{end}}
+            </span>
+        </div>
+        {{if $item.Comments}}
+        <div class="item-count"><a href="/t/{{$item.Id}}#reply{{$item.Comments}}">{{$item.Comments}}</a></div>
+        {{end}}
+        <div class="c"></div>
+    </div>
+
+    {{end}}
+
+</div>
+
+{{ end}}
+

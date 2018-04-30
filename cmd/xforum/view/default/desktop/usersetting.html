@@ -1,0 +1,259 @@
+{{ define "content" }}
+
+<a name="1"></a>
+<div class="nav-title"><a href="/">{{.SiteCf.Name}}</a> &raquo; 设置</div>
+<div class="main-box">
+    <form method="post" action="/setting#1" onsubmit="return form_base_post();">
+    <table cellpadding="5" cellspacing="8" border="0" width="100%" class="fs12">
+        <tbody><tr>
+            <td width="120" align="right">用户名</td>
+            <td width="auto" align="left">{{.Uobj.Name}}</td>
+        </tr>
+        <tr>
+            <td width="120" align="right">电子邮件</td>
+            <td width="auto" align="left"><input type="text" class="sl w200" id="email" value="{{.Uobj.Email}}" /> 不公开，仅供取回密码，务必正确填写且记住。</td>
+        </tr>
+        <tr>
+            <td width="120" align="right">个人网站</td>
+            <td width="auto" align="left"><input type="text" class="sl" id="url" value="{{.Uobj.Url}}" /> http://...</td>
+        </tr>
+        <tr>
+            <td width="120" align="right">个人简介</td>
+            <td width="auto" align="left"><textarea class="ml" id="about">{{.Uobj.About}}</textarea></td>
+        </tr>
+        <tr>
+            <td width="120" align="right"></td>
+            <td width="auto" align="left"><input type="submit" value="保存设置" name="submit" class="textbtn" /></td>
+        </tr>
+
+        </tbody></table>
+    </form>
+
+</div>
+
+<script>
+
+    function form_base_post(){
+        var email = $('#email').val();
+        var url = $('#url').val();
+        var about = $('#about').val();
+
+        $.ajax({
+            type: "POST",
+            url: "/setting",
+            data: JSON.stringify({'act': 'info', 'email': email, 'url': url, 'about': about}),
+            dataType: "json",
+            contentType: "application/json",
+            success: function(data){
+                $.toast(data.retmsg);
+            },
+            fail: function(errMsg) {
+                $.toast(errMsg);
+            }
+        });
+        return false;
+    }
+
+</script>
+
+<a name="2"></a>
+<div class="nav-title">设置头像</div>
+<div class="main-box">
+    <form action="/setting#2" enctype="multipart/form-data" method="post">
+    <input type="hidden" name="act" value="avatar" />
+    <input type="hidden" name="MAX_FILE_SIZE" value="300000" />
+    <table cellpadding="5" cellspacing="8" border="0" width="100%" class="fs12">
+        <tbody><tr>
+            <td width="120" align="right">当前头像</td>
+            <td width="auto" align="left">
+                <img id="av24" src="/static/avatar/{{.Uobj.Avatar}}.jpg?t={{.Now}}" class="avatar avatar24" border="0" align="default" auto=""> &nbsp;
+                <img id="av48" src="/static/avatar/{{.Uobj.Avatar}}.jpg?t={{.Now}}" class="avatar avatar48" border="0" align="default" auto=""> &nbsp;
+                <img id="av73" src="/static/avatar/{{.Uobj.Avatar}}.jpg?t={{.Now}}" class="avatar avatar73" border="0" align="default" auto="">
+            </td>
+        </tr>
+        <tr>
+            <td width="120" align="right">选择头像图片</td>
+            <td width="auto" align="left"><input id="avatar" name="avatar" accept="image/*" type="file" /> (最大300K)</td>
+        </tr>
+        <tr>
+            <td width="120" align="right"></td>
+            <td width="auto" align="left"><input id="avatar_submit" type="submit" value="更新头像" name="submit" class="textbtn" /></td>
+        </tr>
+
+        </tbody></table>
+    </form>
+
+</div>
+
+<script>
+    $("#avatar_submit").attr("disabled", true);
+    function readFile() {
+        if (this.files && this.files[0]) {
+            var URL = window.URL || window.webkitURL;
+            var file = this.files[0];
+            var image = new Image();
+
+            image.onload = function() {
+                if (this.width) {
+                    var FR= new FileReader();
+                    FR.addEventListener("load", function(e) {
+                        var buffer = e.target.result;
+                        document.getElementById("av24").src = buffer;
+                        document.getElementById("av48").src = buffer;
+                        document.getElementById("av73").src = buffer;
+                    });
+                    FR.readAsDataURL(file);
+                    $("#avatar_submit").attr("disabled", false);
+                }
+            };
+            image.onerror = function() {
+                $.toast("选择的文件不是图片格式");
+                $("#avatar_submit").attr("disabled", true);
+            };
+
+            image.src = URL.createObjectURL(file);
+        }
+    }
+
+    document.getElementById("avatar").addEventListener("change", readFile);
+</script>
+
+
+{{if .Uobj.Password}}
+
+<a name="3"></a>
+<div class="nav-title">更改密码</div>
+<div class="main-box">
+    <form method="post" action="/setting#3" onsubmit="return form_pw_post();">
+    <table cellpadding="5" cellspacing="8" border="0" width="100%" class="fs12">
+        <tbody>
+        <tr>
+            <td width="120" align="right">当前密码</td>
+            <td width="auto" align="left"><input type="password" class="sl" id="password0" value="" /></td>
+        </tr>
+        <tr>
+            <td width="120" align="right">新密码</td>
+            <td width="auto" align="left"><input type="password" class="sl" id="password" value="" /></td>
+        </tr>
+        <tr>
+            <td width="120" align="right">再次输入新密码</td>
+            <td width="auto" align="left"><input type="password" class="sl" id="password2" value="" /></td>
+        </tr>
+        <tr>
+            <td width="120" align="right"></td>
+            <td width="auto" align="left"><input type="submit" value="更改密码" name="submit" class="textbtn" /></td>
+        </tr>
+
+        </tbody></table>
+    </form>
+
+</div>
+
+<script>
+
+    function form_pw_post(){
+        var password0 = $('#password0').val();
+        var password = $('#password').val();
+        var password2 = $('#password2').val();
+        if(password0 && password && password2){
+            if(password != password2){
+                $.toast('密码两次输入不同');
+                $('#password').val('');
+                $('#password2').val('');
+                return false;
+            }
+
+            $.ajax({
+                type: "POST",
+                url: "/setting",
+                data: JSON.stringify({'act': 'change_pw', 'password0': md5(password0), 'password': md5(password)}),
+                dataType: "json",
+                contentType: "application/json",
+                success: function(data){
+                    $.toast(data.retmsg);
+                    $('#password0').val('');
+                    $('#password').val('');
+                    $('#password2').val('');
+                },
+                fail: function(errMsg) {
+                    $.toast(errMsg);
+                }
+            });
+        }else{
+            $.toast('密码必填');
+        }
+        return false;
+    }
+
+</script>
+
+{{else}}
+<!--
+<a name="3"></a>
+<div class="nav-title">设置登录密码： 你可以设置一个登录密码，以备急用</div>
+<div class="main-box">
+    <form method="post" action="/setting#3" onsubmit="return form_pw2_post();">
+    <table cellpadding="5" cellspacing="8" border="0" width="100%" class="fs12">
+        <tbody>
+        <tr>
+            <td width="120" align="right">这个是干嘛？</td>
+            <td width="auto" align="left">你可以使用你的用户名和设置的密码登录</td>
+        </tr>
+        <tr>
+            <td width="120" align="right">设置登录密码</td>
+            <td width="auto" align="left"><input type="password" class="sl" id="password" value="" /></td>
+        </tr>
+        <tr>
+            <td width="120" align="right">再次输入密码</td>
+            <td width="auto" align="left"><input type="password" class="sl" id="password2" value="" /></td>
+        </tr>
+        <tr>
+            <td width="120" align="right"></td>
+            <td width="auto" align="left"><input type="submit" value="设置登录密码" name="submit" class="textbtn" /></td>
+        </tr>
+
+        </tbody></table>
+    </form>
+
+</div>
+-->
+<script>
+
+    function form_pw2_post(){
+        var password = $('#password').val();
+        var password2 = $('#password2').val();
+        if(password && password2){
+            if(password != password2){
+                $.toast('密码两次输入不同');
+                $('#password').val('');
+                $('#password2').val('');
+                return false;
+            }
+
+            $.ajax({
+                type: "POST",
+                url: "/setting",
+                data: JSON.stringify({'act': 'set_pw', 'password': md5(password)}),
+                dataType: "json",
+                contentType: "application/json",
+                success: function(data){
+                    $.toast(data.retmsg);
+                    $('#password').val('');
+                    $('#password2').val('');
+                },
+                fail: function(errMsg) {
+                    $.toast(errMsg);
+                }
+            });
+        }else{
+            $.toast('密码必填');
+        }
+        return false;
+    }
+
+</script>
+
+{{end}}
+
+{{ end}}
+

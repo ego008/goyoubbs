@@ -1,0 +1,70 @@
+{{ define "content" }}
+
+<div class="nav-title">
+    <a href="/">{{.SiteCf.Name}}</a> &raquo; 链接列表
+</div>
+
+<div class="main-box">
+
+    <ul style="margin-left: 30px;padding: 0;">
+    {{range $_, $item := .Items}}
+    <li style="margin-bottom: 8px;">
+        id:{{$item.Id}} - score: {{$item.Score}} - {{$item.Name}} - <a href="{{$item.Url}}" target="_blank">{{$item.Url}}</a>
+        <a href="/admin/link/list?lid={{$item.Id}}">编辑</a>
+    </li>
+    {{end}}
+    </ul>
+
+</div>
+
+<div class="nav-title">
+    <a href="/">{{.SiteCf.Name}}</a> &raquo; {{if .Lobj.Id}}修改{{else}}添加{{end}}链接
+</div>
+
+<div class="main-box">
+
+    <form action="" method="post" onsubmit="return form_post();">
+        <p>
+            文字： <input type="text" class="sl w200" id="name" value="{{.Lobj.Name}}" /><br/>
+            网址： <input type="text" class="sl w200" id="url" value="{{.Lobj.Url}}" /><br/>
+            权重： <input type="text" class="sl w200" id="score" value="{{.Lobj.Score}}" /><br/>
+            <input type="submit" value=" 提交 " id="submit" class="textbtn" />
+        </p>
+    </form>
+
+</div>
+
+<script>
+
+    function form_post(){
+        var name = $('#name').val();
+        var url = $('#url').val();
+        var score = $('#score').val();
+        var lid = '{{.Lobj.Id}}';
+        if(name && url){
+            $.ajax({
+                type: "POST",
+                url: "/admin/link/list",
+                data: JSON.stringify({'id': parseInt(lid, 10), 'score': parseInt(score, 10), 'name': name, 'url': url}),
+                dataType: "json",
+                success: function(data){
+                    if(data.retcode==200){
+                        window.location.href = "/admin/link/list";
+                    }else{
+                        $.toast(data.retmsg);
+                    }
+                },
+                fail: function(errMsg) {
+                    $.toast(errMsg);
+                }
+            });
+        }else{
+            $.toast('文字和网址必填');
+        }
+        return false;
+    }
+
+</script>
+
+{{ end}}
+

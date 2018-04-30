@@ -1,0 +1,219 @@
+{{ define "youbbs" }}
+<!doctype html>
+<html lang="zh-cmn-Hans">
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+    <title>{{.Title}}</title>
+    <meta content="True" name="HandheldFriendly" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
+    <link href="/static/default/style.css" rel="stylesheet" type="text/css" />
+    <link href="/static/css/jquery.toast.css" rel="stylesheet" type="text/css" />
+    <link rel="shortcut icon" href="/static/favicon.ico" type="image/x-icon" />
+    <link href="/feed" rel="alternate" title="{{.SiteCf.Name}} - ATOM Feed" type="application/atom+xml" />
+    <script src="/static/js/jquery.min.js" type="text/javascript"></script>
+    <script src="/static/js/jquery.toast.js" type="text/javascript"></script>
+    <script src="/static/js/md5.min.js" type="text/javascript"></script>
+    <link rel="top" title="Back to Top" href="#" />
+    <meta name="keywords" content="{{.Keywords}}" />
+    <meta name="description" content="{{.Description}}" />
+
+    <script src="/static/js/jquery.uploadifive.min.js" type="text/javascript"></script>
+    <link rel="stylesheet" type="text/css" href="/static/css/uploadifive.css" />
+
+    <link rel="stylesheet" href="/static/highligt/sunburst.min.css">
+    <script src="/static/highligt/highlight.pack.js"></script>
+    <script>
+        hljs.initHighlightingOnLoad();
+    </script>
+
+    <script type="text/javascript">
+        $(function () {
+            $("#go-to-top").click(function () {
+                $("html, body").animate({
+                    "scrollTop": 0
+                }, 400);
+                return false;
+            });
+            $(window).scroll(function () {
+                var top = $(document).scrollTop();
+                var g = $("#go-to-top");
+                if (top > 300 && g.is(":hidden")) {
+                    g.fadeIn();
+                } else if (top < 300 && g.is(":visible")) {
+                    g.fadeOut();
+                }
+            });
+        })
+    </script>
+
+</head>
+
+<body>
+    <div class="hdlogo">
+        <img src="/static/img/youbbs.jpg" alt="{{.SiteCf.Name}}" />
+    </div>
+    <div class="header-wrap">
+        <div class="header">
+            <div class="logo">
+                <a href="/" name="top">{{.SiteCf.Name}}</a>
+            </div>
+            <div class="scbox">
+
+                <script type="text/javascript">
+                    var dispatch = function () {
+                        q = document.getElementById("q");
+                        if (q.value != "" && q.value != "站内搜索") {
+                            window.location.href = '/search?q=' + q.value;
+                            return false;
+                        } else {
+                            return false;
+                        }
+                    }
+                </script>
+
+                <form role="search" method="get" id="searchform" onsubmit="return dispatch()" target="_blank">
+                    <input type="text" maxlength="30" onfocus="if(this.value=='站内搜索') this.value='';" onblur="if(this.value=='') this.value='站内搜索';"
+                        value="站内搜索" name="q" id="q">
+                </form>
+            </div>
+
+            <div class="banner">
+
+                {{if .CurrentUser.Id}}
+                <img class="avatar avatar24" src="/static/avatar/{{.CurrentUser.Avatar}}.jpg" alt="{{.CurrentUser.Name}}" />&nbsp;&nbsp;&nbsp; {{if not .CurrentUser.Password }}
+                <!--<a href="/setting#3" style="color:yellow;">设置登录密码</a>&nbsp;&nbsp;&nbsp;-->
+                {{end}} {{if gt .CurrentUser.NoticeNum 0}}
+                <a href="/notification" style="color:yellow;">{{.CurrentUser.NoticeNum}}条提醒</a>&nbsp;&nbsp;&nbsp; {{end}} {{if eq .CurrentUser.Flag 0}}
+                <span style="color:yellow;">已被禁用</span>&nbsp;&nbsp;&nbsp; {{else if eq .CurrentUser.Flag 1}}
+                <span style="color:yellow;">在等待审核</span>&nbsp;&nbsp;&nbsp; {{end}}
+
+                <a href="/member/{{.CurrentUser.Id}}">{{.CurrentUser.Name}}</a>&nbsp;&nbsp;&nbsp;
+                <a href="/setting">设置</a>&nbsp;&nbsp;&nbsp;
+                <a href="/logout">退出</a>
+
+                {{else}} {{if .SiteCf.WeiboClientID}}
+                <a href="/wblogin" rel="nofollow">
+                    <img src="/static/img/weibo_login_55_24.png" alt="微博登录" title="用微博帐号登录" />
+                </a>&nbsp;&nbsp; {{end}} {{if .SiteCf.QQClientID}}
+                <a href="/qqlogin" rel="nofollow">
+                    <img src="/static/img/qq_login_55_24.png" alt="QQ登录" title="用QQ登录" />
+                </a>&nbsp;&nbsp; {{end}}
+                <a href="/login" rel="nofollow">登录</a>
+                {{if and .SiteCf.WeiboClientID .SiteCf.QQClientID}} {{else}} {{if not .SiteCf.CloseReg}} &nbsp;&nbsp;
+                <a href="/register" rel="nofollow">注册</a>
+                {{end}} {{end}} {{end}}
+            </div>
+            <div class="c"></div>
+        </div>
+        <!-- header end -->
+    </div>
+
+    <div class="main-wrap">
+        <div class="main">
+            <div class="main-content">
+                {{ template "content" . }}
+            </div>
+            <!-- main-content end -->
+            <div class="main-sider">
+                {{ template "side" . }}
+            </div>
+            <!-- main-sider end -->
+            <div class="c"></div>
+        </div>
+        <!-- main end -->
+        <div class="c"></div>
+    </div>
+
+    <div class="footer-wrap">
+        <div class="footer">
+            <p>&copy; Copyright
+                <a href="/">{{.SiteCf.Name}}</a> •
+                <a rel="nofollow" href="/feed">Atom Feed</a>
+                •
+                <a href="/view?tpl=mobile">手机模式</a>
+            </p>
+            <p>Powered by
+                <a href="https://www.xforum.im" target="_blank">XForum </a> - {{.SiteCf.GoVersion}}</p>
+            <!-- <p>MD5SUMS: {{.SiteCf.MD5Sums}}</p> -->
+        </div>
+        <a style="display: none; " rel="nofollow" href="#top" id="go-to-top">▲</a>
+        <!-- footer end -->
+    </div>
+
+</body>
+
+</html>
+{{ end }} {{ define "side" }} {{if eq .CurrentUser.Flag 99}}
+<div class="sider-box">
+    <div class="sider-box-title">管理员面板 （
+        <a href="https://www.youbbs.org/" target="_blank">YouBBS官方支持</a>）</div>
+    <div class="sider-box-content">
+        <div class="btn">
+            <a href="/admin/category/list">分类管理</a>
+            <a href="/admin/user/list">用户管理</a>
+            <a href="/admin/link/list">链接管理</a>
+        </div>
+        <div class="c"></div>
+    </div>
+</div>
+{{ end }} {{if .HotNodes}}
+<div class="sider-box">
+    <div class="sider-box-title">热门主题</div>
+    <div class="sider-box-content">
+        <div class="btn">
+            {{range $_, $v := .HotNodes}}
+            <a href="/n/{{$v.Id}}">{{$v.Name}}</a>
+            {{end}}
+        </div>
+        <div class="c"></div>
+    </div>
+</div>
+{{ end }} {{if eq .PageName "article_detail"}} {{if .Relative.Tags}}
+<div class="sider-box">
+    <div class="sider-box-title">相邻的标签</div>
+    <div class="sider-box-content">
+        <div class="btn">{{range $_, $item := .Relative.Tags}}
+            <a href="/tag/{{$item}}">{{$item}}</a> {{ end }}</div>
+        <div class="c"></div>
+    </div>
+</div>
+{{ end }} {{ end }} {{if .NewestNodes}}
+<div class="sider-box">
+    <div class="sider-box-title">新增主题</div>
+    <div class="sider-box-content">
+        <div class="btn">
+            {{range $_, $v := .NewestNodes}}
+            <a href="/n/{{$v.Id}}">{{$v.Name}}</a>
+            {{end}}
+        </div>
+        <div class="c"></div>
+    </div>
+</div>
+{{ end }} {{if eq .PageName "home"}} {{if .Links}}
+<div class="sider-box">
+    <div class="sider-box-title">链接</div>
+    <div class="sider-box-content">
+        <div class="btn">
+            {{range $_, $v := .Links}}
+            <a href="{{$v.Url}}" target="_blank">{{$v.Name}}</a>
+            {{end}}
+        </div>
+        <div class="c"></div>
+    </div>
+</div>
+{{ end }} {{if .SiteInfo}}
+<div class="sider-box">
+    <div class="sider-box-title">本站已稳定运行 {{.SiteInfo.Days}} 天</div>
+    <div class="sider-box-content">
+        <ul>
+            <li>会员: {{.SiteInfo.UserNum}}</li>
+            <li>帖子: {{.SiteInfo.PostNum}}</li>
+            <li>回复: {{.SiteInfo.ReplyNum}}</li>
+            <li>分类: {{.SiteInfo.NodeNum}}</li>
+            <li>标签: {{.SiteInfo.TagNum}}</li>
+        </ul>
+        <div class="c"></div>
+    </div>
+</div>
+{{ end }} {{ end }} {{ end}}
