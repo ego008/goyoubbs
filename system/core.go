@@ -61,6 +61,7 @@ type SiteConf struct {
 	UploadImgResize   bool
 	UploadMaxSize     int
 	UploadMaxSizeByte int64
+	CloudUploadPrefix string
 	QiniuAccessKey    string
 	QiniuSecretKey    string
 	QiniuDomain       string

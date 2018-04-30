@@ -17,6 +17,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strings"
 )
 
@@ -127,7 +128,7 @@ func (h *BaseHandler) FileUpload(w http.ResponseWriter, r *http.Request) {
 
 	if len(scf.QiniuSecretKey) > 0 && len(scf.QiniuAccessKey) > 0 {
 		// qiniu
-
+		savePath = filepath.Join(scf.CloudUploadPrefix, savePath)
 		if db.Hget("qiniu_upload_md5_key", []byte(fileMd5)).State == "ok" {
 			rsp.Retcode = 200
 			rsp.Url = scf.QiniuDomain + "/" + savePath
@@ -154,8 +155,8 @@ func (h *BaseHandler) FileUpload(w http.ResponseWriter, r *http.Request) {
 		}
 
 		cfg.Zone = h.App.QnZone
-		cfg.UseHTTPS = false                          // 是否使用https域名
-		cfg.UseCdnDomains = false                     // 上传是否使用CDN上传加速
+		cfg.UseHTTPS = true                           // 是否使用https域名
+		cfg.UseCdnDomains = true                      // 上传是否使用CDN上传加速
 		formUploader := storage.NewFormUploader(&cfg) // 构建表单上传的对象
 		ret := storage.PutRet{}
 
