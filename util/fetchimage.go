@@ -25,10 +25,11 @@ func FetchAvatar(url, save, ua string) error {
 	hc.Header("Referer", url)
 
 	resp, err := hc.Response()
-	defer resp.Body.Close()
 	if err != nil {
 		return err
 	}
+	defer resp.Body.Close()
+	
 	if resp.StatusCode != 200 {
 		return errors.New("StatusCode " + strconv.Itoa(resp.StatusCode))
 	}
