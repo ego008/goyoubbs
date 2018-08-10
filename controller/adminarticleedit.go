@@ -67,9 +67,32 @@ func (h *BaseHandler) ArticleEdit(w http.ResponseWriter, r *http.Request) {
 		jb, _ := json.Marshal(aobj)
 		db.Hset("article", aidB, jb)
 		uobj, _ := model.UserGetById(db, aobj.Uid)
-		uobj.Articles--
+		if uobj.Articles > 0 {
+			uobj.Articles--
+		}
 		jb, _ = json.Marshal(uobj)
 		db.Hset("user", youdb.I2b(uobj.Id), jb)
+		
+		// tag
+		if aobj.Tags != "" {
+			for _, tag := range strings.Split(aobj.Tags, ",") {
+				tagLower := strings.ToLower(tag)
+				tagLowerB := []byte(tagLower)
+
+				rs := db.Zget("tag_article_num", tagLowerB)
+				if rs.State == "ok" {
+					if rs.Int() > 1 {
+						db.Zincr("tag_article_num", tagLowerB, -1)
+						db.Hdel("tag", tagLowerB)
+					} else {
+						db.Hdel("tag", tagLowerB)
+						db.Zdel("tag_article_num", tagLowerB)
+					}
+				}
+
+				db.Hdel("tag:"+tagLower, aidB)
+			}
+		}
 
 		http.Redirect(w, r, "/", http.StatusSeeOther)
 		return
@@ -255,9 +278,19 @@ func (h *BaseHandler) ArticleEditPost(w http.ResponseWriter, r *http.Request) {
 			}
 			if contains == false {
 				tagLower := strings.ToLower(tag1)
-				db.Hdel("tag", []byte(tagLower))
+				tagLowerB := []byte(tagLower)
+
+				rs := db.Zget("tag_article_num", tagLowerB)
+				if rs.State == "ok" {
+					if rs.Int() > 1 {
+						db.Zincr("tag_article_num", tagLowerB, -1)
+					} else {
+						db.Hdel("tag", tagLowerB)
+						db.Zdel("tag_article_num", tagLowerB)
+					}
+				}
+
 				db.Hdel("tag:"+tagLower, aidB)
-				db.Zincr("tag_article_num", []byte(tagLower), -1)
 			}
 		}
 		// add
