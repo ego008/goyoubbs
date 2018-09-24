@@ -598,79 +598,90 @@ func ArticleSearchList(db *youdb.DB, where, kw string, limit, tz int) ArticlePag
 func ArticleFeedList(db *youdb.DB, limit, tz int) []ArticleFeedListItem {
 	var items []ArticleFeedListItem
 	var keys [][]byte
+	keyStart := []byte("")
 
-	rs := db.Hrscan("article", []byte(""), limit)
-	if rs.State == "ok" {
+	for {
+		rs := db.Hrscan("article", keyStart, limit)
+		if rs.State != "ok" {
+			break
+		}
 		for i := 0; i < (len(rs.Data) - 1); i += 2 {
+			keyStart = rs.Data[i]
 			keys = append(keys, rs.Data[i])
 		}
-	}
 
-	if len(keys) > 0 {
-		var aitems []Article
-		userMap := map[uint64]UserMini{}
-		categoryMap := map[uint64]CategoryMini{}
+		if len(keys) > 0 {
+			var aitems []Article
+			userMap := map[uint64]UserMini{}
+			categoryMap := map[uint64]CategoryMini{}
 
-		rs := db.Hmget("article", keys)
-		if rs.State == "ok" {
-			for i := 0; i < (len(rs.Data) - 1); i += 2 {
-				item := Article{}
-				json.Unmarshal(rs.Data[i+1], &item)
-				aitems = append(aitems, item)
-				userMap[item.Uid] = UserMini{}
-				categoryMap[item.Cid] = CategoryMini{}
-			}
-		}
-
-		userKeys := make([][]byte, 0, len(userMap))
-		for k := range userMap {
-			userKeys = append(userKeys, youdb.I2b(k))
-		}
-		rs = db.Hmget("user", userKeys)
-		if rs.State == "ok" {
-			for i := 0; i < (len(rs.Data) - 1); i += 2 {
-				item := UserMini{}
-				json.Unmarshal(rs.Data[i+1], &item)
-				userMap[item.Id] = item
-			}
-		}
-
-		categoryKeys := make([][]byte, 0, len(categoryMap))
-		for k := range categoryMap {
-			categoryKeys = append(categoryKeys, youdb.I2b(k))
-		}
-		rs = db.Hmget("category", categoryKeys)
-		if rs.State == "ok" {
-			for i := 0; i < (len(rs.Data) - 1); i += 2 {
-				item := CategoryMini{}
-				json.Unmarshal(rs.Data[i+1], &item)
-				categoryMap[item.Id] = item
-			}
-		}
-
-		for _, article := range aitems {
-			user := userMap[article.Uid]
-			category := categoryMap[article.Cid]
-			item := ArticleFeedListItem{
-				Id:          article.Id,
-				Uid:         article.Uid,
-				Name:        user.Name,
-				Cname:       category.Name,
-				Title:       article.Title,
-				AddTimeFmt:  util.TimeFmt(article.AddTime, time.RFC3339, tz),
-				EditTimeFmt: util.TimeFmt(article.EditTime, time.RFC3339, tz),
+			rs := db.Hmget("article", keys)
+			if rs.State == "ok" {
+				for i := 0; i < (len(rs.Data) - 1); i += 2 {
+					item := Article{}
+					json.Unmarshal(rs.Data[i+1], &item)
+					if !item.Hidden {
+						aitems = append(aitems, item)
+						userMap[item.Uid] = UserMini{}
+						categoryMap[item.Cid] = CategoryMini{}
+					}
+				}
 			}
 
-			contentRune := []rune(article.Content)
-			if len(contentRune) > 150 {
+			userKeys := make([][]byte, 0, len(userMap))
+			for k := range userMap {
+				userKeys = append(userKeys, youdb.I2b(k))
+			}
+			rs = db.Hmget("user", userKeys)
+			if rs.State == "ok" {
+				for i := 0; i < (len(rs.Data) - 1); i += 2 {
+					item := UserMini{}
+					json.Unmarshal(rs.Data[i+1], &item)
+					userMap[item.Id] = item
+				}
+			}
+
+			categoryKeys := make([][]byte, 0, len(categoryMap))
+			for k := range categoryMap {
+				categoryKeys = append(categoryKeys, youdb.I2b(k))
+			}
+			rs = db.Hmget("category", categoryKeys)
+			if rs.State == "ok" {
+				for i := 0; i < (len(rs.Data) - 1); i += 2 {
+					item := CategoryMini{}
+					json.Unmarshal(rs.Data[i+1], &item)
+					categoryMap[item.Id] = item
+				}
+			}
+
+			for _, article := range aitems {
+				user := userMap[article.Uid]
+				category := categoryMap[article.Cid]
+				item := ArticleFeedListItem{
+					Id:          article.Id,
+					Uid:         article.Uid,
+					Name:        user.Name,
+					Cname:       category.Name,
+					Title:       article.Title,
+					AddTimeFmt:  util.TimeFmt(article.AddTime, time.RFC3339, tz),
+					EditTimeFmt: util.TimeFmt(article.EditTime, time.RFC3339, tz),
+				}
+
 				contentRune := []rune(article.Content)
-				item.Des = string(contentRune[:150])
-			} else {
-				item.Des = article.Content
-			}
-			item.Des = html.EscapeString(item.Des)
+				if len(contentRune) > 150 {
+					contentRune := []rune(article.Content)
+					item.Des = string(contentRune[:150])
+				} else {
+					item.Des = article.Content
+				}
 
-			items = append(items, item)
+				items = append(items, item)
+			}
+
+			keys = keys[:0]
+			if len(items) >= limit {
+				break
+			}
 		}
 	}
 
