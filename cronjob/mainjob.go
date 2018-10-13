@@ -75,7 +75,7 @@ func dataBackup(db *youdb.DB) {
 func getTagFromTitle(db *youdb.DB, apiUrl string) {
 	rs := db.Hscan("task_to_get_tag", []byte(""), 1)
 	if rs.State == "ok" {
-		aidB := rs.Data[0]
+		aidB := rs.Data[0][:]
 
 		rs2 := db.Hget("article", aidB)
 		if rs2.State != "ok" {
@@ -112,11 +112,13 @@ func getTagFromTitle(db *youdb.DB, apiUrl string) {
 					if db.Hget("tag", []byte(tagLow)).State != "ok" {
 						db.Hset("tag", []byte(tagLow), []byte(""))
 						db.HnextSequence("tag")
+						aidB = youdb.I2b(aobj.Id) // fixed aidB
 					}
 					// check if not exist !important
 					if db.Hget("tag:"+tagLow, aidB).State != "ok" {
 						db.Hset("tag:"+tagLow, aidB, []byte(""))
 						db.Zincr("tag_article_num", []byte(tagLow), 1)
+						aidB = youdb.I2b(aobj.Id) // fixed aidB
 					}
 				}
 
