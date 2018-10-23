@@ -14,6 +14,9 @@
         <p><label>重　复： <input type="password" id="password2" class="sl w200" value="" /></label></p>
         {{end}}
 
+        <p><img id="image" onclick="reload()" style="margin-left: 30px;" src="/captcha/{{.CaptchaId}}.png" alt="Captcha image"></p>
+        <p><label>验证码： <input type="text" id="captchaSolution" class="sl w200" value="" /></label></p>
+
         <p><input type="submit" value=" {{.Title}} " id="submit" class="textbtn newpostbtn" style="margin-left:60px;" /> </p>
         {{if eq .Act "login"}}
             {{if .SiteCf.CloseReg}}
@@ -29,12 +32,28 @@
 </div>
 
 <script>
+    var captchaId = '{{.CaptchaId}}';
+    function setSrcQuery(e, q) {
+        var src  = e.src;
+        var p = src.indexOf('?');
+        if (p >= 0) {
+            src = src.substr(0, p);
+        }
+        e.src = src + "?" + q
+    }
+
+    function reload() {
+        setSrcQuery(document.getElementById('image'), "reload=" + (new Date()).getTime());
+        document.getElementById('captchaSolution').value = "";
+        return false;
+    }
 
     function form_post(){
         var name = $('#name').val();
         var password = $('#password').val();
         var password2 = $('#password2').val();
-        if(name && password){
+        var captchaSolution = $('#captchaSolution').val();
+        if(name && password && captchaSolution){
             if(password && password2) {
                 if(password != password2){
                     $.toast('密码两次输入不同');
@@ -47,12 +66,19 @@
             $.ajax({
                 type: "POST",
                 url: "/{{.Act}}",
-                data: JSON.stringify({'act': '{{.Act}}', 'name': name, 'password': md5(password)}),
+                data: JSON.stringify({'act': '{{.Act}}', 'name': name, 'password': md5(password), 'captchaSolution': captchaSolution, 'captchaId': captchaId}),
                 dataType: "json",
                 success: function(data){
                     if(data.retcode==200){
                         window.location.href = "/";
                     }else{
+                        if(data.retcode==405){
+                            document.getElementById('image').src = "/captcha/"+data.newCaptchaId+".png";
+                            captchaId = data.newCaptchaId;
+                            $('#captchaSolution').val('');
+                        }else{
+                            reload();
+                        }
                         $.toast(data.retmsg);
                     }
                 },
@@ -61,7 +87,7 @@
                 }
             });
         }else{
-            $.toast('用户名和密码必填');
+            $.toast('用户名、密码和验证码必填');
         }
         return false;
     }

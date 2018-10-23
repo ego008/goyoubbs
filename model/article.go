@@ -5,7 +5,6 @@ import (
 	"errors"
 	"github.com/ego008/goyoubbs/util"
 	"github.com/ego008/youdb"
-	"html"
 	"sort"
 	"strings"
 	"time"

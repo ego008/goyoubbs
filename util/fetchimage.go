@@ -29,7 +29,7 @@ func FetchAvatar(url, save, ua string) error {
 		return err
 	}
 	defer resp.Body.Close()
-	
+
 	if resp.StatusCode != 200 {
 		return errors.New("StatusCode " + strconv.Itoa(resp.StatusCode))
 	}

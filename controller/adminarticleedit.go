@@ -72,7 +72,7 @@ func (h *BaseHandler) ArticleEdit(w http.ResponseWriter, r *http.Request) {
 		}
 		jb, _ = json.Marshal(uobj)
 		db.Hset("user", youdb.I2b(uobj.Id), jb)
-		
+
 		// tag
 		if aobj.Tags != "" {
 			for _, tag := range strings.Split(aobj.Tags, ",") {

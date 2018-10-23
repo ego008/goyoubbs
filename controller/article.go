@@ -312,7 +312,7 @@ func (h *BaseHandler) ArticleHomeList(w http.ResponseWriter, r *http.Request) {
 	}
 	then := time.Unix(int64(siteCreateTime), 0)
 	diff := time.Now().UTC().Sub(then)
-	si.Days = int(diff.Hours() / 24)
+	si.Days = int(diff.Hours()/24) + 1
 	si.UserNum = db.Hsequence("user")
 	si.NodeNum = db.Hsequence("category")
 	si.TagNum = db.Hsequence("tag")

@@ -1,12 +1,11 @@
 package router
 
 import (
-	"goji.io"
-	"goji.io/pat"
-
+	"github.com/dchest/captcha"
 	"github.com/ego008/goyoubbs/controller"
 	"github.com/ego008/goyoubbs/system"
-	//"github.com/gorilla/csrf"
+	"goji.io"
+	"goji.io/pat"
 )
 
 func NewRouter(app *system.Application) *goji.Mux {
@@ -17,6 +16,8 @@ func NewRouter(app *system.Application) *goji.Mux {
 	sp.HandleFunc(pat.Get("/view"), h.ViewAtTpl)
 	sp.HandleFunc(pat.Get("/feed"), h.FeedHandler)
 	sp.HandleFunc(pat.Get("/robots.txt"), h.Robots)
+
+	sp.Handle(pat.Get("/captcha/*"), captcha.Server(captcha.StdWidth, captcha.StdHeight))
 
 	sp.HandleFunc(pat.Get("/n/:cid"), h.CategoryDetail)
 	sp.HandleFunc(pat.Get("/member/:uid"), h.UserDetail)

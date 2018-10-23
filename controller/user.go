@@ -2,6 +2,7 @@ package controller
 
 import (
 	"encoding/json"
+	"github.com/dchest/captcha"
 	"github.com/ego008/goyoubbs/model"
 	"github.com/ego008/goyoubbs/util"
 	"github.com/ego008/youdb"
@@ -16,8 +17,9 @@ import (
 func (h *BaseHandler) UserLogin(w http.ResponseWriter, r *http.Request) {
 	type pageData struct {
 		PageData
-		Act   string
-		Token string
+		Act       string
+		Token     string
+		CaptchaId string
 	}
 	act := strings.TrimLeft(r.RequestURI, "/")
 	title := "登录"
@@ -37,6 +39,7 @@ func (h *BaseHandler) UserLogin(w http.ResponseWriter, r *http.Request) {
 	evn.PageName = "user_login_register"
 
 	evn.Act = act
+	evn.CaptchaId = captcha.New()
 
 	token := h.GetCookie(r, "token")
 	if len(token) == 0 {
@@ -59,8 +62,10 @@ func (h *BaseHandler) UserLoginPost(w http.ResponseWriter, r *http.Request) {
 	act := strings.TrimLeft(r.RequestURI, "/")
 
 	type recForm struct {
-		Name     string `json:"name"`
-		Password string `json:"password"`
+		Name            string `json:"name"`
+		Password        string `json:"password"`
+		CaptchaId       string `json:"captchaId"`
+		CaptchaSolution string `json:"captchaSolution"`
 	}
 
 	type response struct {
@@ -85,6 +90,12 @@ func (h *BaseHandler) UserLoginPost(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(`{"retcode":400,"retmsg":"name fmt err"}`))
 		return
 	}
+
+	if !captcha.VerifyString(rec.CaptchaId, rec.CaptchaSolution) {
+		w.Write([]byte(`{"retcode":405,"retmsg":"验证码错误","newCaptchaId":"` + captcha.New() + `"}`))
+		return
+	}
+
 	db := h.App.Db
 	timeStamp := uint64(time.Now().UTC().Unix())
 
@@ -98,12 +109,12 @@ func (h *BaseHandler) UserLoginPost(w http.ResponseWriter, r *http.Request) {
 		}
 		uobj, err := model.UserGetByName(db, nameLow)
 		if err != nil {
-			w.Write([]byte(`{"retcode":400,"retmsg":"json Decode err:` + err.Error() + `"}`))
+			w.Write([]byte(`{"retcode":405,"retmsg":"json Decode err:` + err.Error() + `","newCaptchaId":"` + captcha.New() + `"}`))
 			return
 		}
 		if uobj.Password != rec.Password {
 			db.Zset(bn, key, uint64(time.Now().UTC().Unix()))
-			w.Write([]byte(`{"retcode":400,"retmsg":"name and pw not match"}`))
+			w.Write([]byte(`{"retcode":405,"retmsg":"name and pw not match","newCaptchaId":"` + captcha.New() + `"}`))
 			return
 		}
 		sessionid := xid.New().String()
@@ -124,7 +135,7 @@ func (h *BaseHandler) UserLoginPost(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		if db.Hget("user_name2uid", []byte(nameLow)).State == "ok" {
-			w.Write([]byte(`{"retcode":400,"retmsg":"name is exist"}`))
+			w.Write([]byte(`{"retcode":405,"retmsg":"name is exist","newCaptchaId":"` + captcha.New() + `"}`))
 			return
 		}
 
