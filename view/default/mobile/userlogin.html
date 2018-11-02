@@ -69,14 +69,18 @@
                 data: JSON.stringify({'act': '{{.Act}}', 'name': name, 'password': md5(password), 'captchaSolution': captchaSolution, 'captchaId': captchaId}),
                 dataType: "json",
                 success: function(data){
-                    if(data.retcode==405){
-                        document.getElementById('image').src = "/captcha/"+data.newCaptchaId+".png";
-                        captchaId = data.newCaptchaId;
-                        $('#captchaSolution').val('');
+                    if(data.retcode==200){
+                        window.location.href = "/";
                     }else{
-                        reload();
+                        if(data.retcode==405){
+                            document.getElementById('image').src = "/captcha/"+data.newCaptchaId+".png";
+                            captchaId = data.newCaptchaId;
+                            $('#captchaSolution').val('');
+                        }else{
+                            reload();
+                        }
+                        $.toast(data.retmsg);
                     }
-                    $.toast(data.retmsg);
                 },
                 fail: function(errMsg) {
                     $.toast(errMsg);
