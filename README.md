@@ -25,8 +25,8 @@ go get github.com/ego008/goyoubbs
 下载主程序包、静态文件包
 （最新版下载[https://github.com/ego008/goyoubbs/releases](https://github.com/ego008/goyoubbs/releases) 选择适合你系统的包）
 ```
-wget https://github.com/ego008/goyoubbs/releases/download/master/goyoubbs-linux-amd64.zip
-wget https://github.com/ego008/goyoubbs/releases/download/master/site.zip
+wget https://github.com/ego008/goyoubbs/releases/download/current/goyoubbs-linux-amd64.zip
+wget https://github.com/ego008/goyoubbs/releases/download/current/site.zip
 unzip goyoubbs-linux-amd64.zip
 unzip site.zip
 ./goyoubbs
