@@ -73,26 +73,14 @@ func (h *BaseHandler) ArticleEdit(w http.ResponseWriter, r *http.Request) {
 		jb, _ = json.Marshal(uobj)
 		db.Hset("user", youdb.I2b(uobj.Id), jb)
 
-		// tag
-		if aobj.Tags != "" {
-			for _, tag := range strings.Split(aobj.Tags, ",") {
-				tagLower := strings.ToLower(tag)
-				tagLowerB := []byte(tagLower)
-
-				rs := db.Zget("tag_article_num", tagLowerB)
-				if rs.State == "ok" {
-					if rs.Int() > 1 {
-						db.Zincr("tag_article_num", tagLowerB, -1)
-						db.Hdel("tag", tagLowerB)
-					} else {
-						db.Hdel("tag", tagLowerB)
-						db.Zdel("tag_article_num", tagLowerB)
-					}
-				}
-
-				db.Hdel("tag:"+tagLower, aidB)
-			}
+		// tag send task work，自动处理tag与文章id
+		at := model.ArticleTag{
+			Id:      aobj.Id,
+			OldTags: aobj.Tags,
+			NewTags: "",
 		}
+		jb, _ = json.Marshal(at)
+		db.Hset("task_to_set_tag", youdb.I2b(at.Id), jb)
 
 		http.Redirect(w, r, "/", http.StatusSeeOther)
 		return
@@ -264,57 +252,14 @@ func (h *BaseHandler) ArticleEditPost(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if oldTags != rec.Tags {
-		oldTag := strings.Split(oldTags, ",")
-		newTag := strings.Split(rec.Tags, ",")
-
-		// remove
-		for _, tag1 := range oldTag {
-			contains := false
-			for _, tag2 := range newTag {
-				if tag1 == tag2 {
-					contains = true
-					break
-				}
-			}
-			if contains == false {
-				tagLower := strings.ToLower(tag1)
-				tagLowerB := []byte(tagLower)
-
-				rs := db.Zget("tag_article_num", tagLowerB)
-				if rs.State == "ok" {
-					if rs.Int() > 1 {
-						db.Zincr("tag_article_num", tagLowerB, -1)
-					} else {
-						db.Hdel("tag", tagLowerB)
-						db.Zdel("tag_article_num", tagLowerB)
-					}
-				}
-
-				db.Hdel("tag:"+tagLower, aidB)
-			}
+		// tag send task work ，自动处理tag与文章id
+		at := model.ArticleTag{
+			Id:      aobj.Id,
+			OldTags: oldTags,
+			NewTags: aobj.Tags,
 		}
-		// add
-		for _, tag1 := range newTag {
-			contains := false
-			for _, tag2 := range oldTag {
-				if tag1 == tag2 {
-					contains = true
-					break
-				}
-			}
-			if contains == false {
-				tagLower := strings.ToLower(tag1)
-				if db.Hget("tag", []byte(tagLower)).State != "ok" {
-					db.Hset("tag", []byte(tagLower), []byte(""))
-					db.HnextSequence("tag")
-				}
-				// check if not exist !important
-				if db.Hget("tag:"+tagLower, aidB).State != "ok" {
-					db.Hset("tag:"+tagLower, aidB, []byte(""))
-					db.Zincr("tag_article_num", []byte(tagLower), 1)
-				}
-			}
-		}
+		jb, _ = json.Marshal(at)
+		db.Hset("task_to_set_tag", youdb.I2b(at.Id), jb)
 	}
 
 	h.DelCookie(w, "token")

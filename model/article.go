@@ -84,6 +84,13 @@ type ArticleFeedListItem struct {
 	Des         string
 }
 
+// 文章添加、编辑后传给后台任务的信息
+type ArticleTag struct {
+	Id      uint64
+	OldTags string
+	NewTags string
+}
+
 func ArticleGetById(db *youdb.DB, aid string) (Article, error) {
 	obj := Article{}
 	rs := db.Hget("article", youdb.DS2b(aid))

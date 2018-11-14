@@ -28,7 +28,7 @@ func (h *BaseHandler) TagDetail(w http.ResponseWriter, r *http.Request) {
 
 	db := h.App.Db
 	scf := h.App.Cf.Site
-	rs := db.Hget("tag", []byte(tagLow))
+	rs := db.Hscan("tag:"+tagLow, nil, 1)
 	if rs.State != "ok" {
 		w.Write([]byte(`{"retcode":404,"retmsg":"not found"}`))
 		return

@@ -22,6 +22,7 @@ func (h *BaseHandler) MainCronJob() {
 	tick1 := time.Tick(3600 * time.Second)
 	tick2 := time.Tick(120 * time.Second)
 	tick3 := time.Tick(30 * time.Minute)
+	tick4 := time.Tick(31 * time.Second)
 	daySecond := int64(3600 * 24)
 
 	for {
@@ -55,6 +56,8 @@ func (h *BaseHandler) MainCronJob() {
 			if h.App.Cf.Site.AutoDataBackup {
 				dataBackup(db)
 			}
+		case <-tick4:
+			setArticleTag(db)
 		}
 	}
 }
@@ -107,32 +110,84 @@ func getTagFromTitle(db *youdb.DB, apiUrl string) {
 				if len(tags) > 5 {
 					tags = tags[:5]
 				}
-				for _, tag := range tags {
-					tagLow := strings.ToLower(tag)
-					if db.Hget("tag", []byte(tagLow)).State != "ok" {
-						db.Hset("tag", []byte(tagLow), []byte(""))
-						db.HnextSequence("tag")
-						aidB = youdb.I2b(aobj.Id) // fixed aidB
-					}
-					// check if not exist !important
-					if db.Hget("tag:"+tagLow, aidB).State != "ok" {
-						db.Hset("tag:"+tagLow, aidB, []byte(""))
-						db.Zincr("tag_article_num", []byte(tagLow), 1)
-						aidB = youdb.I2b(aobj.Id) // fixed aidB
-					}
-				}
 
 				// get once more
-				rs2 := db.Hget("article", aidB)
+				rs2 := db.Hget("article", youdb.I2b(aobj.Id))
 				if rs2.State == "ok" {
 					aobj := model.Article{}
 					json.Unmarshal(rs2.Data[0], &aobj)
 					aobj.Tags = strings.Join(tags, ",")
 					jb, _ := json.Marshal(aobj)
-					db.Hset("article", aidB, jb)
+					db.Hset("article", youdb.I2b(aobj.Id), jb)
+
+					// tag send task work，自动处理tag与文章id
+					at := model.ArticleTag{
+						Id:      aobj.Id,
+						OldTags: "",
+						NewTags: aobj.Tags,
+					}
+					jb, _ = json.Marshal(at)
+					db.Hset("task_to_set_tag", youdb.I2b(at.Id), jb)
 				}
 			}
 			db.Hdel("task_to_get_tag", aidB)
 		}
+	}
+}
+
+func setArticleTag(db *youdb.DB) {
+	rs := db.Hscan("task_to_set_tag", nil, 1)
+	if rs.OK() {
+		info := model.ArticleTag{}
+		err := json.Unmarshal(rs.Data[1], &info)
+		if err != nil {
+			return
+		}
+		//log.Println("aid", info.Id)
+
+		// set tag
+		oldTag := strings.Split(info.OldTags, ",")
+		newTag := strings.Split(info.NewTags, ",")
+
+		// remove
+		for _, tag1 := range oldTag {
+			contains := false
+			for _, tag2 := range newTag {
+				if tag1 == tag2 {
+					contains = true
+					break
+				}
+			}
+			if !contains {
+				tagLower := strings.ToLower(tag1)
+				db.Hdel("tag:"+tagLower, youdb.I2b(info.Id))
+				db.Zincr("tag_article_num", []byte(tagLower), -1)
+			}
+		}
+
+		// add
+		for _, tag1 := range newTag {
+			contains := false
+			for _, tag2 := range oldTag {
+				if tag1 == tag2 {
+					contains = true
+					break
+				}
+			}
+			if !contains {
+				tagLower := strings.ToLower(tag1)
+				// 记录所有tag，只增不减
+				if db.Hget("tag", []byte(tagLower)).State != "ok" {
+					db.Hset("tag", []byte(tagLower), []byte(""))
+				}
+				// check if not exist !important
+				if db.Hget("tag:"+tagLower, youdb.I2b(info.Id)).State != "ok" {
+					db.Hset("tag:"+tagLower, youdb.I2b(info.Id), []byte(""))
+					db.Zincr("tag_article_num", []byte(tagLower), 1)
+				}
+			}
+		}
+
+		db.Hdel("task_to_set_tag", youdb.I2b(info.Id))
 	}
 }
