@@ -179,6 +179,7 @@ func setArticleTag(db *youdb.DB) {
 				// 记录所有tag，只增不减
 				if db.Hget("tag", []byte(tagLower)).State != "ok" {
 					db.Hset("tag", []byte(tagLower), []byte(""))
+					db.HnextSequence("tag") // 添加这一行
 				}
 				// check if not exist !important
 				if db.Hget("tag:"+tagLower, youdb.I2b(info.Id)).State != "ok" {
