@@ -57,9 +57,13 @@ func (h *BaseHandler) ArticleEdit(w http.ResponseWriter, r *http.Request) {
 		// 分类文章列表
 		db.Zdel("category_article_timeline:"+strconv.FormatUint(aobj.Cid, 10), aidB)
 		// 用户文章列表
-		db.Hdel("user_article_timeline:"+strconv.FormatUint(aobj.Uid, 10), youdb.I2b(aobj.Id))
+		db.Hdel("user_article_timeline:"+strconv.FormatUint(aobj.Uid, 10), aidB)
 		// 分类下文章数
 		db.Zincr("category_article_num", youdb.I2b(aobj.Cid), -1)
+		// 删除标题记录
+		hash := md5.Sum([]byte(aobj.Title))
+		titleMd5 := hex.EncodeToString(hash[:])
+		db.Hdel("title_md5", []byte(titleMd5))
 
 		// set
 		db.Hset("article_hidden", aidB, []byte(""))
