@@ -22,7 +22,8 @@ func IsUserName(str string) bool {
 	if len(str) == 0 {
 		return false
 	}
-	return usernameRegexp.MatchString(str)
+	return nicknameRegexp.MatchString(str) // 支持中文
+	//return usernameRegexp.MatchString(str)
 }
 
 func IsMail(str string) bool {
