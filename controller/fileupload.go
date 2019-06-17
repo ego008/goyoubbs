@@ -166,10 +166,10 @@ func (h *BaseHandler) FileUpload(w http.ResponseWriter, r *http.Request) {
 				w.Write([]byte(`{"retcode":400,"retmsg":"` + err.Error() + `"}`))
 				return
 			}
-			err = formUploader.Put(context.Background(), &ret, upToken, savePath, bytes.NewReader(newImgData.Bytes()), int64(newImgData.Len()), nil)
+			err = formUploader.Put(context.Background(), &ret, upToken, savePath, bytes.NewReader(newImgData.Bytes()), int64(newImgData.Len()), &storage.PutExtra{})
 			newImgData.Reset()
 		} else {
-			err = formUploader.Put(context.Background(), &ret, upToken, savePath, bytes.NewReader(fileData.Bytes()), int64(fileData.Len()), nil)
+			err = formUploader.Put(context.Background(), &ret, upToken, savePath, bytes.NewReader(fileData.Bytes()), int64(fileData.Len()), &storage.PutExtra{})
 		}
 		if err != nil {
 			w.Write([]byte(`{"retcode":400,"retmsg":"` + err.Error() + `"}`))
