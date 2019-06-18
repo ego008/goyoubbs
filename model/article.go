@@ -5,6 +5,7 @@ import (
 	"errors"
 	"github.com/ego008/goyoubbs/util"
 	"github.com/ego008/youdb"
+	"html"
 	"sort"
 	"strings"
 	"time"
@@ -667,8 +668,8 @@ func ArticleFeedList(db *youdb.DB, limit, tz int) []ArticleFeedListItem {
 					Id:          article.Id,
 					Uid:         article.Uid,
 					Name:        user.Name,
-					Cname:       category.Name,
-					Title:       article.Title,
+					Cname:       html.EscapeString(category.Name),
+					Title:       html.EscapeString(article.Title),
 					AddTimeFmt:  util.TimeFmt(article.AddTime, time.RFC3339, tz),
 					EditTimeFmt: util.TimeFmt(article.EditTime, time.RFC3339, tz),
 				}
@@ -680,6 +681,7 @@ func ArticleFeedList(db *youdb.DB, limit, tz int) []ArticleFeedListItem {
 				} else {
 					item.Des = article.Content
 				}
+				item.Des = html.EscapeString(item.Des)
 
 				items = append(items, item)
 			}
