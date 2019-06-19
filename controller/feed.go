@@ -15,7 +15,7 @@ func (h *BaseHandler) FeedHandler(w http.ResponseWriter, r *http.Request) {
 <feed xmlns="http://www.w3.org/2005/Atom">
 	<title>` + scf.Name + `</title>
 	<link rel="self" type="application/atom+xml" href="` + scf.MainDomain + `/feed"/>
-	<link rel="hub" href="http://pubsubhubbub.appspot.com"/>
+	<link rel="hub" href="https://pubsubhubbub.appspot.com"/>
 	<updated>{{.Update}}</updated>
 	<id>` + scf.MainDomain + `/feed</id>
 	<author>
@@ -24,11 +24,11 @@ func (h *BaseHandler) FeedHandler(w http.ResponseWriter, r *http.Request) {
 	{{range $_, $item := .Items}}
 	<entry>
 		<title>{{$item.Title}}</title>
-		<id>t-{{$item.Id}}</id>
+		<id>` + scf.MainDomain + `/t/{{$item.Id}}</id>
 		<link rel="alternate" type="text/html" href="` + scf.MainDomain + `/t/{{$item.Id}}" />
 		<published>{{$item.AddTimeFmt}}</published>
 		<updated>{{$item.EditTimeFmt}}</updated>
-		<content type="html">
+		<content type="text/plain">
 		  {{$item.Cname}} - {{$item.Name}} - {{$item.Des}}
 		</content>
     </entry>
