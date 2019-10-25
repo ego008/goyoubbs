@@ -120,6 +120,8 @@ func main() {
 			Handler:        httpgzip.NewHandler(root, nil),
 			TLSConfig:      tlsCf,
 			MaxHeaderBytes: int(app.Cf.Site.UploadMaxSizeByte),
+			ReadTimeout: 5 * time.Second,
+			WriteTimeout: 10 * time.Second,
 		}
 
 		go func() {
@@ -132,7 +134,12 @@ func main() {
 
 	} else {
 		// http
-		srv = &http.Server{Addr: ":" + strconv.Itoa(mcf.HttpPort), Handler: root}
+		srv = &http.Server{
+			Addr: ":" + strconv.Itoa(mcf.HttpPort), 
+			Handler: root,
+			ReadTimeout: 5 * time.Second,
+			WriteTimeout: 10 * time.Second,
+		}
 		go func() {
 			log.Fatal(srv.ListenAndServe())
 		}()
