@@ -93,7 +93,7 @@
                     {{if ge $.CurrentUser.Flag 5}}
                     {{if not $.Aobj.CloseComment}}
                     {{if ne $.CurrentUser.Id $item.Uid}}
-                    &laquo; <a href="#new-comment" onclick="replyto('{{$item.Name}}');">回复</a>
+                    &laquo; <a href="#new-comment" onclick="replyto('{{$item.Name}} #{{$item.Id}}');">回复</a>
                     {{end}}
                     {{end}}
                     {{end}}
