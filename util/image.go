@@ -101,7 +101,7 @@ func GenerateAvatar(sex, userName string, w, h int, filePath string) error {
 	} else {
 		gender = govatar.FEMALE
 	}
-	img, err := govatar.GenerateFromUsername(gender, userName)
+	img, err := govatar.GenerateForUsername(gender, userName)
 	if err != nil {
 		return err
 	}
