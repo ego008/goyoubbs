@@ -194,6 +194,7 @@
                         $("#btn-preview").attr("disabled", false);
                     },
                     fail: function(errMsg) {
+                        $.toast(errMsg);
                         $("#btn-preview").attr("disabled", false);
                     }
                 });
@@ -216,10 +217,16 @@
                     success: function(data){
                         if(data.retcode == 200) {
                             location.reload();
+                            return false;
                         }
+                        $.toast(data.retmsg);
+                        $("#btn-preview").attr("disabled", false);
+                        $("#btn-submit").attr("disabled", false);
                     },
                     fail: function(errMsg) {
+                        $.toast(errMsg);
                         $("#btn-preview").attr("disabled", false);
+                        $("#btn-submit").attr("disabled", false);
                     }
                 });
             }else{
