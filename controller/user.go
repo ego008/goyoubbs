@@ -211,6 +211,27 @@ func (h *BaseHandler) UserNotification(w http.ResponseWriter, r *http.Request) {
 	evn.NewestNodes = model.CategoryNewest(db, scf.CategoryShowNum)
 
 	evn.PageInfo = model.ArticleNotificationList(db, currentUser.Notice, scf.TimeZone)
+	
+	// fix currentUser.NoticeNum != len(evn.PageInfo.Items)
+	if currentUser.NoticeNum != len(evn.PageInfo.Items) {
+		var keys [][]byte
+		for _, v := range strings.Split(currentUser.Notice, ",") {
+			keys = append(keys, youdb.DS2b(v))
+		}
+
+		var newKeys []string
+		db.Hmget("article", keys).KvEach(func(key, value youdb.BS) {
+			newKeys = append(newKeys, youdb.B2ds(key))
+		})
+
+		currentUser.Notice = strings.Join(newKeys, ",")
+		currentUser.NoticeNum = len(newKeys)
+
+		jb, _ := json.Marshal(currentUser)
+		db.Hset("user", youdb.I2b(currentUser.Id), jb)
+
+		evn.CurrentUser = currentUser
+	}
 
 	h.Render(w, tpl, evn, "layout.html", "notification.html")
 }
