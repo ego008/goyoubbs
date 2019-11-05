@@ -214,15 +214,10 @@ func (h *BaseHandler) UserNotification(w http.ResponseWriter, r *http.Request) {
 	
 	// fix currentUser.NoticeNum != len(evn.PageInfo.Items)
 	if currentUser.NoticeNum != len(evn.PageInfo.Items) {
-		var keys [][]byte
-		for _, v := range strings.Split(currentUser.Notice, ",") {
-			keys = append(keys, youdb.DS2b(v))
-		}
-
 		var newKeys []string
-		db.Hmget("article", keys).KvEach(func(key, value youdb.BS) {
-			newKeys = append(newKeys, youdb.B2ds(key))
-		})
+		for _, item := range evn.PageInfo.Items {
+			newKeys = append(newKeys, strconv.FormatUint(item.Id, 10))
+		}
 
 		currentUser.Notice = strings.Join(newKeys, ",")
 		currentUser.NoticeNum = len(newKeys)
