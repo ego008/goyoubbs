@@ -246,7 +246,7 @@ func ArticleGetRelative(db *youdb.DB, aid uint64, tags string) ArticleRelative {
 		if rs.State == "ok" {
 			for i := 0; i < len(rs.Data)-1; i += 2 {
 				aid2 := youdb.B2i(rs.Data[i])
-				if aid2 != aid {
+				if aid2 > 0 && aid2 != aid {
 					if _, ok := aidCount[aid2]; ok {
 						aidCount[aid2] += 1
 					} else {
