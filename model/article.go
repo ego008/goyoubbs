@@ -291,7 +291,7 @@ func ArticleGetRelative(db *youdb.DB, aid uint64, tags string) ArticleRelative {
 				json.Unmarshal(rs.Data[i+1], &item)
 				aitems = append(aitems, item)
 				for _, tag := range strings.Split(strings.ToLower(item.Tags), ",") {
-					if _, ok := ctagMap[tag]; !ok {
+					if _, ok := ctagMap[tag]; !ok && len(tag) > 0 {
 						tmpMap[tag] = struct{}{}
 					}
 				}
