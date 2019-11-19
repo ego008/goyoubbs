@@ -289,6 +289,9 @@ func ArticleGetRelative(db *youdb.DB, aid uint64, tags string) ArticleRelative {
 			for i := 0; i < len(rs.Data)-1; i += 2 {
 				item := ArticleLi{}
 				json.Unmarshal(rs.Data[i+1], &item)
+				if item.Id == 0 {
+					continue
+				}
 				aitems = append(aitems, item)
 				for _, tag := range strings.Split(strings.ToLower(item.Tags), ",") {
 					if _, ok := ctagMap[tag]; !ok && len(tag) > 0 {
