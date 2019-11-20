@@ -32,7 +32,7 @@ Site:
     CloseReg: false
     AutoDataBackup: false
     AutoGetTag: true
-    GetTagApi: "http://youbbs.sinaapp.com/fencigoapi.php"
+    GetTagApi: "https://www.youbbs.org/api/fenci"
     QQClientID: 0
     QQClientSecret: ""
     WeiboClientID: 0
