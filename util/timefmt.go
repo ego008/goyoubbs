@@ -89,7 +89,7 @@ func TimeHuman(ts interface{}) string {
 		if m == 0 {
 			return strconv.Itoa(h) + "小时前"
 		}
-		return strconv.Itoa(h) + "小时" + strconv.Itoa(m) + "分前"
+		return strconv.Itoa(h) + "小时" + strconv.Itoa(m/60) + "分前"
 	case seconds >= 60:
 		m := int(seconds / 60)
 		s := int(seconds) % 60
