@@ -3,8 +3,8 @@ package controller
 import (
 	"encoding/json"
 	"github.com/dchest/captcha"
-	"github.com/ego008/goyoubbs/model"
-	"github.com/ego008/goyoubbs/util"
+	"goyoubbs/model"
+	"goyoubbs/util"
 	"github.com/ego008/youdb"
 	"github.com/rs/xid"
 	"goji.io/pat"

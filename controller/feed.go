@@ -1,7 +1,7 @@
 package controller
 
 import (
-	"github.com/ego008/goyoubbs/model"
+	"goyoubbs/model"
 	"net/http"
 	"text/template"
 )
