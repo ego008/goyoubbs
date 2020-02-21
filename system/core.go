@@ -4,7 +4,7 @@ import (
 	"log"
 	"runtime"
 
-	"github.com/ego008/goyoubbs/util"
+	"goyoubbs/util"
 	"github.com/ego008/youdb"
 	"github.com/gorilla/securecookie"
 	"github.com/qiniu/api.v7/storage"

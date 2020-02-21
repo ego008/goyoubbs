@@ -2,8 +2,8 @@ package router
 
 import (
 	"github.com/dchest/captcha"
-	"github.com/ego008/goyoubbs/controller"
-	"github.com/ego008/goyoubbs/system"
+	"goyoubbs/controller"
+	"goyoubbs/system"
 	"goji.io"
 	"goji.io/pat"
 )
