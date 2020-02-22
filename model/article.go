@@ -18,6 +18,7 @@ type Article struct {
 	RUid         uint64 `json:"ruid"`
 	Title        string `json:"title"`
 	Content      string `json:"content"`
+	UseMD        bool   `json:"usemd"`
 	ClientIp     string `json:"clientip"`
 	Tags         string `json:"tags"`
 	AddTime      uint64 `json:"addtime"`

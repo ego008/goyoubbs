@@ -32,7 +32,7 @@
             <a href="/member/{{.Aobj.Uid}}"><img src="/static/avatar/{{.Aobj.Avatar}}.jpg" alt="{{.Aobj.Name}}" /></a></div>
         <div class="c"></div>
     </div>
-    <div class="topic-content">
+    <div class="topic-content {{if .Aobj.UseMD}}markdown-body{{end}}">
 
         {{.Aobj.ContentFmt}}
 

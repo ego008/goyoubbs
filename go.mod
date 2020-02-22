@@ -8,10 +8,13 @@ require (
 	github.com/disintegration/imaging v1.6.2
 	github.com/ego008/youdb v0.0.0-20190704122013-a2b05b09e20d
 	github.com/gorilla/securecookie v1.1.1
+	github.com/klauspost/compress v1.10.1 // indirect
+	github.com/microcosm-cc/bluemonday v1.0.2
 	github.com/o1egl/govatar v0.3.0
 	github.com/qiniu/api.v7 v7.2.5+incompatible
 	github.com/qiniu/x v7.0.8+incompatible // indirect
 	github.com/rs/xid v1.2.1
+	github.com/shurcooL/sanitized_anchor_name v1.0.0 // indirect
 	github.com/weint/config v0.0.0-20170804020532-16809f7a2214
 	github.com/weint/httpclient v0.0.0-20180504101821-32544e5b5992
 	github.com/xi2/httpgzip v0.0.0-20190509075255-932ab5e254ae
@@ -19,5 +22,6 @@ require (
 	golang.org/x/crypto v0.0.0-20200220183623-bac4c82f6975
 	golang.org/x/net v0.0.0-20200219183655-46282727080f
 	gopkg.in/h2non/filetype.v1 v1.0.5
+	gopkg.in/russross/blackfriday.v2 v2.0.0
 	qiniupkg.com/x v7.0.8+incompatible // indirect
 )

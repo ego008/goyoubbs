@@ -14,6 +14,7 @@
 <div class="main-box">
     <p><input id="id-title" type="text" name="title" value="" class="sll" /></p>
     <p><textarea id="id-content" name="content" class="mll tall"></textarea></p>
+    <p title="使用Markdown时图片链接将不会自动识别，请按Markdown语法正确编辑，善用预览功能"><input type="checkbox" id="id-usemd" name="usemd"><label for="id-usemd"> 使用Markdown</label></p>
 
     <div class="float-right grey fs12">
         <input id="file_upload" name="file_upload" type="file" multiple="true">
@@ -35,18 +36,24 @@
 <script>
     $("#btn-preview").on("click", function(){
         var content = $("#id-content").val();
+        var usemd = $("#id-usemd")[0].checked;
         if(content){
             $(this).attr("disabled", true);
             $.ajax({
                 type: "POST",
                 url: "/content/preview",
-                data: JSON.stringify({"act": "preview", "content": content}),
+                data: JSON.stringify({"act": "preview", "content": content, "usemd": usemd}),
                 dataType: "json",
                 contentType: "application/json",
                 success: function(data){
                     if(data.retcode==200) {
                         $("#id_preview").html(data.html);
                         $("#id_preview").addClass("previews");
+                        if(usemd) {
+                            $("#id_preview").addClass("markdown-body");
+                        } else {
+                            $("#id_preview").removeClass("markdown-body");
+                        }
                         $("#id_preview pre code").each(function (i, block) {
                             hljs.highlightBlock(block);
                         });
@@ -69,13 +76,14 @@
         var selectid = $("#select-cid").val();
         var title = $("#id-title").val();
         var content = $("#id-content").val();
+        var usemd = $("#id-usemd")[0].checked;
         if(title){
             $("#btn-submit").attr("disabled", true);
             console.log(selectid);
             $.ajax({
                 type: "POST",
                 url: "/newpost/{{.Cobj.Id}}",
-                data: JSON.stringify({"act": "submit", "cid": parseInt(selectid, 10), "title": title, "content": content}),
+                data: JSON.stringify({"act": "submit", "cid": parseInt(selectid, 10), "title": title, "content": content, "usemd": usemd}),
                 dataType: "json",
                 contentType: "application/json",
                 success: function(data){

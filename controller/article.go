@@ -14,6 +14,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"gopkg.in/russross/blackfriday.v2"
+	"github.com/microcosm-cc/bluemonday"
 )
 
 func (h *BaseHandler) ArticleAdd(w http.ResponseWriter, r *http.Request) {
@@ -99,6 +101,7 @@ func (h *BaseHandler) ArticleAddPost(w http.ResponseWriter, r *http.Request) {
 		Cid     uint64 `json:"cid"`
 		Title   string `json:"title"`
 		Content string `json:"content"`
+		UseMD   bool   `json:"usemd"`
 	}
 
 	decoder := json.NewDecoder(r.Body)
@@ -175,6 +178,7 @@ func (h *BaseHandler) ArticleAddPost(w http.ResponseWriter, r *http.Request) {
 		Cid:      rec.Cid,
 		Title:    rec.Title,
 		Content:  rec.Content,
+		UseMD:    rec.UseMD,
 		AddTime:  now,
 		EditTime: now,
 		ClientIp: r.Header.Get("X-FORWARDED-FOR"),
@@ -397,6 +401,10 @@ func (h *BaseHandler) ArticleDetail(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(err.Error()))
 		return
 	}
+	if aobj.UseMD {
+		unsafe := blackfriday.Run([]byte(aobj.Content))
+		aobj.Content = string(bluemonday.UGCPolicy().SanitizeBytes(unsafe))
+	}
 	currentUser, _ := h.CurrentUser(w, r)
 
 	if len(currentUser.Notice) > 0 && len(currentUser.Notice) >= len(aid) {
@@ -489,6 +497,9 @@ func (h *BaseHandler) ArticleDetail(w http.ResponseWriter, r *http.Request) {
 		Views:       viewsNum,
 		AddTimeFmt:  util.TimeFmt(aobj.AddTime, "2006-01-02 15:04", scf.TimeZone),
 		EditTimeFmt: util.TimeFmt(aobj.EditTime, "2006-01-02 15:04", scf.TimeZone),
+	}
+	if evn.Aobj.UseMD {
+		evn.Aobj.ContentFmt = template.HTML(evn.Aobj.Content)
 	}
 
 	if len(aobj.Tags) > 0 {
@@ -680,6 +691,7 @@ func (h *BaseHandler) ContentPreviewPost(w http.ResponseWriter, r *http.Request)
 		Act     string `json:"act"`
 		Link    string `json:"link"`
 		Content string `json:"content"`
+		UseMD   bool   `json:"usemd"`
 	}
 
 	type response struct {
@@ -702,7 +714,12 @@ func (h *BaseHandler) ContentPreviewPost(w http.ResponseWriter, r *http.Request)
 
 	if rec.Act == "preview" && len(rec.Content) > 0 {
 		rsp.Retcode = 200
-		rsp.Html = template.HTML(util.ContentFmt(db, rec.Content))
+		if rec.UseMD {
+			unsafe := blackfriday.Run([]byte(rec.Content))
+			rsp.Html = template.HTML(bluemonday.UGCPolicy().SanitizeBytes(unsafe))
+		} else {
+			rsp.Html = template.HTML(util.ContentFmt(db, rec.Content))
+		}
 	}
 	json.NewEncoder(w).Encode(rsp)
 }

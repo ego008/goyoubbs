@@ -1,3 +1,8 @@
 goyoubbs.exe
 goyoubbs
 
+static/upload
+static/avatar
+mydata.db
+*.lock
+
