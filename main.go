@@ -4,15 +4,15 @@ import (
 	"context"
 	"crypto/tls"
 	"flag"
-	"goyoubbs/cronjob"
-	"goyoubbs/getold"
-	"goyoubbs/router"
-	"goyoubbs/system"
 	"github.com/xi2/httpgzip"
 	"goji.io"
 	"goji.io/pat"
 	"golang.org/x/crypto/acme/autocert"
 	"golang.org/x/net/http2"
+	"goyoubbs/cronjob"
+	"goyoubbs/getold"
+	"goyoubbs/router"
+	"goyoubbs/system"
 	"log"
 	"net/http"
 	"os"
@@ -120,8 +120,8 @@ func main() {
 			Handler:        httpgzip.NewHandler(root, nil),
 			TLSConfig:      tlsCf,
 			MaxHeaderBytes: int(app.Cf.Site.UploadMaxSizeByte),
-			ReadTimeout: 5 * time.Second,
-			WriteTimeout: 10 * time.Second,
+			ReadTimeout:    5 * time.Second,
+			WriteTimeout:   10 * time.Second,
 		}
 
 		go func() {
@@ -135,9 +135,9 @@ func main() {
 	} else {
 		// http
 		srv = &http.Server{
-			Addr: ":" + strconv.Itoa(mcf.HttpPort), 
-			Handler: root,
-			ReadTimeout: 5 * time.Second,
+			Addr:         ":" + strconv.Itoa(mcf.HttpPort),
+			Handler:      root,
+			ReadTimeout:  5 * time.Second,
 			WriteTimeout: 10 * time.Second,
 		}
 		go func() {

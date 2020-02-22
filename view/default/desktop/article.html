@@ -34,7 +34,9 @@
     </div>
     <div class="topic-content">
 
-        {{.Aobj.ContentFmt}}
+        <div class="markdown-body">
+            {{.Aobj.ContentFmt}}
+        </div>
 
         {{if .Aobj.Tags}}
         <div class="c"></div>
@@ -80,7 +82,9 @@
         </div>
         <div class="commont-data">
             <div class="commont-content">
-                {{$item.ContentFmt}}
+                <div class="markdown-body">
+                    {{$item.ContentFmt}}
+                </div>
             </div>
 
             <div class="commont-data-date">
@@ -169,7 +173,9 @@
         </p>
     </form>
 
-    <div id="id_preview" class="commont-content"></div>
+    <div class="commont-content">
+        <div id="id_preview" class="markdown-body"></div>
+    </div>
 
 </div>
 

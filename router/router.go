@@ -2,10 +2,10 @@ package router
 
 import (
 	"github.com/dchest/captcha"
-	"goyoubbs/controller"
-	"goyoubbs/system"
 	"goji.io"
 	"goji.io/pat"
+	"goyoubbs/controller"
+	"goyoubbs/system"
 )
 
 func NewRouter(app *system.Application) *goji.Mux {
@@ -61,7 +61,7 @@ func NewRouter(app *system.Application) *goji.Mux {
 	sp.HandleFunc(pat.Post("/admin/category/list"), h.AdminCategoryListPost)
 	sp.HandleFunc(pat.Get("/admin/link/list"), h.AdminLinkList)
 	sp.HandleFunc(pat.Post("/admin/link/list"), h.AdminLinkListPost)
-	
+
 	sp.HandleFunc(pat.Get("/:filepath"), h.StaticFile)
 
 	return sp

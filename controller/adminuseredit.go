@@ -3,11 +3,11 @@ package controller
 import (
 	"bytes"
 	"encoding/json"
-	"goyoubbs/model"
-	"goyoubbs/util"
 	"github.com/ego008/youdb"
 	"github.com/rs/xid"
 	"goji.io/pat"
+	"goyoubbs/model"
+	"goyoubbs/util"
 	"io"
 	"net/http"
 	"strconv"

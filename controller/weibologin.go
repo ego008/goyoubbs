@@ -2,11 +2,11 @@ package controller
 
 import (
 	"encoding/json"
+	"github.com/ego008/youdb"
+	"github.com/rs/xid"
 	"goyoubbs/lib/weiboOAuth"
 	"goyoubbs/model"
 	"goyoubbs/util"
-	"github.com/ego008/youdb"
-	"github.com/rs/xid"
 	"net/http"
 	"strconv"
 	"strings"

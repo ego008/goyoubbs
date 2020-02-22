@@ -3,11 +3,11 @@ package controller
 import (
 	"encoding/json"
 	"github.com/dchest/captcha"
-	"goyoubbs/model"
-	"goyoubbs/util"
 	"github.com/ego008/youdb"
 	"github.com/rs/xid"
 	"goji.io/pat"
+	"goyoubbs/model"
+	"goyoubbs/util"
 	"net/http"
 	"strconv"
 	"strings"
@@ -211,7 +211,7 @@ func (h *BaseHandler) UserNotification(w http.ResponseWriter, r *http.Request) {
 	evn.NewestNodes = model.CategoryNewest(db, scf.CategoryShowNum)
 
 	evn.PageInfo = model.ArticleNotificationList(db, currentUser.Notice, scf.TimeZone)
-	
+
 	// fix currentUser.NoticeNum != len(evn.PageInfo.Items)
 	if currentUser.NoticeNum != len(evn.PageInfo.Items) {
 		var newKeys []string

@@ -3,8 +3,8 @@ package model
 import (
 	"encoding/json"
 	"errors"
-	"goyoubbs/util"
 	"github.com/ego008/youdb"
+	"goyoubbs/util"
 	"html/template"
 )
 
@@ -56,7 +56,7 @@ func CommentDelByKey(db *youdb.DB, aid string, cid uint64) error {
 	return db.Hdel("article_comment:"+aid, youdb.I2b(cid))
 }
 
-func CommentList(db *youdb.DB, cmd, tb, key string, limit, tz int) CommentPageInfo {
+func CommentList(db *youdb.DB, mdm, cmd, tb, key string, limit, tz int) CommentPageInfo {
 	var items []CommentListItem
 	var citems []Comment
 	userMap := map[uint64]UserMini{}
@@ -109,7 +109,7 @@ func CommentList(db *youdb.DB, cmd, tb, key string, limit, tz int) CommentPageIn
 				Avatar:     user.Avatar,
 				AddTime:    citem.AddTime,
 				AddTimeFmt: util.TimeFmt(citem.AddTime, "2006-01-02 15:04", tz),
-				ContentFmt: template.HTML(util.ContentFmt(db, citem.Content)),
+				ContentFmt: template.HTML(util.ContentFmt(db, mdm, citem.Content)),
 			}
 			items = append(items, item)
 			if firstKey == 0 {

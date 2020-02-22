@@ -3,9 +3,9 @@ package controller
 import (
 	"encoding/json"
 	"errors"
+	"github.com/ego008/youdb"
 	"goyoubbs/model"
 	"goyoubbs/system"
-	"github.com/ego008/youdb"
 	"html/template"
 	"net/http"
 	"regexp"

@@ -2,10 +2,10 @@ package controller
 
 import (
 	"encoding/json"
-	"goyoubbs/model"
-	"goyoubbs/util"
 	"github.com/rs/xid"
 	"goji.io/pat"
+	"goyoubbs/model"
+	"goyoubbs/util"
 	"net/http"
 	"strconv"
 )
@@ -129,7 +129,7 @@ func (h *BaseHandler) CommentEditPost(w http.ResponseWriter, r *http.Request) {
 			Html string `json:"html"`
 		}{
 			normalRsp{200, ""},
-			util.ContentFmt(db, rec.Content),
+			util.ContentFmt(db, h.App.Cf.Site.MainDomain, rec.Content),
 		}
 		json.NewEncoder(w).Encode(tmp)
 		return

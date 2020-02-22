@@ -1,8 +1,8 @@
 package controller
 
 import (
-	"goyoubbs/model"
 	"goji.io/pat"
+	"goyoubbs/model"
 	"net/http"
 	"strconv"
 	"strings"

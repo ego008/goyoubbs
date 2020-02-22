@@ -5,11 +5,11 @@ import (
 	"crypto/md5"
 	"encoding/hex"
 	"encoding/json"
-	"goyoubbs/model"
-	"goyoubbs/util"
 	"github.com/ego008/youdb"
 	"github.com/rs/xid"
 	"goji.io/pat"
+	"goyoubbs/model"
+	"goyoubbs/util"
 	"net/http"
 	"strconv"
 	"strings"
@@ -175,7 +175,7 @@ func (h *BaseHandler) ArticleEditPost(w http.ResponseWriter, r *http.Request) {
 			Html string `json:"html"`
 		}{
 			normalRsp{200, ""},
-			util.ContentFmt(db, rec.Content),
+			util.ContentFmt(db, h.App.Cf.Site.MainDomain, rec.Content),
 		}
 		json.NewEncoder(w).Encode(tmp)
 		return

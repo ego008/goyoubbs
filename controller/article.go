@@ -4,11 +4,11 @@ import (
 	"crypto/md5"
 	"encoding/hex"
 	"encoding/json"
-	"goyoubbs/model"
-	"goyoubbs/util"
 	"github.com/ego008/youdb"
 	"github.com/rs/xid"
 	"goji.io/pat"
+	"goyoubbs/model"
+	"goyoubbs/util"
 	"html/template"
 	"net/http"
 	"strconv"
@@ -120,7 +120,7 @@ func (h *BaseHandler) ArticleAddPost(w http.ResponseWriter, r *http.Request) {
 			Html string `json:"html"`
 		}{
 			normalRsp{200, ""},
-			util.ContentFmt(db, rec.Content),
+			util.ContentFmt(db, h.App.Cf.Site.MainDomain, rec.Content),
 		}
 		json.NewEncoder(w).Encode(tmp)
 		return
@@ -442,7 +442,7 @@ func (h *BaseHandler) ArticleDetail(w http.ResponseWriter, r *http.Request) {
 	}
 
 	cobj.Articles = db.Zget("category_article_num", youdb.I2b(cobj.Id)).Uint64()
-	pageInfo := model.CommentList(db, cmd, "article_comment:"+aid, key, scf.CommentListNum, scf.TimeZone)
+	pageInfo := model.CommentList(db, scf.MainDomain, cmd, "article_comment:"+aid, key, scf.CommentListNum, scf.TimeZone)
 
 	type articleForDetail struct {
 		model.Article
@@ -483,7 +483,7 @@ func (h *BaseHandler) ArticleDetail(w http.ResponseWriter, r *http.Request) {
 	viewsNum, _ := db.Hincr("article_views", youdb.I2b(aobj.Id), 1)
 	evn.Aobj = articleForDetail{
 		Article:     aobj,
-		ContentFmt:  template.HTML(util.ContentFmt(db, aobj.Content)),
+		ContentFmt:  template.HTML(util.ContentFmt(db, scf.MainDomain, aobj.Content)),
 		Name:        author.Name,
 		Avatar:      author.Avatar,
 		Views:       viewsNum,
@@ -570,7 +570,7 @@ func (h *BaseHandler) ArticleDetailPost(w http.ResponseWriter, r *http.Request) 
 		}
 	} else if rec.Act == "comment_preview" {
 		rsp.Retcode = 200
-		rsp.Html = template.HTML(util.ContentFmt(db, rec.Content))
+		rsp.Html = template.HTML(util.ContentFmt(db, h.App.Cf.Site.MainDomain, rec.Content))
 	} else if rec.Act == "comment_submit" {
 		timeStamp := uint64(time.Now().UTC().Unix())
 		currentUser, _ := h.CurrentUser(w, r)
@@ -702,7 +702,7 @@ func (h *BaseHandler) ContentPreviewPost(w http.ResponseWriter, r *http.Request)
 
 	if rec.Act == "preview" && len(rec.Content) > 0 {
 		rsp.Retcode = 200
-		rsp.Html = template.HTML(util.ContentFmt(db, rec.Content))
+		rsp.Html = template.HTML(util.ContentFmt(db, h.App.Cf.Site.MainDomain, rec.Content))
 	}
 	json.NewEncoder(w).Encode(rsp)
 }

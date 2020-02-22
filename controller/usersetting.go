@@ -3,10 +3,10 @@ package controller
 import (
 	"bytes"
 	"encoding/json"
-	"goyoubbs/model"
-	"goyoubbs/util"
 	"github.com/ego008/youdb"
 	"github.com/rs/xid"
+	"goyoubbs/model"
+	"goyoubbs/util"
 	"io"
 	"net/http"
 	"strconv"

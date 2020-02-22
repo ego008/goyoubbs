@@ -2,8 +2,8 @@ package controller
 
 import (
 	"encoding/json"
-	"goyoubbs/model"
 	"github.com/rs/xid"
+	"goyoubbs/model"
 	"net/http"
 	"strconv"
 	"strings"

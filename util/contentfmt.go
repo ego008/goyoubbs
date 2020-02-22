@@ -4,24 +4,96 @@ import (
 	"crypto/md5"
 	"encoding/hex"
 	"github.com/ego008/youdb"
+	"github.com/shurcooL/github_flavored_markdown"
 	"regexp"
 	"strconv"
 	"strings"
+)
+
+const (
+	// 链接点击数标志符
+	clickFlag = `_click_md5:`
 )
 
 var (
 	codeRegexp    = regexp.MustCompile("(?s:```(.+?)```)")
 	imgRegexp     = regexp.MustCompile(`(https?://[\w./:]+/[\w./]+\.(jpg|jpe|jpeg|gif|png))`)
 	gistRegexp    = regexp.MustCompile(`(https?://gist\.github\.com/([a-zA-Z0-9-]+/)?[\d]+)`)
-	mentionRegexp = regexp.MustCompile(`\B@([a-zA-Z0-9\p{Han}]{1,32})\s?`)
+	mentionRegexp = regexp.MustCompile(`(?:\s|^)@([a-zA-Z0-9\p{Han}]{1,32})\s?`)
 	urlRegexp     = regexp.MustCompile(`([^;"='>])(https?://[^\s<]+[^\s<.)])`)
 	nlineRegexp   = regexp.MustCompile(`\s{2,}`)
 	youku1Regexp  = regexp.MustCompile(`https?://player\.youku\.com/player\.php/sid/([a-zA-Z0-9=]+)/v\.swf`)
 	youku2Regexp  = regexp.MustCompile(`https?://v\.youku\.com/v_show/id_([a-zA-Z0-9=]+)(/|\.html?)?`)
+
+	hrefRegexp = regexp.MustCompile(`href="[^"]+?"`)
+	aTagRegexp = regexp.MustCompile(`(?m)(<a[^<]+?>.*?</a>)`)
 )
 
+func ContentFmt(db *youdb.DB, mdm, input string) string {
+	input = strings.TrimSpace(input)
+
+	if strings.Contains(input, "@") {
+		input = mentionRegexp.ReplaceAllString(input, ` @[$1](/member/$1) `)
+	}
+
+	// 兼容以前数据 图片URL
+	input = imgRegexp.ReplaceAllString(input, `![]($1)`) // bug  会替换掉包括代码块里的url
+
+	text := youdb.S2b(input)
+	md := youdb.B2s(github_flavored_markdown.Markdown(text))
+
+	// 链接加_blank 点击计数
+	if strings.Contains(md, "<a ") {
+		hrefMD5Map := map[string]urlInfo{}
+		var keys [][]byte // hrefMD5 lst
+
+		md = aTagRegexp.ReplaceAllStringFunc(md, func(m string) string {
+			// 如果为 mdm 或 /t/* 则去掉 rel="nofollow
+			href := hrefRegexp.FindString(m)
+			if len(href) > 7 {
+				hrefValue := href[6 : len(href)-1]
+				if strings.HasPrefix(hrefValue, mdm) || strings.HasPrefix(hrefValue, "/t/") || strings.HasPrefix(hrefValue, "#") {
+					m = strings.Replace(m, ` rel="nofollow"`, "", 1)
+				} else {
+					if !strings.HasPrefix(hrefValue, "/member") {
+						m = strings.Replace(m, ` rel="nofollow"`, ` rel="nofollow" target="_blank" class="external_link"`, 1)
+					}
+				}
+
+				// 添加标志符
+				hs := md5.Sum([]byte(hrefValue))
+				hrefMD5 := hex.EncodeToString(hs[:])
+				hrefMD5Map[hrefMD5] = urlInfo{Href: hrefValue}
+				keys = append(keys, []byte(hrefMD5))
+
+				m += clickFlag + hrefMD5
+			}
+			return m
+		})
+
+		if len(hrefMD5Map) > 0 {
+			rs := db.Hmget("url_md5_click", keys)
+			for i := 0; i < (len(rs.Data) - 1); i += 2 {
+				key := rs.Data[i].String()
+				tmp := hrefMD5Map[key]
+				tmp.Click = youdb.B2ds(rs.Data[i+1])
+				hrefMD5Map[key] = tmp
+			}
+			for k, v := range hrefMD5Map {
+				clickTag := ""
+				if len(v.Click) > 0 {
+					clickTag = ` <span class="badge-notification clicks" title="` + v.Click + ` 次点击">` + v.Click + `</span>`
+				}
+				md = strings.Replace(md, clickFlag+k, clickTag, -1)
+			}
+		}
+	}
+
+	return md
+}
+
 // 文本格式化
-func ContentFmt(db *youdb.DB, input string) string {
+func ContentFmtBak(db *youdb.DB, input string) string {
 	if strings.Index(input, "```") >= 0 {
 		sepNum := strings.Count(input, "```")
 		if sepNum < 2 {
