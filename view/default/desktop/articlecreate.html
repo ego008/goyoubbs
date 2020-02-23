@@ -134,6 +134,46 @@
             }
         });
     });
+
+    document.addEventListener('paste', function (evt) {
+        var items = evt.clipboardData && evt.clipboardData.items;
+        var file = null;
+        if(items && items.length) {
+            for(var i=0; i!==items.length; i++) {
+                if(items[i].type.indexOf('image') !== -1) {
+                    file = items[i].getAsFile();
+                    break;
+                }
+            }
+        }
+
+        if(!!!file) {
+            return;
+        }
+
+        // upload file object.
+        var url = "/file/upload";
+        var form = new FormData();
+        form.append('file', file);
+        $.ajax({
+            url: url,
+            type: 'POST',
+            cache: false,
+            data: form,
+            processData: false,
+            contentType: false
+        }).done(function(res) {
+            // upload success
+            if(res.retcode === 200) {
+                var img_url = "\n" + res.url + "\n";
+                var pos = $("#id-content").prop("selectionStart");
+                var con = document.getElementById("id-content").value;
+                document.getElementById("id-content").value = con.slice(0, pos) + img_url + con.slice(pos);
+            }
+        }).fail(function(err) {
+            console.warn(err);
+        });
+    });
 </script>
 
 
