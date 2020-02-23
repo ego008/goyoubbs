@@ -119,7 +119,8 @@ func dataBackup(db *youdb.DB) {
 func getTagFromTitle(db *youdb.DB, apiUrl string) {
 	rs := db.Hscan("task_to_get_tag", []byte(""), 1)
 	if rs.State == "ok" {
-		aidB := rs.Data[0][:]
+		var aidB []byte
+		aidB = append(aidB, rs.Data[0]...)
 
 		rs2 := db.Hget("article", aidB)
 		if rs2.State != "ok" {
