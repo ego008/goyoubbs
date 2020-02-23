@@ -9,6 +9,8 @@ github.com/disintegration/imaging v1.6.2 h1:w1LecBlG2Lnp8B3jk5zSuNqd7b4DXhcjwek1
 github.com/disintegration/imaging v1.6.2/go.mod h1:44/5580QXChDfwIclfc/PCwrr44amcmDAg8hxG0Ewe4=
 github.com/ego008/youdb v0.0.0-20190704122013-a2b05b09e20d h1:vEBk4nkB5uWWUHGnOqfXRa9GrhI62MrVIylnLHvpBFM=
 github.com/ego008/youdb v0.0.0-20190704122013-a2b05b09e20d/go.mod h1:0QCuDyil1856XWsJEwuP4xsO0XNBUe2xzm6/Hhe8YpM=
+github.com/ego008/youdb v0.0.0-20200223095330-0a16a0a292d3 h1:9mXxVoA0vnbKHlyqWbbIOzF2Y4GYD4uP4V43qx/CiIw=
+github.com/ego008/youdb v0.0.0-20200223095330-0a16a0a292d3/go.mod h1:0QCuDyil1856XWsJEwuP4xsO0XNBUe2xzm6/Hhe8YpM=
 github.com/gorilla/securecookie v1.1.1 h1:miw7JPhV+b/lAHSXz4qd/nN9jRiAFV5FwjeKyCS8BvQ=
 github.com/gorilla/securecookie v1.1.1/go.mod h1:ra0sb63/xPlUeL+yeDciTfxMRAA+MP+HVt/4epWDjd4=
 github.com/kr/pretty v0.1.0/go.mod h1:dAy3ld7l9f0ibDNOQOHHMYYIIbhfbHSm3C4ZsoJORNo=

@@ -10,7 +10,6 @@ import (
 	"golang.org/x/crypto/acme/autocert"
 	"golang.org/x/net/http2"
 	"goyoubbs/cronjob"
-	"goyoubbs/getold"
 	"goyoubbs/router"
 	"goyoubbs/system"
 	"log"
@@ -25,25 +24,11 @@ import (
 
 func main() {
 	configFile := flag.String("config", "config/config.yaml", "full path of config.yaml file")
-	getOldSite := flag.String("getoldsite", "0", "get or not old site, 0 or 1, 2")
 	flag.Parse()
 
 	c := system.LoadConfig(*configFile)
 	app := &system.Application{}
 	app.Init(c, os.Args[0])
-
-	if *getOldSite == "1" || *getOldSite == "2" {
-		bh := &getold.BaseHandler{
-			App: app,
-		}
-		if *getOldSite == "1" {
-			bh.GetRemote()
-		} else if *getOldSite == "2" {
-			bh.GetLocal()
-		}
-		app.Close()
-		return
-	}
 
 	// cron job
 	cr := cronjob.BaseHandler{App: app}

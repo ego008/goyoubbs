@@ -139,7 +139,7 @@ func (h *BaseHandler) UserLoginPost(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		userId, _ := db.HnextSequence("user")
+		userId, _ := db.Hincr("count", []byte("user"), 1)
 		flag := 5
 		if siteCf.RegReview {
 			flag = 1

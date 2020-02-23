@@ -8,6 +8,7 @@ import (
 	"goyoubbs/model"
 	"goyoubbs/system"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -18,6 +19,46 @@ type BaseHandler struct {
 
 func (h *BaseHandler) MainCronJob() {
 	db := h.App.Db
+
+	// fix rm boltdb *sequence method for old site
+	if !db.Hget("count", []byte("user")).OK() && db.Hscan("user", nil, 1).OK() {
+		// user category article tag comment_num
+		for _, tb := range []string{"user", "category", "article"} {
+			var num uint64
+			db.Hrscan(tb, nil, 1).KvEach(func(key, value youdb.BS) {
+				num = youdb.B2i(key.Bytes())
+			})
+			db.Hset("count", []byte(tb), youdb.I2b(num))
+		}
+
+		// tag
+		var keyStart []byte
+		var num uint64
+		for {
+			rs := db.Hscan("tag", keyStart, 100)
+			if !rs.OK() {
+				break
+			}
+			kvLen := rs.KvLen()
+			keyStart = rs.Data[kvLen*2-2]
+			num += uint64(kvLen)
+		}
+		db.Hset("count", []byte("tag"), youdb.I2b(num))
+
+		// comment_num
+		keyStart = keyStart[:0]
+		num = 0
+		maxAId := db.HgetInt("count", []byte("article"))
+		for i := maxAId; i > 0; i-- {
+			var cNum uint64
+			db.Hrscan("article_comment:"+strconv.FormatUint(i, 10), nil, 1).KvEach(func(key, value youdb.BS) {
+				cNum = youdb.B2i(key.Bytes())
+			})
+			num += cNum
+		}
+		db.Hset("count", []byte("comment_num"), youdb.I2b(num))
+	}
+
 	scf := h.App.Cf.Site
 	tick1 := time.Tick(3600 * time.Second)
 	tick2 := time.Tick(120 * time.Second)
@@ -161,7 +202,14 @@ func setArticleTag(db *youdb.DB) {
 			if !contains {
 				tagLower := strings.ToLower(tag1)
 				db.Hdel("tag:"+tagLower, youdb.I2b(info.Id))
-				db.Zincr("tag_article_num", []byte(tagLower), -1)
+				if db.Hscan("tag:"+tagLower, nil, 1).OK() {
+					db.Zincr("tag_article_num", []byte(tagLower), -1) // 热门标签排序
+				} else {
+					// 删除
+					db.Zdel("tag_article_num", []byte(tagLower))
+					db.Hdel("tag", []byte(tagLower))
+					db.Hincr("count", []byte("tag"), -1)
+				}
 			}
 		}
 
@@ -176,14 +224,13 @@ func setArticleTag(db *youdb.DB) {
 			}
 			if !contains {
 				tagLower := strings.ToLower(tag1)
-				// 记录所有tag，只增不减
-				if db.Hget("tag", []byte(tagLower)).State != "ok" {
-					db.Hset("tag", []byte(tagLower), []byte(""))
-					db.HnextSequence("tag") // 添加这一行
+				if !db.Hget("tag", []byte(tagLower)).OK() {
+					db.Hset("tag", []byte(tagLower), nil)
+					db.Hincr("count", []byte("tag"), 1)
 				}
 				// check if not exist !important
-				if db.Hget("tag:"+tagLower, youdb.I2b(info.Id)).State != "ok" {
-					db.Hset("tag:"+tagLower, youdb.I2b(info.Id), []byte(""))
+				if !db.Hget("tag:"+tagLower, youdb.I2b(info.Id)).OK() {
+					db.Hset("tag:"+tagLower, youdb.I2b(info.Id), nil)
 					db.Zincr("tag_article_num", []byte(tagLower), 1)
 				}
 			}

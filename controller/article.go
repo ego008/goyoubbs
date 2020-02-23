@@ -168,7 +168,7 @@ func (h *BaseHandler) ArticleAddPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	newAid, _ := db.HnextSequence("article")
+	newAid, _ := db.Hincr("count", []byte("article"), 1)
 	aobj := model.Article{
 		Id:       newAid,
 		Uid:      currentUser.Id,
@@ -313,15 +313,15 @@ func (h *BaseHandler) ArticleHomeList(w http.ResponseWriter, r *http.Request) {
 	then := time.Unix(int64(siteCreateTime), 0)
 	diff := time.Now().UTC().Sub(then)
 	si.Days = int(diff.Hours()/24) + 1
-	si.UserNum = db.Hsequence("user")
-	si.NodeNum = db.Hsequence("category")
-	si.TagNum = db.Hsequence("tag")
-	si.PostNum = db.Hsequence("article")
-	si.ReplyNum = db.Hget("count", []byte("comment_num")).Uint64()
+	si.UserNum = db.HgetInt("count", []byte("user"))
+	si.NodeNum = db.HgetInt("count", []byte("category"))
+	si.TagNum = db.HgetInt("count", []byte("tag"))
+	si.PostNum = db.HgetInt("count", []byte("article"))
+	si.ReplyNum = db.HgetInt("count", []byte("comment_num"))
 
 	// fix
 	if si.NodeNum == 0 {
-		newCid, err2 := db.HnextSequence("category")
+		newCid, err2 := db.Hincr("count", []byte("category"), 1)
 		if err2 == nil {
 			cobj := model.Category{
 				Id:    newCid,
@@ -591,7 +591,11 @@ func (h *BaseHandler) ArticleDetailPost(w http.ResponseWriter, r *http.Request) 
 			w.Write([]byte(`{"retcode":403,"retmsg":"comment forbidden"}`))
 			return
 		}
-		commentId, _ := db.HnextSequence("article_comment:" + aid)
+		var commentId uint64
+		db.Hrscan("article_comment:"+aid, nil, 1).KvEach(func(key, value youdb.BS) {
+			commentId = youdb.B2i(key.Bytes())
+		})
+		commentId++
 		obj := model.Comment{
 			Id:       commentId,
 			Aid:      aobj.Id,

@@ -25,7 +25,11 @@ func LinkGetById(db *youdb.DB, lid string) Link {
 func LinkSet(db *youdb.DB, obj Link) {
 	if obj.Id == 0 {
 		// add
-		newId, _ := db.HnextSequence("link")
+		var newId uint64
+		db.Hrscan("link", nil, 1).KvEach(func(key, value youdb.BS) {
+			newId = youdb.B2i(key.Bytes())
+		})
+		newId++
 		obj.Id = newId
 	}
 	jb, _ := json.Marshal(obj)

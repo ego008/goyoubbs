@@ -121,7 +121,7 @@ func (h *BaseHandler) AdminUserListPost(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	userId, _ := db.HnextSequence("user")
+	userId, _ := db.Hincr("count", []byte("user"), 1)
 	flag := 5
 
 	uobj := model.User{

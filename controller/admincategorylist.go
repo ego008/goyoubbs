@@ -134,7 +134,7 @@ func (h *BaseHandler) AdminCategoryListPost(w http.ResponseWriter, r *http.Reque
 		}
 	} else {
 		// add
-		newCid, _ := db.HnextSequence("category")
+		newCid, _ := db.Hincr("count", []byte("category"), 1)
 		cobj.Id = newCid
 	}
 

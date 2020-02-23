@@ -6,7 +6,7 @@ require (
 	github.com/boltdb/bolt v1.3.1
 	github.com/dchest/captcha v0.0.0-20170622155422-6a29415a8364
 	github.com/disintegration/imaging v1.6.2
-	github.com/ego008/youdb v0.0.0-20190704122013-a2b05b09e20d
+	github.com/ego008/youdb v0.0.0-20200223095330-0a16a0a292d3
 	github.com/gorilla/securecookie v1.1.1
 	github.com/microcosm-cc/bluemonday v1.0.2 // indirect
 	github.com/o1egl/govatar v0.3.0
