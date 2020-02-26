@@ -31,6 +31,7 @@ Site:
     RegReview: false
     CloseReg: false
     AutoDataBackup: false
+    ResetCookieKey: false
     AutoGetTag: true
     GetTagApi: "https://www.youbbs.org/api/fenci"
     QQClientID: 0
