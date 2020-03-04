@@ -64,6 +64,7 @@ func (h *BaseHandler) MainCronJob() {
 	tick2 := time.Tick(120 * time.Second)
 	tick3 := time.Tick(30 * time.Minute)
 	tick4 := time.Tick(31 * time.Second)
+	tick5 := time.Tick(1 * time.Minute)
 	daySecond := int64(3600 * 24)
 
 	for {
@@ -99,6 +100,8 @@ func (h *BaseHandler) MainCronJob() {
 			}
 		case <-tick4:
 			setArticleTag(db)
+		case <-tick5:
+			submitUrl(db, h.App.Cf.Site)
 		}
 	}
 }

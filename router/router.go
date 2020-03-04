@@ -16,6 +16,7 @@ func NewRouter(app *system.Application) *goji.Mux {
 	sp.HandleFunc(pat.Get("/view"), h.ViewAtTpl)
 	sp.HandleFunc(pat.Get("/feed"), h.FeedHandler)
 	sp.HandleFunc(pat.Get("/robots.txt"), h.Robots)
+	sp.HandleFunc(pat.Get("/sitemap.xml"), h.SiteMapHandler)
 
 	sp.Handle(pat.Get("/captcha/*"), captcha.Server(captcha.StdWidth, captcha.StdHeight))
 

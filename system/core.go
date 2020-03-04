@@ -70,6 +70,8 @@ type SiteConf struct {
 	UpyunBucket       string
 	UpyunUser         string
 	UpyunPw           string
+	BaiduSubUrl       string
+	BingSubUrl        string
 }
 
 type AppConf struct {
