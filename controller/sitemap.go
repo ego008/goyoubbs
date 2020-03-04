@@ -48,16 +48,18 @@ func (h *BaseHandler) SiteMapHandler(w http.ResponseWriter, r *http.Request) {
 	buf.WriteString("\n")
 
 	var keyStart []byte
+	var scoreStart []byte
 
 	tt := 0
 	for {
-		rs := db.Zrscan("article_timeline", keyStart, nil, 100)
+		rs := db.Zrscan("article_timeline", keyStart, scoreStart, 100)
 		if !rs.OK() {
-			return
+			break
 		}
 
 		rs.KvEach(func(key, value youdb.BS) {
 			keyStart = key.Bytes()
+			scoreStart = value.Bytes()
 			tt++
 			if tt <= maxUrlInSitemap {
 				lastmod := util.TimeFmt(youdb.B2i(value.Bytes()), "2006-01-02", h.App.Cf.Site.TimeZone)
