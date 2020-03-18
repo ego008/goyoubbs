@@ -32,7 +32,7 @@ func (h *BaseHandler) SiteMapHandler(w http.ResponseWriter, r *http.Request) {
 	var err error
 	f, err = os.Stat(fPath)
 	if err == nil {
-		if lastTime > f.ModTime().UTC().Unix() {
+		if lastTime <= f.ModTime().UTC().Unix() {
 			http.ServeFile(w, r, fPath)
 			return
 		}
