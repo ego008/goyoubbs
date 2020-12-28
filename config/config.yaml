@@ -33,7 +33,7 @@ Site:
     AutoDataBackup: false
     ResetCookieKey: false
     AutoGetTag: true
-    GetTagApi: "https://www.youbbs.org/api/fenci"
+    GetTagApi: "https://youbbs.org/api/fenci"
     QQClientID: 0
     QQClientSecret: ""
     WeiboClientID: 0
