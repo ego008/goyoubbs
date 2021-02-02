@@ -136,11 +136,12 @@ func main() {
 	log.Println("Shutting down server...")
 
 	// shut down gracefully, but wait no longer than 10 seconds before halting
-	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
-	srv.Shutdown(ctx)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	app.Close()
+	_ = srv.Shutdown(ctx)
 
 	log.Println("Server gracefully stopped")
+	cancel()
 }
 
 func redirectHandler(w http.ResponseWriter, r *http.Request) {
