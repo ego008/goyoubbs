@@ -13,6 +13,7 @@ import (
 	"goyoubbs/router"
 	"goyoubbs/system"
 	"log"
+	"net"
 	"net/http"
 	"os"
 	"os/signal"
@@ -23,6 +24,8 @@ import (
 )
 
 func main() {
+	ctx, cancel := context.WithCancel(context.Background())
+
 	configFile := flag.String("config", "config/config.yaml", "full path of config.yaml file")
 	flag.Parse()
 
@@ -54,11 +57,6 @@ func main() {
 
 	// normal http
 	// http.ListenAndServe(listenAddr, root)
-
-	// graceful
-	// subscribe to SIGINT signals
-	stopChan := make(chan os.Signal, 1)
-	signal.Notify(stopChan, os.Interrupt, syscall.SIGTERM, syscall.SIGINT)
 
 	var srv *http.Server
 
@@ -107,11 +105,16 @@ func main() {
 			MaxHeaderBytes: int(app.Cf.Site.UploadMaxSizeByte),
 			ReadTimeout:    5 * time.Second,
 			WriteTimeout:   10 * time.Second,
+			BaseContext:    func(_ net.Listener) context.Context { return ctx },
 		}
+		srv.RegisterOnShutdown(cancel)
 
 		go func() {
 			// 如何获取 TLSCrtFile、TLSKeyFile 文件参见 https://www.youbbs.org/t/2169
-			log.Fatal(srv.ListenAndServeTLS(mcf.TLSCrtFile, mcf.TLSKeyFile))
+			if err := srv.ListenAndServeTLS(mcf.TLSCrtFile, mcf.TLSKeyFile); err != http.ErrServerClosed {
+				// it is fine to use Fatal here because it is not main gorutine
+				log.Fatalf("HTTPS server ListenAndServe: %v", err)
+			}
 		}()
 
 		log.Println("Web server Listen port", mcf.HttpsPort)
@@ -124,24 +127,60 @@ func main() {
 			Handler:      root,
 			ReadTimeout:  5 * time.Second,
 			WriteTimeout: 10 * time.Second,
+			BaseContext:  func(_ net.Listener) context.Context { return ctx },
 		}
+		srv.RegisterOnShutdown(cancel)
+
 		go func() {
-			log.Fatal(srv.ListenAndServe())
+			if err := srv.ListenAndServe(); err != http.ErrServerClosed {
+				// it is fine to use Fatal here because it is not main gorutine
+				log.Fatalf("HTTP server ListenAndServe: %v", err)
+			}
 		}()
 
 		log.Println("Web server Listen port", mcf.HttpPort)
 	}
 
-	<-stopChan // wait for SIGINT
-	log.Println("Shutting down server...")
+	// graceful stop
+	// subscribe to SIGINT signals
+	signalChan := make(chan os.Signal, 1)
 
-	// shut down gracefully, but wait no longer than 10 seconds before halting
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	app.Close()
-	_ = srv.Shutdown(ctx)
+	signal.Notify(
+		signalChan,
+		syscall.SIGHUP,  // kill -SIGHUP XXXX
+		syscall.SIGINT,  // kill -SIGINT XXXX or Ctrl+c
+		syscall.SIGTERM, // kill -SIGTERM XXXX
+		syscall.SIGQUIT, // kill -SIGQUIT XXXX
+		syscall.SIGUSR2,
+	)
 
-	log.Println("Server gracefully stopped")
-	cancel()
+	<-signalChan // wait for SIGINT
+	log.Print("os.Interrupt - shutting down...\n")
+
+	go func() {
+		<-signalChan
+		log.Fatal("os.Kill - terminating...\n")
+	}()
+
+	// 等待 30秒 ，等请求结束，同时不允许新的请求
+	gracefulCtx, cancelShutdown := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancelShutdown()
+
+	srv.SetKeepAlivesEnabled(false)
+	if err := srv.Shutdown(gracefulCtx); err != nil {
+		log.Printf("shutdown error: %v\n", err)
+		defer os.Exit(1)
+		return
+	} else {
+		app.Close() // !important 留意上下文位置
+		log.Printf("gracefully stopped\n")
+	}
+
+	// manually cancel context if not using httpServer.RegisterOnShutdown(cancel)
+	// cancel()
+
+	defer os.Exit(0)
+	return
 }
 
 func redirectHandler(w http.ResponseWriter, r *http.Request) {
