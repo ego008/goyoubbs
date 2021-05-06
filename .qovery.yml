@@ -1,0 +1,11 @@
+---
+application:
+  name: "goyoubbs"
+  project: "youbbs"
+  organization: "QoveryCommunity"
+routers:
+- name: "main-goyoubbs"
+  routes:
+  - application_name: "goyoubbs"
+    paths:
+    - "/*"
