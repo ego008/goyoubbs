@@ -22,6 +22,6 @@ RUN mkdir -p /app
 WORKDIR /app
 COPY --from=builder /app .
 
-EXPOSE 8080:8082
+EXPOSE 8080
 
 ENTRYPOINT ["./app"]
