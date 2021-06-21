@@ -125,7 +125,7 @@ func main() {
 		srv = &http.Server{
 			Addr:         ":" + strconv.Itoa(mcf.HttpPort),
 			Handler:      root,
-			ReadTimeout:  5 * time.Second,
+			ReadTimeout:  6 * time.Second,
 			WriteTimeout: 10 * time.Second,
 			BaseContext:  func(_ net.Listener) context.Context { return ctx },
 		}
@@ -151,7 +151,7 @@ func main() {
 		syscall.SIGINT,  // kill -SIGINT XXXX or Ctrl+c
 		syscall.SIGTERM, // kill -SIGTERM XXXX
 		syscall.SIGQUIT, // kill -SIGQUIT XXXX
-		syscall.SIGUSR2,
+		//syscall.SIGUSR2,
 	)
 
 	<-signalChan // wait for SIGINT
