@@ -8,7 +8,7 @@ require (
 	github.com/disintegration/imaging v1.6.2
 	github.com/ego008/youdb v0.0.0-20200223095330-0a16a0a292d3
 	github.com/gorilla/securecookie v1.1.1
-	github.com/microcosm-cc/bluemonday v1.0.2 // indirect
+	github.com/microcosm-cc/bluemonday v1.0.5 // indirect
 	github.com/o1egl/govatar v0.3.0
 	github.com/qiniu/api.v7 v7.2.5+incompatible
 	github.com/qiniu/x v7.0.8+incompatible // indirect
