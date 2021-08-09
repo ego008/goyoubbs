@@ -1,59 +1,72 @@
 package controller
 
 import (
+	"github.com/ego008/sdb"
+	"github.com/valyala/fasthttp"
 	"goyoubbs/model"
-	"net/http"
+	"goyoubbs/util"
 	"strings"
 )
 
-func (h *BaseHandler) SearchDetail(w http.ResponseWriter, r *http.Request) {
-	currentUser, _ := h.CurrentUser(w, r)
-	if currentUser.Id == 0 {
-		http.Redirect(w, r, "/login", http.StatusSeeOther)
-		return
-	}
+func (h *BaseHandler) SearchPage(ctx *fasthttp.RequestCtx) {
+	curUser, _ := h.CurrentUser(ctx)
+	//if curUser.ID == 0 {
+	//	ctx.Redirect(h.App.Cf.Site.MainDomain+"/login", 302)
+	//	return
+	//}
 
-	q := r.FormValue("q")
-
+	q := strings.TrimSpace(sdb.B2s(ctx.FormValue("q")))
 	if len(q) == 0 {
-		http.Redirect(w, r, "/", http.StatusSeeOther)
+		ctx.Redirect(h.App.Cf.Site.MainDomain+"/", 302)
 		return
 	}
+
+	scf := h.App.Cf.Site
 
 	qLow := strings.ToLower(q)
-
-	db := h.App.Db
-	scf := h.App.Cf.Site
 
 	where := "title"
 	if strings.HasPrefix(qLow, "c:") {
 		where = "content"
-		qLow = qLow[2:]
+		qLow = strings.TrimSpace(qLow[2:])
+		if len(qLow) == 0 {
+			ctx.Redirect(scf.MainDomain+"/", fasthttp.StatusSeeOther)
+			return
+		}
 	}
 
-	pageInfo := model.ArticleSearchList(db, where, qLow, scf.PageShowNum, scf.TimeZone)
+	db := h.App.Db
 
-	type pageData struct {
-		PageData
-		Q        string
-		PageInfo model.ArticlePageInfo
+	var pageInfo model.TopicPageInfo
+	mcKey := []byte("search:" + where + ":" + qLow)
+	if _, exist := util.ObjCachedGet(h.App.Mc, mcKey, &pageInfo, false); !exist {
+		pageInfo = model.SearchTopicList(h.App.Mc, db, q, scf.PageShowNum)
+		// set to mc
+		util.ObjCachedSet(h.App.Mc, mcKey, pageInfo)
 	}
 
-	tpl := h.CurrentTpl(r)
-
-	evn := &pageData{}
+	evn := &model.SearchPage{}
 	evn.SiteCf = scf
-	evn.Title = qLow + " - " + scf.Name
-	evn.IsMobile = tpl == "mobile"
+	evn.Title = "搜索: " + q + " - " + scf.Name
+	evn.CurrentUser = curUser
 
-	evn.CurrentUser = currentUser
-	evn.ShowSideAd = true
-	evn.PageName = "category_detail"
-	evn.HotNodes = model.CategoryHot(db, scf.CategoryShowNum)
-	evn.NewestNodes = model.CategoryNewest(db, scf.CategoryShowNum)
+	evn.Q = q
+	evn.NodeLst = model.NodeGetAll(h.App.Mc, db)
+	evn.TopicPageInfo = pageInfo
+	evn.TagCloud = model.GetTagsForSide(h.App.Mc, db, 100)
+	evn.RangeTopicLst = rangeTopicLst[:]
+	evn.RecentComment = model.CommentGetRecent(h.App.Mc, db, scf.RecentCommentNum)
 
-	evn.Q = qLow
-	evn.PageInfo = pageInfo
+	if curUser.ID > 0 {
+		evn.HasMsg = model.MsgCheckHasOne(db, curUser.ID)
+		if curUser.Flag >= model.FlagAdmin {
+			evn.HasTopicReview = model.CheckHasTopic2Review(h.App.Db)
+			evn.HasReplyReview = model.CheckHasComment2Review(h.App.Db)
+		}
+	}
 
-	h.Render(w, tpl, evn, "layout.html", "search.html")
+	model.WritePageTemplate(ctx, evn)
+	ctx.SetContentType("text/html; charset=utf-8")
+
+	//_ = h.Render(ctx, evn, "default/layout.html", "default/sidebar.html", "default/search.html")
 }

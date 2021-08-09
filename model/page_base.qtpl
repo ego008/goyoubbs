@@ -1,0 +1,293 @@
+This is a base page template. All the other template pages implement this interface.
+
+{% interface
+Page {
+	Header()
+	Banner()
+	MainBodyNav()
+	MainBody()
+	Aside()
+	Footer()
+}
+%}
+
+Page prints a page implementing Page interface.
+{% func PageTemplate(p Page) %}
+<!DOCTYPE html>
+<html lang="zh-cmn-Hans">
+<head>
+    <meta charset="utf-8">
+    {%= p.Header() %}
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width,minimum-scale=1,initial-scale=1" />
+    <meta content="yes" name="apple-mobile-web-app-capable" />
+    <meta content="black" name="apple-mobile-web-app-status-bar-style" />
+    <meta name="format-detection" content="telephone=no" />
+    <link rel="shortcut icon" href="/static/favicon.png" type="image/x-icon" />
+    <link rel="top" title="Back to Top" href="#" />
+    <link rel="stylesheet" href="/static/css/main.css" type="text/css">
+    <script src="/static/js/main.js"></script>
+    <!--[if lte IE 8]>
+    <link rel="stylesheet" href="/static/css/grids-responsive-old-ie-min.css">
+    <![endif]-->
+    <!--[if gt IE 8]><!-->
+    <link rel="stylesheet" href="/static/css/grids-responsive-min.css">
+    <!--<![endif]-->
+</head>
+
+<body>
+<a name="top"></a>
+<header role="banner" class="header-wrap">
+    <div class="home-menu pure-menu pure-menu-horizontal">
+        {%= p.Banner() %}
+    </div>
+</header>
+
+<div id="main" class="main-wrap">
+    <div id="content" class="pure-g">
+        <div class="pure-u-1 pure-u-sm-17-24">
+            <div class="main-left-body">
+
+                {%= p.MainBodyNav() %}
+
+                {%= p.MainBody() %}
+
+            </div>
+        </div>
+        <div class="pure-u-1 pure-u-sm-7-24">
+            <div class="main-right-body">
+                {%= p.Aside() %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<footer role="contentinfo">
+    {%= p.Footer() %}
+</footer>
+<a style="display: none; " rel="nofollow" href="#top" id="go-to-top">▲</a>
+<script>
+document.addEventListener("scroll", handleScroll);
+let scrollToTopBtn = document.getElementById("go-to-top");
+scrollToTopBtn.addEventListener("click", scrollToTop);
+
+function handleScroll() {
+    if (document.documentElement.scrollTop > 300) {
+        scrollToTopBtn.style.display = "block";
+    } else if (document.documentElement.scrollTop < 300){
+        scrollToTopBtn.style.display = "none";
+    }
+}
+</script>
+</body>
+</html>
+{% endfunc %}
+
+
+// Header bg
+{% func (p *BasePage) Header() %}
+<title>{%s p.Title %}</title>
+<meta name="description" content="{%s p.Description %}">
+<meta name="keywords" content="{%s p.Keywords %}">
+<link rel="canonical" href="{%s p.Canonical %}">
+<link href="/feed" rel="alternate" title="{%s p.SiteCf.Name %}" type="application/atom+xml">
+
+{% if len(p.JsonLd)>0 %}
+<script type="application/ld+json">
+{%s= p.JsonLd %}
+</script>
+{% endif %}
+
+{% if p.ShowAutoAd && len(p.SiteCf.GoogleAutoAdJs)>0 %}
+{%s= p.SiteCf.GoogleAutoAdJs %}
+{% endif %}
+
+{% if len(p.SiteCf.HeaderPartCon)>0 %}
+{%s= p.SiteCf.HeaderPartCon %}
+{% endif %}
+
+{% endfunc %}
+// Header ed
+
+// Banner bg
+{% func (p *BasePage) Banner() %}
+<a href="/" class="pure-menu-heading pure-menu-link">{%s p.SiteCf.Name %}</a>
+<ul class="pure-menu-list">
+    {% if p.CurrentUser.ID > 0 %}
+    <li class="pure-menu-item"><a href="/setting" class="pure-menu-link"><img src="/static/avatar/{%dul p.CurrentUser.ID %}.jpg" class="avatar" alt="{%s p.CurrentUser.Name %} avatar"> {%s p.CurrentUser.Name %}</a></li>
+    <li class="pure-menu-item"><a href="/logout" class="pure-menu-link">退出</a></li>
+    {% else %}
+    <li class="pure-menu-item"><a href="/login" rel="nofollow" class="pure-menu-link">登录</a></li>
+    <li class="pure-menu-item"><a href="/register" rel="nofollow" class="pure-menu-link">注册</a></li>
+    {% endif %}
+</ul>
+{% endfunc %}
+// Banner ed
+
+// MainBodyNav bg
+{% func (p *BasePage) MainBodyNav() %}
+{% if p.CurrentUser.ID>0 %}
+<div class="body-nav box bot-line">
+    <div class="pure-button-group">
+        {% if p.CurrentUser.Flag == 0 %}
+        <span class="pure-button button-warning">您已被管理员禁用</span>
+        {% else %}
+        {% if p.CurrentUser.Flag == 1 %}
+        <span class="pure-button button-warning">请等待管理员审核</span>
+        {% endif %}
+        {% if p.CurrentUser.Flag >= 5 %}
+        {% if p.HasMsg %}
+        <a class="pure-button button-warning" href="/my/msg">未读信息</a>
+        {% endif %}
+        <a class="pure-button pure-button-primary" href="/topic/add?nid={%dul p.DefaultNode.ID %}">发帖</a>
+        {% endif %}
+        {% if p.CurrentUser.Flag >= 99 %}
+            {% if p.HasTopicReview %}
+            <a class="pure-button button-warning" href="/admin/topic/review">审帖</a>
+            {% endif %}
+            {% if p.HasReplyReview %}
+            <a class="pure-button button-warning" href="/admin/comment/review">审评</a>
+            {% endif %}
+            <a class="pure-button" href="/admin/node">节点</a>
+            <a class="pure-button" href="/admin/user">用户</a>
+            <a class="pure-button" href="/admin/link">链接</a>
+            <a class="pure-button" href="/admin/site/conf">设置</a>
+        {% endif %}
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+{% endfunc %}
+// MainBodyNav ed
+
+// MainBody bg
+{% func (p *BasePage) MainBody() %}
+This is a base MainBody
+{% endfunc %}
+// MainBody ed
+
+// Aside bg
+{% func (p *BasePage) Aside() %}
+<aside class="sidebar">
+
+    <section class="search-form">
+        <form action="/q" method="get" class="pure-form">
+            <input type="text" name="q" class="pure-input-rounded" placeholder="站内搜索" />
+        </form>
+    </section>
+
+    {% if len(p.RecentComment)>0 %}
+    <section>
+        <h1>💬 最近评论</h1>
+        <ul id="recent_comments">
+            {% for _, item := range p.RecentComment %}
+            <li>
+                <img alt="{%s item.Name %} avatar" src="/static/avatar/{%dul item.UserId %}.jpg" class="avatar"> <a href="{%s item.Link %}">{%s item.Content %}</a>
+            </li>
+            {% endfor %}
+        </ul>
+    </section>
+    {% endif %}
+
+    <section>
+        <h1>📁 分类</h1>
+        <div id="top-category-list">
+            {% for _, item := range p.NodeLst %}
+            <a href="/n/{%dul item.ID %}">{%s item.Name %}<span class="tag_meta">({%dul item.TopicNum %})</span></a>
+            {% endfor %}
+        </div>
+        <a id="id-showMoreNode" href="#" class="more-node" onclick="ShowMoreNode();return false;">显示更多</a>
+    </section>
+
+    {% if len(p.RangeTopicLst)>0 %}
+    <section>
+        <h1>📝 最近浏览</h1>
+        <ul id="recent_posts">
+            {% for _, item := range p.RangeTopicLst %}
+            <li><a href="/t/{%dul item.ID %}">{%s item.Title %}</a></li>
+            {% endfor %}
+        </ul>
+    </section>
+    {% endif %}
+
+    {% if len(p.TagCloud)>0 %}
+    <section>
+        <h1>🏷️ 标签</h1>
+        <div id="tag-cloud">
+            {% for _, item := range p.TagCloud %}
+            <a href="/tag/{%u item.Name %}">{%s item.Name %}<span class="tag-meta">({%d item.Size %})</span></a>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
+    {% if len(p.LinkLst)>0 %}
+    <section>
+        <h1>🔗 链接</h1>
+        <ul id="link-cloud">
+            {% for _, item := range p.LinkLst %}
+            <li><a href="{%s item.Url %}" target="_blank">{%s item.Name %}</a></li>
+            {% endfor %}
+        </ul>
+    </section>
+    {% endif %}
+
+    {% if p.SiteInfo.NodeNum > 0 %}
+    <section>
+        <h1>💡 本站已稳定运行 {%s p.SiteInfo.Days %}</h1>
+        <ul id="site-info">
+            <li>会员: {%dul p.SiteInfo.UserNum %}</li>
+            <li>帖子: {%dul p.SiteInfo.PostNum %}</li>
+            <li>回复: {%dul p.SiteInfo.ReplyNum %}</li>
+            <li>分类: {%dul p.SiteInfo.NodeNum %}</li>
+            <li>标签: {%dul p.SiteInfo.TagNum %}</li>
+        </ul>
+    </section>
+    {% endif %}
+
+</aside>
+
+<script>
+let show_node_btn = document.getElementById("id-showMoreNode");
+let node_ul = document.getElementById("top-category-list");
+let showAll = false;
+function ShowMoreNode(){
+    var showNum = 10;
+    var liLst = node_ul.querySelectorAll("a");
+    for (i = 0; i < liLst.length; i++) {
+        if(showAll) {
+            liLst[i].style.display = 'inline-block';
+        } else {
+            if(i<showNum){
+                liLst[i].style.display = 'inline-block';
+            }else{
+                liLst[i].style.display = 'none';
+            }
+        }
+    }
+    showAll = !showAll;
+    if(showAll) {
+        show_node_btn.innerText = "↓ 显示更多 ↓";
+    }else{
+        show_node_btn.innerText = "↑ 显示更少 ↑";
+    }
+}
+ShowMoreNode();
+</script>
+
+{% endfunc %}
+// Aside ed
+
+// Footer bg
+{% func (p *BasePage) Footer() %}
+<p>
+    Copyright &copy; <a href="/">{%s p.SiteCf.Name %}</a> -
+    <span class="credit">Powered by <a href="https://youbbs.org">goYouBBS</a> - <a href="#">&uarr;Go Top</a> </span>
+</p>
+
+{% if len(p.SiteCf.FooterPartHtml)>0 %}
+{%s= p.SiteCf.FooterPartHtml %}
+{% endif %}
+
+{% endfunc %}
+// Footer ed

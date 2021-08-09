@@ -1,203 +1,164 @@
 package main
 
 import (
-	"context"
 	"crypto/tls"
 	"flag"
-	"github.com/xi2/httpgzip"
-	"goji.io"
-	"goji.io/pat"
+	"github.com/valyala/fasthttp"
+	"golang.org/x/crypto/acme"
 	"golang.org/x/crypto/acme/autocert"
-	"golang.org/x/net/http2"
+	"goyoubbs/app"
+	"goyoubbs/controller"
 	"goyoubbs/cronjob"
-	"goyoubbs/router"
-	"goyoubbs/system"
+	mdw "goyoubbs/middleware"
 	"log"
 	"net"
-	"net/http"
 	"os"
 	"os/signal"
-	"strconv"
-	"strings"
 	"syscall"
 	"time"
 )
 
-func main() {
-	ctx, cancel := context.WithCancel(context.Background())
+//go:generate go get -u github.com/valyala/quicktemplate/qtc
+//go:generate qtc -dir=model
 
-	configFile := flag.String("config", "config/config.yaml", "full path of config.yaml file")
+var (
+	addr     = flag.String("addr", ":8080", "TCP address to listen to")
+	sdbDir   = flag.String("sdbDir", "localdb", "Directory to serve sdb from")
+	autoTLS  = flag.String("autoTLS", "", "user Let's Encrypt. Leave empty for disabling")
+	domain   = flag.String("domain", "", "set domain when user Let's Encrypt")
+	certFile = flag.String("certFile", "", "Path to TLS certificate file")
+	keyFile  = flag.String("keyFile", "", "Path to TLS key file")
+)
+
+func main() {
 	flag.Parse()
 
-	c := system.LoadConfig(*configFile)
-	app := &system.Application{}
-	app.Init(c, os.Args[0])
+	myApp := &app.Application{}
+	myApp.Init(*addr, *sdbDir)
 
 	// cron job
-	cr := cronjob.BaseHandler{App: app}
+	cr := cronjob.BaseHandler{App: myApp}
 	go cr.MainCronJob()
 
-	root := goji.NewMux()
+	// 挂载路由
+	controller.RouterReload(myApp)
+	mux := myApp.Mux
 
-	mcf := app.Cf.Main
-	scf := app.Cf.Site
-
-	// static file server
-	staticPath := mcf.PubDir
-	if len(staticPath) == 0 {
-		staticPath = "static"
+	var hd fasthttp.RequestHandler
+	if myApp.Cf.Site.IsDevMod {
+		hd = mdw.RspNoCache(mux.Handler)
+	} else {
+		hd = mux.Handler
 	}
 
-	root.Handle(pat.New("/.well-known/acme-challenge/*"),
-		http.StripPrefix("/.well-known/acme-challenge/", http.FileServer(http.Dir(staticPath))))
-	root.Handle(pat.New("/static/*"),
-		http.StripPrefix("/static/", http.FileServer(http.Dir(staticPath))))
+	log.Printf("Serving sdb from directory %q", *sdbDir)
 
-	root.Handle(pat.New("/*"), router.NewRouter(app))
+	srv := &fasthttp.Server{
+		Handler:         hd,
+		Name:            "gyb Service",
+		ReadBufferSize:  4096,
+		WriteBufferSize: 4096,
+		// MaxConnsPerIP:
+		// MaxRequestsPerConn:
+		DisableKeepalive:              true,
+		DisableHeaderNamesNormalizing: true,
+		ReadTimeout:                   5 * time.Second, // important
+		WriteTimeout:                  10 * time.Second,
+		IdleTimeout:                   time.Minute,
+		MaxRequestBodySize:            100 << 20, // 100MB，上传文件最大值
+	}
 
-	// normal http
-	// http.ListenAndServe(listenAddr, root)
-
-	var srv *http.Server
-
-	if mcf.HttpsOn {
-		// https
-		log.Println("Register sll for domain:", mcf.Domain)
-		log.Println("TLSCrtFile : ", mcf.TLSCrtFile)
-		log.Println("TLSKeyFile : ", mcf.TLSKeyFile)
-
-		root.Use(stlAge)
-
-		tlsCf := &tls.Config{
-			NextProtos: []string{http2.NextProtoTLS, "http/1.1"},
-		}
-
-		if mcf.Domain != "" && mcf.TLSCrtFile == "" && mcf.TLSKeyFile == "" {
-
-			domains := strings.Split(mcf.Domain, ",")
-			certManager := autocert.Manager{
-				Prompt:     autocert.AcceptTOS,
-				HostPolicy: autocert.HostWhitelist(domains...),
-				Cache:      autocert.DirCache("certs"),
-				Email:      scf.AdminEmail,
-			}
-			tlsCf.GetCertificate = certManager.GetCertificate
-			//tlsCf.ServerName = domains[0]
-
-			go func() {
-				// 必须是 80 端口
-				log.Fatal(http.ListenAndServe(":http", certManager.HTTPHandler(nil)))
-			}()
-
-		} else {
-			// rewrite
-			go func() {
-				if err := http.ListenAndServe(":"+strconv.Itoa(mcf.HttpPort), http.HandlerFunc(redirectHandler)); err != nil {
-					log.Println("Http2https server failed ", err)
-				}
-			}()
-		}
-
-		srv = &http.Server{
-			Addr:           ":" + strconv.Itoa(mcf.HttpsPort),
-			Handler:        httpgzip.NewHandler(root, nil),
-			TLSConfig:      tlsCf,
-			MaxHeaderBytes: int(app.Cf.Site.UploadMaxSizeByte),
-			ReadTimeout:    5 * time.Second,
-			WriteTimeout:   10 * time.Second,
-			BaseContext:    func(_ net.Listener) context.Context { return ctx },
-		}
-		srv.RegisterOnShutdown(cancel)
-
+	// server model
+	if len(*autoTLS) > 0 && len(*domain) > 0 {
+		// Let's Encrypt, auto cert
 		go func() {
-			// 如何获取 TLSCrtFile、TLSKeyFile 文件参见 https://www.youbbs.org/t/2169
-			if err := srv.ListenAndServeTLS(mcf.TLSCrtFile, mcf.TLSKeyFile); err != http.ErrServerClosed {
-				// it is fine to use Fatal here because it is not main gorutine
-				log.Fatalf("HTTPS server ListenAndServe: %v", err)
-			}
-		}()
-
-		log.Println("Web server Listen port", mcf.HttpsPort)
-		log.Println("Web server URL", "https://"+mcf.Domain)
-
-	} else {
-		// http
-		srv = &http.Server{
-			Addr:         ":" + strconv.Itoa(mcf.HttpPort),
-			Handler:      root,
-			ReadTimeout:  6 * time.Second,
-			WriteTimeout: 10 * time.Second,
-			BaseContext:  func(_ net.Listener) context.Context { return ctx },
-		}
-		srv.RegisterOnShutdown(cancel)
-
-		go func() {
-			if err := srv.ListenAndServe(); err != http.ErrServerClosed {
-				// it is fine to use Fatal here because it is not main gorutine
+			log.Printf("TCP address to listen to %q", *addr)
+			if err := fasthttp.ListenAndServe(*addr, redirectHandler); err != nil {
 				log.Fatalf("HTTP server ListenAndServe: %v", err)
 			}
 		}()
 
-		log.Println("Web server Listen port", mcf.HttpPort)
+		m := &autocert.Manager{
+			Prompt:     autocert.AcceptTOS,
+			HostPolicy: autocert.HostWhitelist(*domain), // Replace with your domain.
+			Cache:      autocert.DirCache("./certs"),
+		}
+
+		cfg := &tls.Config{
+			GetCertificate: m.GetCertificate,
+			NextProtos: []string{
+				"http/1.1", acme.ALPNProto,
+			},
+		}
+
+		// Let's Encrypt tls-alpn-01 only works on port 443.
+		ln, err := net.Listen("tcp4", "0.0.0.0:443") /* #nosec G102 */
+		if err != nil {
+			log.Fatalf("net Listen: %v", err)
+		}
+
+		lnTls := tls.NewListener(ln, cfg)
+
+		go func() {
+			if err = srv.Serve(lnTls); err != nil {
+				log.Fatalf("HTTPS server: %v", err)
+			}
+		}()
+	} else if len(*certFile) > 0 && len(*keyFile) > 0 {
+		// TLS with ertFile & keyFile
+		go func() {
+			log.Printf("TCP address to listen to %q", *addr)
+			if err := fasthttp.ListenAndServe(*addr, redirectHandler); err != nil {
+				log.Fatalf("HTTP server ListenAndServe: %v", err)
+			}
+		}()
+
+		go func() {
+			if err := srv.ListenAndServeTLS("0.0.0.0:443", *certFile, *keyFile); err != nil {
+				log.Fatalf("HTTPS ListenAndServeTLS: %v", err)
+			}
+		}()
+
+	} else {
+		// only http
+		go func() {
+			log.Printf("TCP address to listen to %q", *addr)
+			if err := srv.ListenAndServe(*addr); err != nil {
+				log.Fatalf("HTTP server ListenAndServe: %v", err)
+			}
+		}()
 	}
 
 	// graceful stop
 	// subscribe to SIGINT signals
 	signalChan := make(chan os.Signal, 1)
-
 	signal.Notify(
 		signalChan,
 		syscall.SIGHUP,  // kill -SIGHUP XXXX
 		syscall.SIGINT,  // kill -SIGINT XXXX or Ctrl+c
 		syscall.SIGTERM, // kill -SIGTERM XXXX
 		syscall.SIGQUIT, // kill -SIGQUIT XXXX
-		//syscall.SIGUSR2,
 	)
 
-	<-signalChan // wait for SIGINT
-	log.Print("os.Interrupt - shutting down...\n")
-
-	go func() {
-		<-signalChan
-		log.Fatal("os.Kill - terminating...\n")
-	}()
-
-	// 等待 30秒 ，等请求结束，同时不允许新的请求
-	gracefulCtx, cancelShutdown := context.WithTimeout(context.Background(), 30*time.Second)
-	defer cancelShutdown()
-
-	srv.SetKeepAlivesEnabled(false)
-	if err := srv.Shutdown(gracefulCtx); err != nil {
-		log.Printf("shutdown error: %v\n", err)
+	<-signalChan
+	log.Printf("os.Interrupt - shutting down...\n")
+	if err := srv.Shutdown(); err != nil {
+		log.Println("Shutdown err", err)
 		defer os.Exit(1)
-		return
 	} else {
-		app.Close() // !important 留意上下文位置
-		log.Printf("gracefully stopped\n")
+		myApp.Close() // !important 留意上下文位置
+		log.Println("gracefully stopped")
 	}
 
-	// manually cancel context if not using httpServer.RegisterOnShutdown(cancel)
-	// cancel()
+	//go func() {
+	//	<-signalChan
+	//	log.Fatal("os.Kill - terminating...\n")
+	//}()
 
 	defer os.Exit(0)
 	return
 }
 
-func redirectHandler(w http.ResponseWriter, r *http.Request) {
-	target := "https://" + r.Host + r.URL.Path
-	if len(r.URL.RawQuery) > 0 {
-		target += "?" + r.URL.RawQuery
-	}
-	// consider HSTS if your clients are browsers
-	w.Header().Set("Connection", "close")
-	http.Redirect(w, r, target, 302)
-}
-
-func stlAge(h http.Handler) http.Handler {
-	fn := func(w http.ResponseWriter, r *http.Request) {
-		// add max-age to get A+
-		w.Header().Add("Strict-Transport-Security", "max-age=63072000; includeSubDomains")
-		h.ServeHTTP(w, r)
-	}
-	return http.HandlerFunc(fn)
+func redirectHandler(ctx *fasthttp.RequestCtx) {
+	ctx.Redirect("https://"+*domain+string(ctx.RequestURI()), fasthttp.StatusFound)
 }

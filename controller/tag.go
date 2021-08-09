@@ -1,73 +1,76 @@
 package controller
 
 import (
-	"goji.io/pat"
+	"github.com/ego008/sdb"
+	"github.com/valyala/fasthttp"
 	"goyoubbs/model"
-	"net/http"
+	"net/url"
 	"strconv"
 	"strings"
 )
 
-func (h *BaseHandler) TagDetail(w http.ResponseWriter, r *http.Request) {
-	btn, key := r.FormValue("btn"), r.FormValue("key")
+func (h *BaseHandler) TagPage(ctx *fasthttp.RequestCtx) {
+	db := h.App.Db
+	scf := h.App.Cf.Site
+
+	tagRaw := ctx.UserValue("tag").(string)
+	if tag, err := url.QueryUnescape(tagRaw); err == nil {
+		tagRaw = tag
+	}
+	tagLower := strings.ToLower(tagRaw)
+	if !db.Hscan("tag:"+tagLower, nil, 1).OK() {
+		// 该标签下文章数为0
+		ctx.Redirect(h.App.Cf.Site.MainDomain+"/", 302)
+		return
+	}
+
+	btn, key, score := sdb.B2s(ctx.FormValue("btn")), sdb.B2s(ctx.FormValue("key")), sdb.B2s(ctx.FormValue("score"))
 	if len(key) > 0 {
 		_, err := strconv.ParseUint(key, 10, 64)
 		if err != nil {
-			w.Write([]byte(`{"retcode":400,"retmsg":"key type err"}`))
+			ctx.Redirect(h.App.Cf.Site.MainDomain+"/", 302)
+			return
+		}
+	}
+	if len(score) > 0 {
+		_, err := strconv.ParseUint(score, 10, 64)
+		if err != nil {
+			ctx.Redirect(h.App.Cf.Site.MainDomain+"/", 302)
 			return
 		}
 	}
 
-	tag := pat.Param(r, "tag")
-	tagLow := strings.ToLower(tag)
-
-	cmd := "hrscan"
+	cmd := "zrscan"
 	if btn == "prev" {
-		cmd = "hscan"
+		cmd = "zscan"
 	}
 
-	db := h.App.Db
-	scf := h.App.Cf.Site
-	rs := db.Hscan("tag:"+tagLow, nil, 1)
-	if rs.State != "ok" {
-		w.Write([]byte(`{"retcode":404,"retmsg":"not found"}`))
-		return
-	}
+	topicPageInfo := model.GetTopicListArchives(db, cmd, "tag:"+tagLower, key, score, scf.PageShowNum)
 
-	currentUser, _ := h.CurrentUser(w, r)
+	curUser, _ := h.CurrentUser(ctx)
 
-	pageInfo := model.UserArticleList(db, cmd, "tag:"+tagLow, key, scf.PageShowNum, scf.TimeZone)
-
-	type tagDetail struct {
-		Name   string
-		Number uint64
-	}
-	type pageData struct {
-		PageData
-		Tag      tagDetail
-		PageInfo model.ArticlePageInfo
-	}
-
-	tpl := h.CurrentTpl(r)
-
-	evn := &pageData{}
+	evn := &model.TagPage{}
 	evn.SiteCf = scf
-	evn.Title = tag + " - " + scf.Name
-	evn.Keywords = tag
-	evn.Description = tag
-	evn.IsMobile = tpl == "mobile"
+	evn.Title = "Tag: " + tagRaw + " - " + scf.Name
+	evn.CurrentUser = curUser
 
-	evn.CurrentUser = currentUser
-	evn.ShowSideAd = true
-	evn.PageName = "category_detail"
-	evn.HotNodes = model.CategoryHot(db, scf.CategoryShowNum)
-	evn.NewestNodes = model.CategoryNewest(db, scf.CategoryShowNum)
+	evn.Tag = tagLower
+	evn.NodeLst = model.NodeGetAll(h.App.Mc, db)
+	evn.TopicPageInfo = topicPageInfo
+	evn.TagCloud = model.GetTagsForSide(h.App.Mc, db, 100)
+	evn.RangeTopicLst = rangeTopicLst[:]
+	evn.RecentComment = model.CommentGetRecent(h.App.Mc, db, scf.RecentCommentNum)
 
-	evn.Tag = tagDetail{
-		Name:   tag,
-		Number: db.Zget("tag_article_num", []byte(tagLow)).Uint64(),
+	if curUser.ID > 0 {
+		evn.HasMsg = model.MsgCheckHasOne(db, curUser.ID)
+		if curUser.Flag >= model.FlagAdmin {
+			evn.HasTopicReview = model.CheckHasTopic2Review(h.App.Db)
+			evn.HasReplyReview = model.CheckHasComment2Review(h.App.Db)
+		}
 	}
-	evn.PageInfo = pageInfo
 
-	h.Render(w, tpl, evn, "layout.html", "tag.html")
+	model.WritePageTemplate(ctx, evn)
+	ctx.SetContentType("text/html; charset=utf-8")
+
+	//_ = h.Render(ctx, evn, "default/layout.html", "default/sidebar.html", "default/tag.html")
 }

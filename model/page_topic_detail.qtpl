@@ -1,0 +1,286 @@
+// 文章详情页，继承 BasePage ，只修改 MainBody()
+
+{% func (p *TopicDetailPage) MainBody() %}
+<div class="entry">
+
+    <article role="article">
+
+        <header>
+            <a href="/member/{%dul p.TopicFmt.UserId %}" rel="nofollow"><img alt="{%s p.TopicFmt.Name %} avatar" src="/static/avatar/{%dul p.TopicFmt.UserId %}.jpg" class="avatar"></a>
+            <h1 class="entry-title">
+                <a href="/t/{%dul p.TopicFmt.ID %}" rel="bookmark">{%s p.TopicFmt.Title %}</a>
+            </h1>
+            <p class="meta">
+                {%s= p.TopicFmt.ClockEmoji %} <time datetime="{%s p.TopicFmt.AddTimeFmt %}" pubdate data-updated="true">{%s p.TopicFmt.AddTimeFmt %}</time>
+                by <a href="/member/{%dul p.TopicFmt.UserId %}" rel="nofollow">{%s p.TopicFmt.Name %}</a>
+                {% if p.CurrentUser.Flag >= 99 %}
+                &bull; <a rel="bookmark" href="/admin/topic/edit?id={%dul p.TopicFmt.ID %}&back=here">Edit</a>
+                {% endif %}
+            </p>
+        </header>
+
+        <div class="markdown-body entry-content">
+            {%s= p.TopicFmt.ContentFmt %}
+        </div>
+
+        {% if len(p.TopicFmt.Relative)>0 %}
+        <section>
+            <h4 class="seealso-title">💘 相关文章</h4>
+            <ul class="seealso">
+                {% for _, v := range p.TopicFmt.Relative %}
+                <li><a href="/t/{%dul v.ID %}" rel="bookmark">{%s v.Title %}</a></li>
+                {% endfor %}
+            </ul>
+        </section>
+        {% endif %}
+
+        <footer>
+
+            <p class="meta gray">
+                <span class="categories">
+                    📁 Category: <a class="category" href="/n/{%dul p.TopicFmt.NodeId %}" rel="category tag">{%s p.DefaultNode.Name %}</a>
+                </span>
+                {% if len(p.TagLst) > 0 %}
+                <span class="categories">🏷️ Tags:
+                    {% for _, tag := range p.TagLst %}
+                    <a class="tag" href="/tag/{%u tag.Name %}" rel="tag">{%s tag.Name %}</a>
+                    {% endfor %}
+                </span>
+                {% endif %}
+                <span class="categories">
+                💬 <a href="#comments">Comments ({%dul p.TopicFmt.Comments %})</a> 😊 PageView ({%dul p.TopicFmt.Views %})
+                </span>
+            </p>
+
+            <ul class="seealso">
+                {% if p.NewTopic.ID > 0 %}
+                <li>上一篇 › <a class="next" href="/t/{%dul p.NewTopic.ID %}" rel="next">{%s p.NewTopic.Title %}</a></li>
+                {% endif %}
+                {% if p.OldTopic.ID > 0 %}
+                <li>下一篇 › <a class="prev" href="/t/{%dul p.OldTopic.ID %}" rel="prev">{%s p.OldTopic.Title %}</a></li>
+                {% endif %}
+            </ul>
+
+        </footer>
+
+    </article>
+
+    {% if len(p.CommentLst)>0 %}
+    <section>
+        <h1 class="br-nav">评论</h1>
+        <div id="comments">
+            <h2 class="comments bot-line">共{%dul p.TopicFmt.Comments %}条关于"{%s p.TopicFmt.Title %}"的评论</h2>
+            {% for _, item := range p.CommentLst %}
+            <article id="r{%dul item.ID %}">
+                <header>
+                    <a href="/member/{%dul item.UserId %}" rel="nofollow"><img alt="{%s item.Name %} avatar" src="/static/avatar/{%dul item.UserId %}.jpg" class="avatar"></a>
+                    <div class="meta gray5">
+                        <a href="{%s item.Link %}" class="comment-count comment-id">#{%dul item.ID %}</a> <a href="/member/{%dul item.UserId %}" rel="nofollow">{%s item.Name %}</a>
+                        {% if p.CurrentUser.Flag >= 99 %}
+                        <a href="/admin/comment/edit?tid={%dul item.TopicId %}&cid={%dul item.ID %}&back=here">Edit</a>
+                        {% endif %}
+                        <a rel="nofollow" class="right" href="#respond" onclick="replyTo('{%s item.Name %}',{%dul item.ID %})">回复</a>
+                        <br>
+                        <time datetime="{%dl item.AddTime %}" pubdate data-updated="true"><em>{%s item.AddTimeFmt %}</em></time>
+                    </div>
+                </header>
+                <div class="markdown-body entry-content">
+                    {%s= item.ContentFmt %}
+                </div>
+            </article>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
+    <section id="respond">
+        <h2 class="br-nav">写一条评论</h2>
+        <div class="write-comment pure-form">
+            <form action="" method="post" id="commentform">
+                <textarea name="comment" id="id-comment" class="pure-u-1" placeholder="* 字符限制 {%d p.SiteCf.CommentConMaxLen %}"></textarea>
+                {% if p.CurrentUser.ID > 0 %}
+                <div class="pure-button-group">
+                    <input id="btn-preview" type="button" value="预览" name="submit" onclick="previewComment(); return false;" class="pure-button button-success" />
+                    <input id="btn-submit" type="button" value="发表" name="submit" onclick="submitComment(); return false;" class="pure-button pure-button-primary" />
+                </div>
+                <span id="id-msg"></span>
+                {% else %}
+                <a href="/login" rel="nofollow" class="pure-button">登录发表评论</a>
+                {% endif %}
+            </form>
+        </div>
+        <div id="id-preview" class="markdown-body entry-content"></div>
+
+        <script>
+
+            var toReplyId = 0;
+            var conEle = document.getElementById("id-comment");
+            var msgEle = document.getElementById("id-msg");
+            var reviewEle = document.getElementById("id-preview");
+
+            {% if p.CurrentUser.ID > 0 %}
+                function previewComment() {
+                    var con = conEle.value.trim();
+                    if (con === "") {
+                        conEle.focus();
+                        return
+                    }
+                    postAjax("/content/preview", JSON.stringify({Act: "commentPreview", Content: con}), function(data){
+                        var obj = JSON.parse(data)
+                        //console.log(obj);
+                        if(obj.Code === 200) {
+                            msgEle.style.display = "none";
+                            reviewEle.innerHTML = obj.Html;
+                            reviewEle.style.display = "block";
+                        }else{
+                            reviewEle.innerHTML = "";
+                            reviewEle.style.display = "none";
+                            msgEle.innerText = obj.Msg;
+                        }
+                    });
+                }
+                function submitComment() {
+                    var con = conEle.value.trim();
+                    if (con === "") {
+                        conEle.focus();
+                        return
+                    }
+                    postAjax("/t/{%dul p.TopicFmt.ID %}", JSON.stringify({Content: con, ReplyId: toReplyId}), function(data){
+                        var obj = JSON.parse(data)
+                        msgEle.innerText = obj.Msg;
+                        conEle.focus();
+                        conEle.value = "";
+                        toReplyId = 0;
+                        if(obj.Code === 200) {
+                            window.location.href = "/t/{%dul p.TopicFmt.ID %}#r"+obj.Tid;
+                            window.location.reload(true);
+                            return;
+                        } else if (obj.Code === 201) {
+                            window.location.href = "/member/{%dul p.CurrentUser.ID %}?type=comment";
+                            return;
+                        }
+                        reviewEle.style.display = "none";
+                        msgEle.style.display = "block";
+                    });
+                }
+                {% if !p.SiteCf.UploadLimit || (p.SiteCf.UploadLimit && p.CurrentUser.Flag >= 99) %}
+                document.addEventListener('paste', function (evt) {
+                    var url = "/file/upload";
+                    var items = evt.clipboardData && evt.clipboardData.items;
+                    var file = null;
+                    if(items && items.length) {
+                        for(var i=0; i!==items.length; i++) {
+                            if(items[i].type.indexOf('image') !== -1) {
+                                file = items[i].getAsFile();
+                                if(!!!file) {
+                                    continue;
+                                }
+
+                                // upload file object.
+                                var form = new FormData();
+                                form.append('file', file);
+
+                                postAjax("/file/upload", form, function(data){
+                                    let obj = JSON.parse(data)
+                                    //console.log(obj);
+                                    if(obj.Code === 200) {
+                                        let img_url = "\n" + obj.Url + "\n";
+                                        let pos = conEle.selectionStart;
+                                        let con = conEle.value;
+                                        conEle.value = con.slice(0, pos) + img_url + con.slice(pos);
+                                    }else{
+                                        console.warn(obj.Msg);
+                                    }
+                                });
+                            }
+                        }
+                    }
+
+                });
+                {% endif %}
+            {% endif %}
+
+            function replyTo(name, cid) {
+                toReplyId = parseInt(cid, 10);
+                var con = conEle.value;
+                document.getElementsByTagName('textarea')[0].focus();
+                conEle.value = " @"+name+" #" + cid + " " + con;
+                return false
+            }
+
+            function linkClick() {
+                //console.log("ele clicked:"+this.href);
+                var curEle = this;
+                postAjax("/get/link/count", JSON.stringify({Act: "set", Items: [this.href]}), function(data){
+                    var obj = JSON.parse(data)
+                    if(obj.Code===200) {
+                        var num = obj.Num;
+                        var nextEle = curEle.nextElementSibling;
+                        if(nextEle && nextEle.nodeType === 1) {
+                            nextEle.innerHTML = num;
+                            nextEle.title = num + "次点击"
+                        }else{
+                            var newNode = document.createElement('span');
+                            newNode.innerHTML = num;
+                            newNode.classList.toggle("clicks");
+                            newNode.title = num + "次点击"
+                            curEle.after(newNode);
+                        }
+                    }
+                });
+            }
+
+            function getContentLinkCount() {
+                var urlEleDict = {};
+                var linkDict = {};
+                var conLst = document.querySelectorAll(".entry-content a");
+                for (var i = 0, max = conLst.length; i < max; i++) {
+                    var aEle = conLst[i];
+                    if(!aEle.classList.contains('anchor') && !aEle.getAttribute("href").startsWith('/name/')) {
+                        var fullLink = aEle.href;
+                        linkDict[aEle.href] = null;
+                        if (urlEleDict.hasOwnProperty(fullLink)) {
+                            urlEleDict[fullLink].push(aEle)
+                        }else{
+                            urlEleDict[fullLink] = [aEle];
+                        }
+                        if(aEle.getAttribute("target")==="_blank"){
+                            aEle.classList.toggle("external_link");
+                        }
+                        aEle.addEventListener("click", linkClick);
+                    }
+                }
+                var linkArray = Object.keys(linkDict);
+                if(linkArray.length > 0) {
+                    postAjax("/get/link/count", JSON.stringify({Items: linkArray}), function(data){
+                        var obj = JSON.parse(data)
+                        if(obj.Code===200) {
+                            Object.keys(obj.Info).forEach(function(key) {
+                                var num = obj.Info[key];
+                                if (urlEleDict.hasOwnProperty(key)) {
+                                    for (var i = 0, max = urlEleDict[key].length; i < max; i++) {
+                                        var newNode = document.createElement('span');
+                                        newNode.innerHTML = num;
+                                        newNode.classList.toggle("clicks");
+                                        newNode.title = num + "次点击"
+                                        var tmpEle = urlEleDict[key][i];
+                                        tmpEle.after(newNode);
+                                    }
+                                }
+                            });
+                        }
+                    });
+                }
+            }
+
+            docReady(function() {
+                getContentLinkCount();
+            });
+
+        </script>
+
+    </section>
+
+</div>
+
+{% endfunc %}

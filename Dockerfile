@@ -12,6 +12,7 @@ COPY go.sum .
 RUN go mod download
 
 COPY . .
+RUN go generate
 RUN go build -o ./app ./main.go
 
 FROM alpine:latest
@@ -24,4 +25,4 @@ COPY --from=builder /app .
 
 EXPOSE 8080
 
-ENTRYPOINT ["./app"]
+ENTRYPOINT ["./app", "-addr=:8080", "-sdbDir=/mnt/images/onlinedb"]

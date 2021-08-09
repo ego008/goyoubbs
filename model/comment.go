@@ -1,138 +1,296 @@
 package model
 
 import (
-	"encoding/json"
-	"errors"
-	"github.com/ego008/youdb"
+	"github.com/VictoriaMetrics/fastcache"
+	"github.com/ego008/sdb"
 	"goyoubbs/util"
-	"html/template"
+	"strconv"
+	"strings"
+	"time"
+)
+
+const (
+	CommentTbName       = "comment:"       // + tid // 存放内容
+	CommentNumTbName    = "comment_count"  // 帖子评论数
+	CommentReviewTbName = "review_comment" // 待审核列表
 )
 
 type Comment struct {
-	Id       uint64 `json:"id"`
-	Aid      uint64 `json:"aid"`
-	Uid      uint64 `json:"uid"`
-	Content  string `json:"content"`
-	ClientIp string `json:"clientip"`
-	AddTime  uint64 `json:"addtime"`
+	ID       uint64
+	ReplyId  uint64 // 回复几楼
+	TopicId  uint64
+	UserId   uint64
+	AddTime  int64
+	Content  string
+	ClientIp string
 }
 
-type CommentListItem struct {
-	Id         uint64 `json:"id"`
-	Aid        uint64 `json:"aid"`
-	Uid        uint64 `json:"uid"`
-	Name       string `json:"name"`
-	Avatar     string `json:"avatar"`
-	Content    string `json:"content"`
-	ContentFmt template.HTML
-	AddTime    uint64 `json:"addtime"`
-	AddTimeFmt string `json:"addtimefmt"`
+type CommentFmt struct {
+	Comment
+	Name       string
+	AddTimeFmt string
+	Link       string // 该评论锚点 /t/[tid]#r[cid]
+	ContentFmt string
 }
 
-type CommentPageInfo struct {
-	Items    []CommentListItem `json:"items"`
-	HasPrev  bool              `json:"hasprev"`
-	HasNext  bool              `json:"hasnext"`
-	FirstKey uint64            `json:"firstkey"`
-	LastKey  uint64            `json:"lastkey"`
+//CommentReview 待审核评论
+type CommentReview struct {
+	Comment
+	TopicTitle string
+	AddTimeFmt string
+	ContentFmt string
 }
 
-func CommentGetByKey(db *youdb.DB, aid string, cid uint64) (Comment, error) {
-	obj := Comment{}
-	rs := db.Hget("article_comment:"+aid, youdb.I2b(cid))
-	if rs.State == "ok" {
-		json.Unmarshal(rs.Data[0], &obj)
-		return obj, nil
+func CommentGetById(db *sdb.DB, tid, cid uint64) (obj Comment) {
+	if rs := db.Hget(CommentTbName+strconv.FormatUint(tid, 10), sdb.I2b(cid)); rs.OK() {
+		err := json.Unmarshal(rs.Bytes(), &obj)
+		if err != nil {
+			return
+		}
 	}
-	return obj, errors.New(rs.State)
+	return
 }
 
-func CommentSetByKey(db *youdb.DB, aid string, cid uint64, obj Comment) error {
+//CommentSet 编辑评论，只修改Content
+func CommentSet(db *sdb.DB, obj Comment) Comment {
 	jb, _ := json.Marshal(obj)
-	return db.Hset("article_comment:"+aid, youdb.I2b(cid), jb)
+	_ = db.Hset(CommentTbName+strconv.FormatUint(obj.TopicId, 10), sdb.I2b(obj.ID), jb)
+	return obj
 }
 
-func CommentDelByKey(db *youdb.DB, aid string, cid uint64) error {
-	return db.Hdel("article_comment:"+aid, youdb.I2b(cid))
+//CommentAdd 添加评论
+func CommentAdd(mc *fastcache.Cache, db *sdb.DB, obj Comment) Comment {
+	_, _ = db.Hincr(CountTb, []byte("comment"), 1)                  // 总评论数
+	newId, _ := db.Hincr(CommentNumTbName, sdb.I2b(obj.TopicId), 1) // 帖子评论数
+	obj.ID = newId
+	jb, _ := json.Marshal(obj)
+	_ = db.Hset(CommentTbName+strconv.FormatUint(obj.TopicId, 10), sdb.I2b(newId), jb)
+	// 更新 topic 相关时间线
+	topic := TopicGetById(db, obj.TopicId)
+	// 首页
+	_ = db.Zset("topic_update", sdb.I2b(obj.TopicId), uint64(obj.AddTime))
+	// 分类页
+	_ = db.Zset("topic_update:"+strconv.FormatUint(topic.NodeId, 10), sdb.I2b(obj.TopicId), uint64(obj.AddTime))
+	// 个人回复的帖子
+	_ = db.Zset("user_comment:"+strconv.FormatUint(obj.UserId, 10), sdb.I2b(obj.TopicId), uint64(obj.AddTime))
+	// 最近回复内容
+	k := []byte(strconv.FormatInt(obj.AddTime, 10) + "_" + strconv.FormatUint(obj.TopicId, 10))
+	_ = db.Hset("recent_comment", k, sdb.I2b(obj.ID))
+	// 删缓存
+	mc.Del([]byte("CommentGetRecent"))
+	mc.Del([]byte("TopicGetRelative:" + strconv.FormatUint(obj.TopicId, 10)))
+	mc.Del([]byte(CommentTbName + strconv.FormatUint(topic.ID, 10)))
+
+	// @ 某人 及 主帖作者
+	var toNoteUserIdLst []uint64 // 待提醒的用户Id
+	userNameLst := util.GetMention(obj.Content, []string{})
+	if topic.UserId != obj.UserId { // 排除自己回复
+		// 提醒主贴作者
+		toNoteUserIdLst = append(toNoteUserIdLst, topic.UserId)
+	}
+	if len(userNameLst) > 0 {
+		db.Hmget("user_name2uid", userNameLst).KvEach(func(_, value sdb.BS) {
+			uid := sdb.B2i(value)
+			if uid != obj.UserId && uid != topic.UserId {
+				// 排除 @ 自己 与 主贴作者
+				toNoteUserIdLst = append(toNoteUserIdLst, uid)
+			}
+		})
+	}
+
+	if len(toNoteUserIdLst) > 0 {
+		msg := Msg{
+			TopicId:   topic.ID,
+			CommentId: obj.ID,
+			AddTime:   util.GetCNTM(TimeOffSet),
+		}
+		jb, _ = json.Marshal(msg)
+		for _, uid := range toNoteUserIdLst {
+			_ = db.Hset("user_msg:"+strconv.FormatUint(uid, 10), sdb.I2b(topic.ID), jb)
+			time.Sleep(2 * time.Microsecond)
+		}
+	}
+
+	// @ end
+
+	return obj
 }
 
-func CommentList(db *youdb.DB, mdm, cmd, tb, key string, limit, tz int) CommentPageInfo {
-	var items []CommentListItem
-	var citems []Comment
-	userMap := map[uint64]UserMini{}
-	var userKeys [][]byte
-	var hasPrev, hasNext bool
-	var firstKey, lastKey uint64
+func GetAllTopicComment(mc *fastcache.Cache, db *sdb.DB, topic Topic) (objLst []CommentFmt) {
+	tbName := CommentTbName + strconv.FormatUint(topic.ID, 10)
+	mcKey := []byte(tbName)
+	if _, exist := util.ObjCachedGetBig(mc, mcKey, &objLst, false); exist {
+		return
+	}
 
-	keyStart := youdb.DS2b(key)
-	if cmd == "hrscan" {
-		rs := db.Hrscan(tb, keyStart, limit)
-		if rs.State == "ok" {
-			for i := len(rs.Data) - 2; i >= 0; i -= 2 {
-				item := Comment{}
-				json.Unmarshal(rs.Data[i+1], &item)
-				citems = append(citems, item)
-				userMap[item.Uid] = UserMini{}
-				userKeys = append(userKeys, youdb.I2b(item.Uid))
-			}
+	userMap := map[uint64]User{}
+
+	db.Hscan(tbName, nil, int(topic.Comments)).KvEach(func(_, value sdb.BS) {
+		obj := CommentFmt{}
+		err := json.Unmarshal(value.Bytes(), &obj)
+		if err != nil {
+			return
 		}
-	} else if cmd == "hscan" {
-		rs := db.Hscan(tb, keyStart, limit)
-		if rs.State == "ok" {
-			for i := 0; i < (len(rs.Data) - 1); i += 2 {
-				item := Comment{}
-				json.Unmarshal(rs.Data[i+1], &item)
-				citems = append(citems, item)
-				userMap[item.Uid] = UserMini{}
-				userKeys = append(userKeys, youdb.I2b(item.Uid))
-			}
+		obj.AddTimeFmt = util.TimeFmt(obj.AddTime, "2006-01-02 15:04")
+		obj.ContentFmt = util.ContentFmt(obj.Content)
+		obj.Link = "/t/" + strconv.FormatUint(obj.TopicId, 10) + "#r" + strconv.FormatUint(obj.ID, 10)
+		objLst = append(objLst, obj)
+		userMap[obj.UserId] = User{}
+	})
+
+	// 获取用户信息
+	userIds := make([]uint64, 0, len(userMap))
+	for k := range userMap {
+		userIds = append(userIds, k)
+	}
+	for _, obj := range UserGetByIds(db, userIds) {
+		userMap[obj.ID] = obj
+	}
+	// 设置comment name
+	for i, v := range objLst {
+		if user, found := userMap[v.UserId]; found {
+			v.Name = user.Name
+			objLst[i] = v
 		}
 	}
 
-	if len(citems) > 0 {
-		rs := db.Hmget("user", userKeys)
-		if rs.State == "ok" {
-			for i := 0; i < (len(rs.Data) - 1); i += 2 {
-				item := UserMini{}
-				json.Unmarshal(rs.Data[i+1], &item)
-				userMap[item.Id] = item
-			}
-		}
+	if len(objLst) > 0 {
+		util.ObjCachedSetBig(mc, mcKey, objLst)
+	}
 
-		for _, citem := range citems {
-			user := userMap[citem.Uid]
-			item := CommentListItem{
-				Id:         citem.Id,
-				Aid:        citem.Aid,
-				Uid:        citem.Uid,
-				Name:       user.Name,
-				Avatar:     user.Avatar,
-				AddTime:    citem.AddTime,
-				AddTimeFmt: util.TimeFmt(citem.AddTime, "2006-01-02 15:04", tz),
-				ContentFmt: template.HTML(util.ContentFmt(db, mdm, citem.Content)),
-			}
-			items = append(items, item)
-			if firstKey == 0 {
-				firstKey = item.Id
-			}
-			lastKey = item.Id
-		}
+	return
+}
 
-		rs = db.Hrscan(tb, youdb.I2b(firstKey), 1)
-		if rs.State == "ok" {
-			hasPrev = true
-		}
-		rs = db.Hscan(tb, youdb.I2b(lastKey), 1)
-		if rs.State == "ok" {
-			hasNext = true
+//CheckHasComment2Review 检查有没有待审核评论
+func CheckHasComment2Review(db *sdb.DB) bool {
+	if db.Hscan(CommentReviewTbName, nil, 1).OK() {
+		return true
+	}
+	return false
+}
+
+//CommentGetNumByKeys 通过 []idByte 取评论数
+func CommentGetNumByKeys(db *sdb.DB, keys [][]byte) map[uint64]uint64 {
+	commentsMap := map[uint64]uint64{}
+	db.Hmget(CommentNumTbName, keys).KvEach(func(key, value sdb.BS) {
+		commentsMap[sdb.B2i(key)] = sdb.B2i(value)
+	})
+	return commentsMap
+}
+
+//CommentGetRecent 取最近评论
+func CommentGetRecent(mc *fastcache.Cache, db *sdb.DB, limit int) (objLst []CommentFmt) {
+	// get from mc
+	mcKey := []byte("CommentGetRecent")
+	if _, exist := util.ObjCachedGet(mc, mcKey, &objLst, false); exist {
+		return
+	}
+
+	var sortKeyLst []string                  // 记录顺序 []tidCid
+	commentMap := map[string]Comment{}       // tidCid:Comment
+	topicCommentMap := map[string][][]byte{} // topicIdStr: [][]byte(commentId) // 无序
+	db.Hrscan("recent_comment", nil, limit).KvEach(func(key, value sdb.BS) {
+		tidStr := strings.Split(key.String(), "_")[1]
+		k := CommentTbName + tidStr
+		tidCid := tidStr + "_" + strconv.FormatUint(sdb.B2i(value.Bytes()), 10)
+		sortKeyLst = append(sortKeyLst, tidCid)
+		topicCommentMap[k] = append(topicCommentMap[k], value.Bytes()) // 一个帖子多条回复
+	})
+
+	if len(sortKeyLst) == 0 {
+		return
+	}
+
+	uidMap := map[uint64]struct{}{}
+	var userIds []uint64
+	for k := range topicCommentMap {
+		db.Hmget(k, topicCommentMap[k]).KvEach(func(key, value sdb.BS) {
+			obj := Comment{}
+			err := json.Unmarshal(value.Bytes(), &obj)
+			if err != nil {
+				return
+			}
+			tidCid := strconv.FormatUint(obj.TopicId, 10) + "_" + strconv.FormatUint(obj.ID, 10)
+			commentMap[tidCid] = obj
+			if _, ok := uidMap[obj.UserId]; !ok {
+				uidMap[obj.UserId] = struct{}{}
+				userIds = append(userIds, obj.UserId)
+			}
+		})
+	}
+
+	// get user name
+	userNameMap := UserGetNamesByIds(db, userIds)
+	// out put
+	for _, k := range sortKeyLst {
+		obj, _ := commentMap[k]
+		// 截取内容
+		obj.Content = util.GetShortCon(obj.Content)
+		objLst = append(objLst, CommentFmt{
+			Comment:    obj,
+			Name:       userNameMap[obj.UserId],
+			AddTimeFmt: util.TimeFmt(obj.AddTime, "2006-01-02 15:04"),
+			ContentFmt: obj.Content,
+			Link:       "/t/" + strconv.FormatUint(obj.TopicId, 10) + "#r" + strconv.FormatUint(obj.ID, 10),
+		})
+	}
+
+	// set to mc
+	util.ObjCachedSet(mc, mcKey, objLst)
+
+	return
+}
+
+//CommentGetReviewNum 取个人待审核评论条数
+func CommentGetReviewNum(db *sdb.DB, uid uint64) int {
+	// 限制 10 条，若有10条未审核的则不允许再发
+	return db.Hscan(CommentReviewTbName+":"+strconv.FormatUint(uid, 10), nil, 10).KvLen()
+}
+
+//CommentGetReview 取个人待审核评论
+func CommentGetReview(db *sdb.DB, uid uint64) (objLst []CommentReview) {
+	var topicIds []uint64
+	var ids [][]byte
+	var keyStart []byte
+
+	for {
+		if rs := db.Hrscan(CommentReviewTbName+":"+strconv.FormatUint(uid, 10), keyStart, 10); rs.OK() {
+			rs.KvEach(func(key, _ sdb.BS) {
+				keyStart = key
+				ids = append(ids, key)
+			})
+		} else {
+			break
 		}
 	}
 
-	return CommentPageInfo{
-		Items:    items,
-		HasPrev:  hasPrev,
-		HasNext:  hasNext,
-		FirstKey: firstKey,
-		LastKey:  lastKey,
+	if len(ids) == 0 {
+		return
 	}
+
+	commentMap := map[string]Comment{}
+	db.Hmget(CommentReviewTbName, ids).KvEach(func(key, value sdb.BS) {
+		obj := Comment{}
+		err := json.Unmarshal(value, &obj)
+		if err != nil {
+			return
+		}
+		commentMap[key.String()] = obj
+		topicIds = append(topicIds, obj.TopicId)
+	})
+
+	// get topic title
+	topicTitleMap := TopicGetTitlesByIds(db, topicIds)
+
+	for _, v := range ids {
+		vStr := string(v)
+		comment := commentMap[vStr]
+		objLst = append(objLst, CommentReview{
+			Comment:    comment,
+			TopicTitle: topicTitleMap[comment.TopicId],
+			AddTimeFmt: util.TimeFmt(comment.AddTime, ""),
+			ContentFmt: util.ContentFmt(comment.Content),
+		})
+	}
+	return
 }

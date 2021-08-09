@@ -1,0 +1,170 @@
+// admin_login
+
+{% code
+type UserTopicAdd struct {
+    BasePage
+    DefaultTopic Topic // 编辑/添加
+    DefaultUser  User  // 默认作者
+    UserLst []User // 可选发表用户列表，管理员
+}
+%}
+
+{% func (p *UserTopicAdd) MainBody() %}
+<div class="write-box">
+    <h1>{%s p.Title %}</h1>
+    <form class="pure-form" action="" method="post" onsubmit="form_post();return false;">
+        <fieldset class="pure-group">
+            <select id="select-nid">
+                {% for _, item := range p.NodeLst %}
+                <option value="{%dul item.ID %}" {% if item.ID == p.DefaultNode.ID %}selected="selected"{% endif %}>{%s item.Name %}</option>
+                {% endfor %}
+            </select>
+            <input id="id-title" type="text" value="{%s p.DefaultTopic.Title %}" class="pure-input-1" placeholder="* 标题 字符限制 {%d p.SiteCf.TitleMaxLen %}" />
+            <textarea id="id-content" class="pure-input-1 topic-con-input" placeholder="* 内容 字符限制 {%d p.SiteCf.TopicConMaxLen %}">{%s= p.DefaultTopic.Content %}</textarea>
+            {% if p.CurrentUser.Flag >= 99 %}
+            <select id="select-uid">
+                {% for _, item := range p.UserLst %}
+                <option value="{%dul item.ID %}" {% if item.ID == p.DefaultUser.ID %}selected="selected"{% endif %}>{%s item.Name %}</option>
+                {% endfor %}
+            </select>
+            <input id="id-addtime" type="text" value="{%dl p.DefaultTopic.AddTime %}" class="pure-input-1" placeholder="发表的时间戳" />
+            {% else %}
+            <input type="hidden" id="select-uid" value="{%dul p.DefaultTopic.UserId %}">
+            <input type="hidden" id="id-addtime" value="{%dl p.DefaultTopic.AddTime %}">
+            {% endif %}
+        </fieldset>
+        <div id="id-msg"></div>
+        <div class="left pure-button-group">
+            <input id="btn-preview" type="button" value="预览" name="submit" class="pure-button button-success" />
+            <input id="btn-submit" type="submit" value="发表" name="submit" class="pure-button pure-button-primary" />
+        </div>
+        <div class="c"></div>
+
+        <div id="id-preview" class="topic-content markdown-body"></div>
+    </form>
+
+    <script>
+
+        let nodeEle = document.getElementById("select-nid");
+        let titleEle = document.getElementById("id-title");
+        let conEle = document.getElementById("id-content");
+        let btnReviewEle = document.getElementById("btn-preview");
+        let submitEle = document.getElementById("btn-submit");
+        let msgEle = document.getElementById("id-msg");
+        let addTimeEle = document.getElementById("id-addtime");
+        let userIdEle = document.getElementById("select-uid");
+        let reviewEle = document.getElementById("id-preview");
+
+        btnReviewEle.addEventListener('click', function (event) {
+            let con = conEle.value.trim();
+            let title = titleEle.value.trim();
+            if (con === "") {
+                conEle.focus();
+                return
+            }
+
+            btnReviewEle.setAttribute("disabled", "disabled");
+
+            postAjax("/content/preview", JSON.stringify({Act: "topicPreview", Title: title, Content: con}), function(data){
+                var obj = JSON.parse(data)
+                //console.log(obj);
+                if(obj.Code === 200) {
+                    msgEle.style.display = "none";
+                    reviewEle.innerHTML = obj.Html;
+                    reviewEle.style.display = "block";
+                }else{
+                    reviewEle.innerHTML = "";
+                    reviewEle.style.display = "none";
+                    msgEle.innerText = obj.Msg;
+                }
+                btnReviewEle.removeAttribute('disabled')
+            });
+        }, false);
+
+        function form_post(){
+            let title = titleEle.value.trim();
+            let con = conEle.value.trim();
+
+            if (title === "") {
+                titleEle.focus();
+                return false;
+            }
+
+            if (con === "") {
+                conEle.focus();
+                return false;
+            }
+
+            reviewEle.innerHTML = "";
+            reviewEle.style.display = "none";
+
+            submitEle.setAttribute("disabled", "disabled");
+            postAjax("/topic/add", JSON.stringify({"Act": "submit", "NodeId": parseInt(nodeEle.value, 10), "Title": title, "Content": con, "UserId": parseInt(userIdEle.value, 10), "AddTime": parseInt(addTimeEle.value, 10)}), function(data){
+                var obj = JSON.parse(data)
+                //console.log(obj);
+                if(obj.Code === 200) {
+                    msgEle.style.display = "none";
+                    if(obj.Tid > 0){
+                        window.location.href = "/t/"+obj.Tid;
+                    }else{
+                        window.location.href = "/my/topic";
+                    }
+                } else if(obj.Code === 201){
+                    msgEle.style.display = "block";
+                    msgEle.innerText = obj.Msg;
+                    titleEle.value = "";
+                    conEle.value = "";
+
+                    window.location.href = "/member/{%dul p.CurrentUser.ID %}";
+                    return;
+                }else{
+                    msgEle.style.display = "block";
+                    msgEle.innerText = obj.Msg;
+                }
+                submitEle.removeAttribute('disabled');
+            });
+
+            return false;
+        }
+
+        {% if !p.SiteCf.UploadLimit || (p.SiteCf.UploadLimit && p.CurrentUser.Flag >= 99) %}
+        document.addEventListener('paste', function (evt) {
+            var url = "/file/upload";
+            var items = evt.clipboardData && evt.clipboardData.items;
+            var file = null;
+            if(items && items.length) {
+                for(var i=0; i!==items.length; i++) {
+                    if(items[i].type.indexOf('image') !== -1) {
+                        file = items[i].getAsFile();
+                        if(!!!file) {
+                            continue;
+                        }
+
+                        // upload file object.
+                        var form = new FormData();
+                        form.append('file', file);
+
+                        postAjax("/file/upload", form, function(data){
+                            let obj = JSON.parse(data)
+                            //console.log(obj);
+                            if(obj.Code === 200) {
+                                let img_url = "\n" + obj.Url + "\n";
+                                let pos = conEle.selectionStart;
+                                let con = conEle.value;
+                                conEle.value = con.slice(0, pos) + img_url + con.slice(pos);
+                            }else{
+                                console.warn(obj.Msg);
+                            }
+                        });
+                    }
+                }
+            }
+
+        });
+        {% endif %}
+
+    </script>
+
+</div>
+
+{% endfunc %}

@@ -1,13 +1,13 @@
 package controller
 
 import (
+	"github.com/valyala/fasthttp"
 	"goyoubbs/model"
-	"net/http"
-	"text/template"
+	"html/template"
 )
 
-func (h *BaseHandler) FeedHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/atom+xml; charset=utf-8")
+func (h *BaseHandler) FeedHandler(ctx *fasthttp.RequestCtx) {
+	ctx.SetContentType("application/atom+xml; charset=utf-8")
 
 	scf := h.App.Cf.Site
 
@@ -24,12 +24,12 @@ func (h *BaseHandler) FeedHandler(w http.ResponseWriter, r *http.Request) {
 	{{range $_, $item := .Items}}
 	<entry>
 		<title>{{$item.Title}}</title>
-		<id>` + scf.MainDomain + `/t/{{$item.Id}}</id>
-		<link rel="alternate" type="text/html" href="` + scf.MainDomain + `/t/{{$item.Id}}" />
+		<id>` + scf.MainDomain + `/t/{{$item.ID}}</id>
+		<link rel="alternate" type="text/html" href="` + scf.MainDomain + `/t/{{$item.ID}}" />
 		<published>{{$item.AddTimeFmt}}</published>
 		<updated>{{$item.EditTimeFmt}}</updated>
 		<content type="text/plain">
-		  {{$item.Cname}} - {{$item.Name}} - {{$item.Des}}
+		  {{$item.Des}}
 		</content>
     </entry>
 	{{end}}
@@ -38,7 +38,7 @@ func (h *BaseHandler) FeedHandler(w http.ResponseWriter, r *http.Request) {
 
 	db := h.App.Db
 
-	items := model.ArticleFeedList(db, 20, h.App.Cf.Site.TimeZone)
+	items := model.TopicGetForFeed(db, 20)
 
 	var upDate string
 	if len(items) > 0 {
@@ -46,9 +46,9 @@ func (h *BaseHandler) FeedHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	t := template.Must(template.New("feed").Parse(feed))
-	t.Execute(w, struct {
+	_ = t.Execute(ctx, struct {
 		Update string
-		Items  []model.ArticleFeedListItem
+		Items  []model.TopicFeed
 	}{
 		Update: upDate,
 		Items:  items,

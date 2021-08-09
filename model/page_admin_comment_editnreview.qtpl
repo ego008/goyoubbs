@@ -1,0 +1,143 @@
+// admin_comment_edit/review
+
+{% code
+type AdminCommentEdit struct {
+    BasePage
+    DefaultTopic   Topic // 编辑/添加
+    DefaultUser    User  // 默认作者
+    DefaultComment CommentFmt
+    GoBack         bool // 返回到编辑前页面
+}
+%}
+
+{% func (p *AdminCommentEdit) MainBody() %}
+
+<div class="index">
+    {% if p.PageName == "admin_comment_review" && len(p.DefaultComment.Content)==0 %}
+        <h1>没有 {%s p.Title %}</h1>
+    {% else %}
+    <h1>{%s p.Title %}</h1>
+    <p><a href="/t/{%dul p.DefaultTopic.ID %}" target="_blank">{%s p.DefaultTopic.Title %}</a></p>
+    <p>by {%s p.DefaultComment.Name %} at {%s p.DefaultComment.AddTimeFmt %}</p>
+    <form class="pure-form" action="" method="post" onsubmit="form_post(); return false;">
+        <div>
+            <fieldset class="pure-group">
+                <textarea id="id-content" class="pure-input-1 topic-con-input" placeholder="* 内容">{%s= p.DefaultComment.Content %}</textarea>
+            </fieldset>
+            <div id="id-msg"></div>
+            <div class="fleft pure-button-group">
+                <input id="btn-preview" type="button" value="预览" name="submit" onclick="previewComment(); return false;" class="pure-button button-success" />
+                <input id="btn-submit" type="submit" value="发表" name="submit" onclick="submitComment(); return false;" class="pure-button pure-button-primary" />
+                {% if p.PageName == "admin_comment_review" %}
+                <a href="?act=del" class="pure-button button-warning fr">直接删除</a>
+                {% endif %}
+            </div>
+            <div class="c"></div>
+
+            <div id="id-preview" class="markdown-body entry-content"></div>
+        </div>
+    </form>
+
+    <script>
+        let btnReviewEle = document.getElementById("btn-preview");
+        let conEle = document.getElementById("id-content");
+        var msgEle = document.getElementById("id-msg");
+        var reviewEle = document.getElementById("id-preview");
+
+        function previewComment() {
+            var con = conEle.value.trim();
+            if (con === "") {
+                conEle.focus();
+                return
+            }
+            postAjax("/content/preview", JSON.stringify({Act: "commentPreview", Content: con}), function(data){
+                var obj = JSON.parse(data)
+                //console.log(obj);
+                if(obj.Code === 200) {
+                    msgEle.style.display = "none";
+                    reviewEle.innerHTML = obj.Html;
+                    reviewEle.style.display = "block";
+                }else{
+                    reviewEle.innerHTML = "";
+                    reviewEle.style.display = "none";
+                    msgEle.innerText = obj.Msg;
+                }
+            });
+        }
+
+        function submitComment() {
+            var con = conEle.value.trim();
+            if (con === "") {
+                conEle.focus();
+                return
+            }
+            postAjax("/admin/comment/edit", JSON.stringify({"ID": {%dul p.DefaultComment.ID %}, "TopicId": {%dul p.DefaultComment.TopicId %}, "ReplyId": {%dul p.DefaultComment.ReplyId %}, "Content": con, "UserId": {%dul p.DefaultComment.UserId %}, "AddTime": {%dl p.DefaultComment.AddTime %}}), function(data){
+                var obj = JSON.parse(data)
+                msgEle.innerText = obj.Msg;
+                conEle.focus();
+                conEle.value = "";
+                toReplyId = 0;
+                if(obj.Code === 200) {
+                    {% if p.GoBack %}
+                    window.location.href = "/t/{%dul p.DefaultComment.TopicId %}#r{%dul p.DefaultComment.ID %}";
+                    return false;
+                    {% endif %}
+                    {% if p.PageName == "admin_comment_review" %}
+                    window.location.href = "/admin/comment/review";
+                    {% else %}
+                    if(data.Tid > 0){
+                        window.location.href = "/t/"+data.Tid;
+                    }else{
+                        window.location.href = "/admin/my/comment";
+                    }
+                    {% endif %}
+                    return false;
+                } else if (obj.Code === 201) {
+                    window.location.href = "/member/{%dul p.CurrentUser.ID %}?type=comment";
+                    return false;
+                }
+                reviewEle.style.display = "none";
+                msgEle.style.display = "block";
+            });
+        }
+
+        document.addEventListener('paste', function (evt) {
+            var url = "/file/upload";
+            var items = evt.clipboardData && evt.clipboardData.items;
+            var file = null;
+            if(items && items.length) {
+                for(var i=0; i!==items.length; i++) {
+                    if(items[i].type.indexOf('image') !== -1) {
+                        file = items[i].getAsFile();
+                        if(!!!file) {
+                            continue;
+                        }
+
+                        // upload file object.
+                        var form = new FormData();
+                        form.append('file', file);
+
+                        postAjax("/file/upload", form, function(data){
+                            let obj = JSON.parse(data)
+                            //console.log(obj);
+                            if(obj.Code === 200) {
+                                let img_url = "\n" + obj.Url + "\n";
+                                let pos = conEle.selectionStart;
+                                let con = conEle.value;
+                                conEle.value = con.slice(0, pos) + img_url + con.slice(pos);
+                            }else{
+                                console.warn(obj.Msg);
+                            }
+                        });
+                    }
+                }
+            }
+
+        });
+    </script>
+
+    {% endif %}
+
+</div>
+
+{% endfunc %}

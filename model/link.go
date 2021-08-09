@@ -1,43 +1,50 @@
 package model
 
 import (
-	"encoding/json"
-	"github.com/ego008/youdb"
+	"github.com/VictoriaMetrics/fastcache"
+	"github.com/ego008/sdb"
+	"goyoubbs/util"
 	"sort"
 )
 
 type Link struct {
-	Id    uint64 `json:"id"`
-	Name  string `json:"name"`
-	Url   string `json:"url"`
-	Score int    `json:"score"`
+	ID    uint64
+	Name  string
+	Url   string
+	Score int
 }
 
-func LinkGetById(db *youdb.DB, lid string) Link {
+func LinkGetById(db *sdb.DB, lid string) Link {
 	var item Link
-	rs := db.Hget("link", youdb.DS2b(lid))
+	rs := db.Hget("link", sdb.DS2b(lid))
 	if rs.State == "ok" {
-		json.Unmarshal(rs.Data[0], &item)
+		_ = json.Unmarshal(rs.Data[0], &item)
 	}
 	return item
 }
 
-func LinkSet(db *youdb.DB, obj Link) {
-	if obj.Id == 0 {
+func LinkSet(db *sdb.DB, obj Link) {
+	if obj.ID == 0 {
 		// add
 		var newId uint64
-		db.Hrscan("link", nil, 1).KvEach(func(key, value youdb.BS) {
-			newId = youdb.B2i(key.Bytes())
+		db.Hrscan("link", nil, 1).KvEach(func(key, value sdb.BS) {
+			newId = sdb.B2i(key.Bytes())
 		})
 		newId++
-		obj.Id = newId
+		obj.ID = newId
 	}
 	jb, _ := json.Marshal(obj)
-	db.Hset("link", youdb.I2b(obj.Id), jb)
+	_ = db.Hset("link", sdb.I2b(obj.ID), jb)
 }
 
-func LinkList(db *youdb.DB, getAll bool) []Link {
-	var items []Link
+func LinkList(mc *fastcache.Cache, db *sdb.DB, getAll bool) (objLst []Link) {
+	mcKey := []byte("LinkList")
+	if !getAll {
+		if _, exist := util.ObjCachedGet(mc, mcKey, &objLst, false); exist {
+			return
+		}
+	}
+
 	itemMap := map[uint64]Link{}
 
 	startKey := []byte("")
@@ -48,13 +55,13 @@ func LinkList(db *youdb.DB, getAll bool) []Link {
 			for i := 0; i < len(rs.Data)-1; i += 2 {
 				startKey = rs.Data[i]
 				item := Link{}
-				json.Unmarshal(rs.Data[i+1], &item)
+				_ = json.Unmarshal(rs.Data[i+1], &item)
 				if getAll {
 					// included score == 0
-					itemMap[youdb.B2i(rs.Data[i])] = item
+					itemMap[sdb.B2i(rs.Data[i])] = item
 				} else {
 					if item.Score > 0 {
-						itemMap[youdb.B2i(rs.Data[i])] = item
+						itemMap[sdb.B2i(rs.Data[i])] = item
 					}
 				}
 			}
@@ -79,9 +86,14 @@ func LinkList(db *youdb.DB, getAll bool) []Link {
 		})
 
 		for _, kv := range ss {
-			items = append(items, itemMap[kv.Key])
+			objLst = append(objLst, itemMap[kv.Key])
+		}
+
+		// set to mc
+		if !getAll {
+			util.ObjCachedSet(mc, mcKey, objLst)
 		}
 	}
 
-	return items
+	return
 }

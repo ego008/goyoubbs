@@ -1,69 +1,60 @@
 package model
 
 import (
-	"encoding/json"
 	"errors"
-	"github.com/ego008/youdb"
+	"github.com/ego008/sdb"
+	"github.com/tidwall/gjson"
+	"strconv"
+	"strings"
+	"sync"
 )
 
+const (
+	UserTbName    = "user"
+	FlagAdmin     = 99 // 管理员
+	FlagTrust     = 10 // 可信任用户，发帖回帖不审核
+	FlagAuthor    = 5  // 普通用户，可发草稿、评论
+	FlagReview    = 1  // 待审核用户
+	FlagForbidden = 0  // 禁止发草稿、评论
+)
+
+var userNameMap = sync.Map{} // 缓存
+
 type User struct {
-	Id            uint64 `json:"id"`
-	Name          string `json:"name"`
-	Gender        string `json:"gender"`
-	Flag          int    `json:"flag"`
-	Avatar        string `json:"avatar"`
-	Password      string `json:"password"`
-	Email         string `json:"email"`
-	Url           string `json:"url"`
-	Articles      uint64 `json:"articles"`
-	Replies       uint64 `json:"replies"`
-	RegTime       uint64 `json:"regtime"`
-	LastPostTime  uint64 `json:"lastposttime"`
-	LastReplyTime uint64 `json:"lastreplytime"`
-	LastLoginTime uint64 `json:"lastlogintime"`
-	About         string `json:"about"`
-	Notice        string `json:"notice"`
-	NoticeNum     int    `json:"noticenum"`
-	Hidden        bool   `json:"hidden"`
-	Session       string `json:"session"`
+	ID            uint64
+	Name          string
+	Flag          int
+	Password      string
+	Email         string
+	Url           string
+	Topics        uint64 // 发表文章数
+	Replies       uint64 // 回复数
+	RegTime       uint64
+	LastPostTime  uint64
+	LastReplyTime uint64
+	LastLoginTime uint64
+	About         string
+	Hidden        bool // 隐藏该用户界面或该用户界面不显示广告
+	Session       string
 }
 
-type UserMini struct {
-	Id     uint64 `json:"id"`
-	Name   string `json:"name"`
-	Avatar string `json:"avatar"`
+type UserFmt struct {
+	User
+	RegTimeFmt string
 }
 
-type UserPageInfo struct {
-	Items    []User `json:"items"`
-	HasPrev  bool   `json:"hasprev"`
-	HasNext  bool   `json:"hasnext"`
-	FirstKey uint64 `json:"firstkey"`
-	LastKey  uint64 `json:"lastkey"`
+type Flag struct {
+	Flag int
+	Name string
 }
 
-func UserGetById(db *youdb.DB, uid uint64) (User, error) {
-	obj := User{}
-	rs := db.Hget("user", youdb.I2b(uid))
-	if rs.State == "ok" {
-		json.Unmarshal(rs.Data[0], &obj)
-		return obj, nil
-	}
-	return obj, errors.New(rs.State)
-}
-
-func UserUpdate(db *youdb.DB, obj User) error {
-	jb, _ := json.Marshal(obj)
-	return db.Hset("user", youdb.I2b(obj.Id), jb)
-}
-
-func UserGetByName(db *youdb.DB, name string) (User, error) {
+func UserGetByName(db *sdb.DB, name string) (User, error) {
 	obj := User{}
 	rs := db.Hget("user_name2uid", []byte(name))
-	if rs.State == "ok" {
-		rs2 := db.Hget("user", rs.Data[0])
-		if rs2.State == "ok" {
-			json.Unmarshal(rs2.Data[0], &obj)
+	if rs.OK() {
+		rs2 := db.Hget(UserTbName, rs.Data[0])
+		if rs2.OK() {
+			_ = json.Unmarshal(rs2.Data[0], &obj)
 			return obj, nil
 		}
 		return obj, errors.New(rs2.State)
@@ -71,66 +62,165 @@ func UserGetByName(db *youdb.DB, name string) (User, error) {
 	return obj, errors.New(rs.State)
 }
 
-func UserGetIdByName(db *youdb.DB, name string) string {
-	rs := db.Hget("user_name2uid", []byte(name))
-	if rs.State == "ok" {
-		return youdb.B2ds(rs.Data[0])
+func UserGetById(db *sdb.DB, uid uint64) (obj User, code int) {
+	if rs := db.Hget(UserTbName, sdb.I2b(uid)); rs.OK() {
+		err := json.Unmarshal(rs.Bytes(), &obj)
+		if err != nil {
+			return
+		}
+		code = 1 //  存在 1
 	}
-	return ""
+	return
 }
 
-func UserListByFlag(db *youdb.DB, cmd, tb, key string, limit int) UserPageInfo {
-	var items []User
-	var keys [][]byte
-	var hasPrev, hasNext bool
-	var firstKey, lastKey uint64
-
-	keyStart := youdb.DS2b(key)
-	if cmd == "hrscan" {
-		rs := db.Hrscan(tb, keyStart, limit)
-		if rs.State == "ok" {
-			for i := 0; i < (len(rs.Data) - 1); i += 2 {
-				keys = append(keys, rs.Data[i])
-			}
+func UserGetByIds(db *sdb.DB, ids []uint64) (userLst []User) {
+	if len(ids) > 0 {
+		var idsb [][]byte
+		for _, k := range ids {
+			idsb = append(idsb, sdb.I2b(k))
 		}
-	} else if cmd == "hscan" {
-		rs := db.Hscan(tb, keyStart, limit)
-		if rs.State == "ok" {
-			for i := len(rs.Data) - 2; i >= 0; i -= 2 {
-				keys = append(keys, rs.Data[i])
+		db.Hmget(UserTbName, idsb).KvEach(func(_, value sdb.BS) {
+			user := User{}
+			err := json.Unmarshal(value.Bytes(), &user)
+			if err != nil {
+				return
 			}
+			userLst = append(userLst, user)
+		})
+	}
+	return
+}
+
+//UserGetNamesByIds 根据 ids 取 name ，返回id:name 的map
+// 只解析 Name 字段，性能提高一丁点
+func UserGetNamesByIds(db *sdb.DB, ids []uint64) map[uint64]string {
+	id2name := map[uint64]string{}
+	if len(ids) == 0 {
+		return id2name
+	}
+	var idsb [][]byte
+	for _, k := range ids {
+		if v, ok := userNameMap.Load(k); ok {
+			id2name[k] = v.(string)
+		} else {
+			idsb = append(idsb, sdb.I2b(k))
 		}
 	}
 
-	if len(keys) > 0 {
-		rs := db.Hmget("user", keys)
-		if rs.State == "ok" {
-			for i := 0; i < (len(rs.Data) - 1); i += 2 {
-				item := User{}
-				json.Unmarshal(rs.Data[i+1], &item)
-				items = append(items, item)
-				if firstKey == 0 {
-					firstKey = item.Id
+	if len(idsb) > 0 {
+		db.Hmget(UserTbName, idsb).KvEach(func(key, value sdb.BS) {
+			name := gjson.Get(value.String(), "Name").String()
+			uId := sdb.B2i(key.Bytes())
+			id2name[uId] = name
+			userNameMap.Store(uId, name)
+		})
+	}
+	return id2name
+}
+
+func UserGetRecent(db *sdb.DB, tbn string, limit int) (userLst []User) {
+	db.Hrscan(tbn, nil, limit).KvEach(func(_, value sdb.BS) {
+		obj := User{}
+		err := json.Unmarshal(value, &obj)
+		if err != nil {
+			return
+		}
+		userLst = append(userLst, obj)
+	})
+	return
+}
+
+func UserGetRecentByKw(db *sdb.DB, kw string, limit int) (userLst []User) {
+	var keyStart []byte
+	for {
+		rs := db.Hrscan(UserTbName, keyStart, 50)
+		if !rs.OK() {
+			break
+		}
+		rs.KvEach(func(key, value sdb.BS) {
+			if len(userLst) == limit {
+				return
+			}
+			keyStart = key
+			obj := User{}
+			err := json.Unmarshal(value, &obj)
+			if err != nil {
+				return
+			}
+			if strconv.FormatUint(obj.ID, 10) == kw || strings.Contains(obj.Name, kw) {
+				userLst = append(userLst, obj)
+				if len(userLst) == limit {
+					return
 				}
-				lastKey = item.Id
 			}
+		})
 
-			rs = db.Hscan(tb, youdb.I2b(firstKey), 1)
-			if rs.State == "ok" {
-				hasPrev = true
-			}
-			rs = db.Hrscan(tb, youdb.I2b(lastKey), 1)
-			if rs.State == "ok" {
-				hasNext = true
-			}
+		if len(userLst) >= limit {
+			break
 		}
 	}
+	return
+}
 
-	return UserPageInfo{
-		Items:    items,
-		HasPrev:  hasPrev,
-		HasNext:  hasNext,
-		FirstKey: firstKey,
-		LastKey:  lastKey,
+func UserGetRecentByFlag(db *sdb.DB, tbn string, limit int) (userLst []User) {
+	if tbn == UserTbName {
+		db.Hrscan(tbn, nil, limit).KvEach(func(_, value sdb.BS) {
+			obj := User{}
+			err := json.Unmarshal(value, &obj)
+			if err != nil {
+				return
+			}
+			userLst = append(userLst, obj)
+		})
+		return
 	}
+	var idBLst [][]byte
+	db.Hrscan(tbn, nil, limit).KvEach(func(key, _ sdb.BS) {
+		idBLst = append(idBLst, key)
+	})
+	db.Hmget(UserTbName, idBLst).KvEach(func(_, value sdb.BS) {
+		obj := User{}
+		err := json.Unmarshal(value, &obj)
+		if err != nil {
+			return
+		}
+		userLst = append(userLst, obj)
+	})
+	return
+}
+
+func UserSet(db *sdb.DB, obj User) User {
+	jb, err := json.Marshal(obj)
+	if err != nil {
+		return User{}
+	}
+	_ = db.Hset(UserTbName, sdb.I2b(obj.ID), jb)
+	return obj
+}
+
+func UserGetAllAdmin(db *sdb.DB) (userLst []User) {
+	var userIds [][]byte
+	var keyStart []byte
+	for {
+		if rs := db.Hscan("user_flag:99", keyStart, 10); rs.OK() {
+			rs.KvEach(func(key, _ sdb.BS) {
+				keyStart = key
+				userIds = append(userIds, key)
+			})
+		} else {
+			break
+		}
+	}
+	if len(userIds) == 0 {
+		return
+	}
+	db.Hmget(UserTbName, userIds).KvEach(func(_, value sdb.BS) {
+		obj := User{}
+		err := json.Unmarshal(value, &obj)
+		if err != nil {
+			return
+		}
+		userLst = append(userLst, obj)
+	})
+	return
 }
