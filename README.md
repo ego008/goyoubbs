@@ -1,6 +1,6 @@
 # goyoubbs
 
-goyoubbs is a web forum built on the Golang on fasthttp and leveldb.
+goyoubbs is an open source web forum built on Golang, fasthttp and leveldb.
 
 Demo online https://youbbs.org/
 
