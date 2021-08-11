@@ -26,6 +26,7 @@ type (
 	JsAuthor struct {
 		Type string `json:"@type"`
 		Name string `json:"name"`
+		URL  string `json:"url"`
 	}
 
 	JsLogo struct {

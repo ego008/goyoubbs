@@ -140,6 +140,7 @@ func (h *BaseHandler) TopicDetailPage(ctx *fasthttp.RequestCtx) {
 		Author: model.JsAuthor{
 			Type: "Person",
 			Name: author.Name,
+			URL:  scf.MainDomain + "/member/" + strconv.FormatUint(author.ID, 10),
 		},
 		Publisher: model.JsPublisher{
 			Type: "Organization",
