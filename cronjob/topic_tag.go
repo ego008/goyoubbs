@@ -49,6 +49,7 @@ func getTagFromTitle(db *sdb.DB, apiUrl string) {
 
 	// 默认是application/x-www-form-urlencoded
 	// req.Header.SetContentType("application/json")
+	req.Header.SetContentType("application/x-www-form-urlencoded") // !important
 	req.Header.SetMethod("POST")
 
 	req.SetRequestURI(apiUrl)
