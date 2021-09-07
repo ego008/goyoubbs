@@ -28,7 +28,7 @@ func (h *BaseHandler) UserLoginPage(ctx *fasthttp.RequestCtx) {
 	evn.Title = title
 	evn.PageName = "user_login_register"
 
-	evn.NodeLst = model.NodeGetAll(h.App.Mc, h.App.Db)
+	//evn.NodeLst = model.NodeGetAll(h.App.Mc, h.App.Db)
 
 	evn.Act = act
 	evn.CaptchaId = captcha.New()

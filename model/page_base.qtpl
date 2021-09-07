@@ -189,6 +189,7 @@ This is a base MainBody
     </section>
     {% endif %}
 
+    {% if len(p.NodeLst)>0 %}
     <section>
         <h1>📁 分类</h1>
         <div id="top-category-list">
@@ -198,6 +199,7 @@ This is a base MainBody
         </div>
         <a id="id-showMoreNode" href="#" class="more-node" onclick="ShowMoreNode();return false;">显示更多</a>
     </section>
+    {% endif %}
 
     {% if len(p.RangeTopicLst)>0 %}
     <section>

@@ -618,188 +618,198 @@ func (p *BasePage) StreamAside(qw422016 *qt422016.Writer) {
 //line model/page_base.qtpl:190
 	qw422016.N().S(`
 
+    `)
+//line model/page_base.qtpl:192
+	if len(p.NodeLst) > 0 {
+//line model/page_base.qtpl:192
+		qw422016.N().S(`
     <section>
         <h1>📁 分类</h1>
         <div id="top-category-list">
             `)
-//line model/page_base.qtpl:195
-	for _, item := range p.NodeLst {
-//line model/page_base.qtpl:195
-		qw422016.N().S(`
+//line model/page_base.qtpl:196
+		for _, item := range p.NodeLst {
+//line model/page_base.qtpl:196
+			qw422016.N().S(`
             <a href="/n/`)
-//line model/page_base.qtpl:196
-		qw422016.N().DUL(item.ID)
-//line model/page_base.qtpl:196
-		qw422016.N().S(`">`)
-//line model/page_base.qtpl:196
-		qw422016.E().S(item.Name)
-//line model/page_base.qtpl:196
-		qw422016.N().S(`<span class="tag_meta">(`)
-//line model/page_base.qtpl:196
-		qw422016.N().DUL(item.TopicNum)
-//line model/page_base.qtpl:196
-		qw422016.N().S(`)</span></a>
+//line model/page_base.qtpl:197
+			qw422016.N().DUL(item.ID)
+//line model/page_base.qtpl:197
+			qw422016.N().S(`">`)
+//line model/page_base.qtpl:197
+			qw422016.E().S(item.Name)
+//line model/page_base.qtpl:197
+			qw422016.N().S(`<span class="tag_meta">(`)
+//line model/page_base.qtpl:197
+			qw422016.N().DUL(item.TopicNum)
+//line model/page_base.qtpl:197
+			qw422016.N().S(`)</span></a>
             `)
-//line model/page_base.qtpl:197
-	}
-//line model/page_base.qtpl:197
-	qw422016.N().S(`
+//line model/page_base.qtpl:198
+		}
+//line model/page_base.qtpl:198
+		qw422016.N().S(`
         </div>
         <a id="id-showMoreNode" href="#" class="more-node" onclick="ShowMoreNode();return false;">显示更多</a>
     </section>
-
     `)
 //line model/page_base.qtpl:202
-	if len(p.RangeTopicLst) > 0 {
+	}
 //line model/page_base.qtpl:202
+	qw422016.N().S(`
+
+    `)
+//line model/page_base.qtpl:204
+	if len(p.RangeTopicLst) > 0 {
+//line model/page_base.qtpl:204
 		qw422016.N().S(`
     <section>
         <h1>📝 最近浏览</h1>
         <ul id="recent_posts">
             `)
-//line model/page_base.qtpl:206
+//line model/page_base.qtpl:208
 		for _, item := range p.RangeTopicLst {
-//line model/page_base.qtpl:206
+//line model/page_base.qtpl:208
 			qw422016.N().S(`
             <li><a href="/t/`)
-//line model/page_base.qtpl:207
+//line model/page_base.qtpl:209
 			qw422016.N().DUL(item.ID)
-//line model/page_base.qtpl:207
+//line model/page_base.qtpl:209
 			qw422016.N().S(`">`)
-//line model/page_base.qtpl:207
+//line model/page_base.qtpl:209
 			qw422016.E().S(item.Title)
-//line model/page_base.qtpl:207
+//line model/page_base.qtpl:209
 			qw422016.N().S(`</a></li>
             `)
-//line model/page_base.qtpl:208
+//line model/page_base.qtpl:210
 		}
-//line model/page_base.qtpl:208
+//line model/page_base.qtpl:210
 		qw422016.N().S(`
         </ul>
     </section>
     `)
-//line model/page_base.qtpl:211
+//line model/page_base.qtpl:213
 	}
-//line model/page_base.qtpl:211
+//line model/page_base.qtpl:213
 	qw422016.N().S(`
 
     `)
-//line model/page_base.qtpl:213
+//line model/page_base.qtpl:215
 	if len(p.TagCloud) > 0 {
-//line model/page_base.qtpl:213
+//line model/page_base.qtpl:215
 		qw422016.N().S(`
     <section>
         <h1>🏷️ 标签</h1>
         <div id="tag-cloud">
             `)
-//line model/page_base.qtpl:217
+//line model/page_base.qtpl:219
 		for _, item := range p.TagCloud {
-//line model/page_base.qtpl:217
+//line model/page_base.qtpl:219
 			qw422016.N().S(`
             <a href="/tag/`)
-//line model/page_base.qtpl:218
+//line model/page_base.qtpl:220
 			qw422016.N().U(item.Name)
-//line model/page_base.qtpl:218
+//line model/page_base.qtpl:220
 			qw422016.N().S(`">`)
-//line model/page_base.qtpl:218
+//line model/page_base.qtpl:220
 			qw422016.E().S(item.Name)
-//line model/page_base.qtpl:218
+//line model/page_base.qtpl:220
 			qw422016.N().S(`<span class="tag-meta">(`)
-//line model/page_base.qtpl:218
+//line model/page_base.qtpl:220
 			qw422016.N().D(item.Size)
-//line model/page_base.qtpl:218
+//line model/page_base.qtpl:220
 			qw422016.N().S(`)</span></a>
             `)
-//line model/page_base.qtpl:219
+//line model/page_base.qtpl:221
 		}
-//line model/page_base.qtpl:219
+//line model/page_base.qtpl:221
 		qw422016.N().S(`
         </div>
     </section>
     `)
-//line model/page_base.qtpl:222
+//line model/page_base.qtpl:224
 	}
-//line model/page_base.qtpl:222
+//line model/page_base.qtpl:224
 	qw422016.N().S(`
 
     `)
-//line model/page_base.qtpl:224
+//line model/page_base.qtpl:226
 	if len(p.LinkLst) > 0 {
-//line model/page_base.qtpl:224
+//line model/page_base.qtpl:226
 		qw422016.N().S(`
     <section>
         <h1>🔗 链接</h1>
         <ul id="link-cloud">
             `)
-//line model/page_base.qtpl:228
+//line model/page_base.qtpl:230
 		for _, item := range p.LinkLst {
-//line model/page_base.qtpl:228
+//line model/page_base.qtpl:230
 			qw422016.N().S(`
             <li><a href="`)
-//line model/page_base.qtpl:229
+//line model/page_base.qtpl:231
 			qw422016.E().S(item.Url)
-//line model/page_base.qtpl:229
+//line model/page_base.qtpl:231
 			qw422016.N().S(`" target="_blank">`)
-//line model/page_base.qtpl:229
+//line model/page_base.qtpl:231
 			qw422016.E().S(item.Name)
-//line model/page_base.qtpl:229
+//line model/page_base.qtpl:231
 			qw422016.N().S(`</a></li>
             `)
-//line model/page_base.qtpl:230
+//line model/page_base.qtpl:232
 		}
-//line model/page_base.qtpl:230
+//line model/page_base.qtpl:232
 		qw422016.N().S(`
         </ul>
     </section>
     `)
-//line model/page_base.qtpl:233
+//line model/page_base.qtpl:235
 	}
-//line model/page_base.qtpl:233
+//line model/page_base.qtpl:235
 	qw422016.N().S(`
 
     `)
-//line model/page_base.qtpl:235
+//line model/page_base.qtpl:237
 	if p.SiteInfo.NodeNum > 0 {
-//line model/page_base.qtpl:235
+//line model/page_base.qtpl:237
 		qw422016.N().S(`
     <section>
         <h1>💡 本站已稳定运行 `)
-//line model/page_base.qtpl:237
+//line model/page_base.qtpl:239
 		qw422016.E().S(p.SiteInfo.Days)
-//line model/page_base.qtpl:237
+//line model/page_base.qtpl:239
 		qw422016.N().S(`</h1>
         <ul id="site-info">
             <li>会员: `)
-//line model/page_base.qtpl:239
+//line model/page_base.qtpl:241
 		qw422016.N().DUL(p.SiteInfo.UserNum)
-//line model/page_base.qtpl:239
+//line model/page_base.qtpl:241
 		qw422016.N().S(`</li>
             <li>帖子: `)
-//line model/page_base.qtpl:240
+//line model/page_base.qtpl:242
 		qw422016.N().DUL(p.SiteInfo.PostNum)
-//line model/page_base.qtpl:240
+//line model/page_base.qtpl:242
 		qw422016.N().S(`</li>
             <li>回复: `)
-//line model/page_base.qtpl:241
+//line model/page_base.qtpl:243
 		qw422016.N().DUL(p.SiteInfo.ReplyNum)
-//line model/page_base.qtpl:241
+//line model/page_base.qtpl:243
 		qw422016.N().S(`</li>
             <li>分类: `)
-//line model/page_base.qtpl:242
+//line model/page_base.qtpl:244
 		qw422016.N().DUL(p.SiteInfo.NodeNum)
-//line model/page_base.qtpl:242
+//line model/page_base.qtpl:244
 		qw422016.N().S(`</li>
             <li>标签: `)
-//line model/page_base.qtpl:243
+//line model/page_base.qtpl:245
 		qw422016.N().DUL(p.SiteInfo.TagNum)
-//line model/page_base.qtpl:243
+//line model/page_base.qtpl:245
 		qw422016.N().S(`</li>
         </ul>
     </section>
     `)
-//line model/page_base.qtpl:246
+//line model/page_base.qtpl:248
 	}
-//line model/page_base.qtpl:246
+//line model/page_base.qtpl:248
 	qw422016.N().S(`
 
 </aside>
@@ -833,96 +843,96 @@ ShowMoreNode();
 </script>
 
 `)
-//line model/page_base.qtpl:278
+//line model/page_base.qtpl:280
 }
 
-//line model/page_base.qtpl:278
+//line model/page_base.qtpl:280
 func (p *BasePage) WriteAside(qq422016 qtio422016.Writer) {
-//line model/page_base.qtpl:278
+//line model/page_base.qtpl:280
 	qw422016 := qt422016.AcquireWriter(qq422016)
-//line model/page_base.qtpl:278
+//line model/page_base.qtpl:280
 	p.StreamAside(qw422016)
-//line model/page_base.qtpl:278
+//line model/page_base.qtpl:280
 	qt422016.ReleaseWriter(qw422016)
-//line model/page_base.qtpl:278
+//line model/page_base.qtpl:280
 }
 
-//line model/page_base.qtpl:278
+//line model/page_base.qtpl:280
 func (p *BasePage) Aside() string {
-//line model/page_base.qtpl:278
+//line model/page_base.qtpl:280
 	qb422016 := qt422016.AcquireByteBuffer()
-//line model/page_base.qtpl:278
+//line model/page_base.qtpl:280
 	p.WriteAside(qb422016)
-//line model/page_base.qtpl:278
+//line model/page_base.qtpl:280
 	qs422016 := string(qb422016.B)
-//line model/page_base.qtpl:278
+//line model/page_base.qtpl:280
 	qt422016.ReleaseByteBuffer(qb422016)
-//line model/page_base.qtpl:278
+//line model/page_base.qtpl:280
 	return qs422016
-//line model/page_base.qtpl:278
+//line model/page_base.qtpl:280
 }
 
 // Aside ed
 //
 // Footer bg
 
-//line model/page_base.qtpl:282
+//line model/page_base.qtpl:284
 func (p *BasePage) StreamFooter(qw422016 *qt422016.Writer) {
-//line model/page_base.qtpl:282
+//line model/page_base.qtpl:284
 	qw422016.N().S(`
 <p>
     Copyright &copy; <a href="/">`)
-//line model/page_base.qtpl:284
+//line model/page_base.qtpl:286
 	qw422016.E().S(p.SiteCf.Name)
-//line model/page_base.qtpl:284
+//line model/page_base.qtpl:286
 	qw422016.N().S(`</a> -
     <span class="credit">Powered by <a href="https://youbbs.org">goYouBBS</a> - <a href="#">&uarr;Go Top</a> </span>
 </p>
 
 `)
-//line model/page_base.qtpl:288
+//line model/page_base.qtpl:290
 	if len(p.SiteCf.FooterPartHtml) > 0 {
-//line model/page_base.qtpl:288
+//line model/page_base.qtpl:290
 		qw422016.N().S(`
 `)
-//line model/page_base.qtpl:289
+//line model/page_base.qtpl:291
 		qw422016.N().S(p.SiteCf.FooterPartHtml)
-//line model/page_base.qtpl:289
+//line model/page_base.qtpl:291
 		qw422016.N().S(`
 `)
-//line model/page_base.qtpl:290
+//line model/page_base.qtpl:292
 	}
-//line model/page_base.qtpl:290
+//line model/page_base.qtpl:292
 	qw422016.N().S(`
 
 `)
-//line model/page_base.qtpl:292
+//line model/page_base.qtpl:294
 }
 
-//line model/page_base.qtpl:292
+//line model/page_base.qtpl:294
 func (p *BasePage) WriteFooter(qq422016 qtio422016.Writer) {
-//line model/page_base.qtpl:292
+//line model/page_base.qtpl:294
 	qw422016 := qt422016.AcquireWriter(qq422016)
-//line model/page_base.qtpl:292
+//line model/page_base.qtpl:294
 	p.StreamFooter(qw422016)
-//line model/page_base.qtpl:292
+//line model/page_base.qtpl:294
 	qt422016.ReleaseWriter(qw422016)
-//line model/page_base.qtpl:292
+//line model/page_base.qtpl:294
 }
 
-//line model/page_base.qtpl:292
+//line model/page_base.qtpl:294
 func (p *BasePage) Footer() string {
-//line model/page_base.qtpl:292
+//line model/page_base.qtpl:294
 	qb422016 := qt422016.AcquireByteBuffer()
-//line model/page_base.qtpl:292
+//line model/page_base.qtpl:294
 	p.WriteFooter(qb422016)
-//line model/page_base.qtpl:292
+//line model/page_base.qtpl:294
 	qs422016 := string(qb422016.B)
-//line model/page_base.qtpl:292
+//line model/page_base.qtpl:294
 	qt422016.ReleaseByteBuffer(qb422016)
-//line model/page_base.qtpl:292
+//line model/page_base.qtpl:294
 	return qs422016
-//line model/page_base.qtpl:292
+//line model/page_base.qtpl:294
 }
 
 // Footer ed
