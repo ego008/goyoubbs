@@ -8,6 +8,17 @@ import (
 )
 
 func (h *BaseHandler) HomePage(ctx *fasthttp.RequestCtx) {
+	curUser, _ := h.CurrentUser(ctx)
+
+	if h.App.Cf.Site.Authorized && curUser.Flag < model.FlagAuthor {
+		if curUser.ID == 0 {
+			ctx.Redirect(h.App.Cf.Site.MainDomain+"/login", 302)
+			return
+		}
+		ctx.Redirect(h.App.Cf.Site.MainDomain+"/setting", 302)
+		return
+	}
+
 	btn, key, score := sdb.B2s(ctx.FormValue("btn")), sdb.B2s(ctx.FormValue("key")), sdb.B2s(ctx.FormValue("score"))
 	if len(key) > 0 {
 		_, err := strconv.ParseUint(key, 10, 64)
@@ -34,8 +45,6 @@ func (h *BaseHandler) HomePage(ctx *fasthttp.RequestCtx) {
 
 	topicPageInfo := model.GetTopicList(db, cmd, "topic_update", key, score, scf.PageShowNum)
 	//topicPageInfo := model.GetTopicListSortById(db, cmd, "topic_update", key, score, scf.PageShowNum)
-
-	curUser, _ := h.CurrentUser(ctx)
 
 	evn := &model.HomePage{}
 	evn.SiteCf = scf
