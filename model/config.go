@@ -33,6 +33,7 @@ type SiteConf struct {
 	CommentConMaxLen   int    // 评论内容最大字数，管理员没限制
 	AutoDataBackup     bool   // 自动备份数据库
 	DataBackupDir      string // 存放备份数据库目录
+	Authorized         bool   // 需要登录才能浏览
 	AllowNameReg       bool   // 是否允许用户名注册（false 时只允许第三方用户登录）
 	RegReview          bool   // 用户注册审核
 	CloseReg           bool   // 关闭用户注册
@@ -80,6 +81,7 @@ func SiteConfLoad(scf *SiteConf, db *sdb.DB) {
 		scf.TitleMaxLen = 110
 		scf.TopicConMaxLen = 12000
 		scf.CommentConMaxLen = 5000
+		scf.Authorized = false
 		scf.AllowNameReg = true
 		scf.RegReview = false
 		scf.CloseReg = false

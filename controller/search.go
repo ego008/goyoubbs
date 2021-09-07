@@ -10,6 +10,16 @@ import (
 
 func (h *BaseHandler) SearchPage(ctx *fasthttp.RequestCtx) {
 	curUser, _ := h.CurrentUser(ctx)
+
+	if h.App.Cf.Site.Authorized && curUser.Flag < model.FlagAuthor {
+		if curUser.ID == 0 {
+			ctx.Redirect(h.App.Cf.Site.MainDomain+"/login", 302)
+			return
+		}
+		ctx.Redirect(h.App.Cf.Site.MainDomain+"/setting", 302)
+		return
+	}
+
 	//if curUser.ID == 0 {
 	//	ctx.Redirect(h.App.Cf.Site.MainDomain+"/login", 302)
 	//	return

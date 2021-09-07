@@ -35,6 +35,17 @@ func (h *BaseHandler) MemberNamePage(ctx *fasthttp.RequestCtx) {
 }
 
 func (h *BaseHandler) MemberPage(ctx *fasthttp.RequestCtx) {
+	curUser, _ := h.CurrentUser(ctx)
+
+	if h.App.Cf.Site.Authorized && curUser.Flag < model.FlagAuthor {
+		if curUser.ID == 0 {
+			ctx.Redirect(h.App.Cf.Site.MainDomain+"/login", 302)
+			return
+		}
+		ctx.Redirect(h.App.Cf.Site.MainDomain+"/setting", 302)
+		return
+	}
+
 	uid := strings.TrimSpace(ctx.UserValue("uid").(string))
 	uidInt, err := strconv.ParseUint(uid, 10, 64)
 	if err != nil {
@@ -86,8 +97,6 @@ func (h *BaseHandler) MemberPage(ctx *fasthttp.RequestCtx) {
 	//topicPageInfo := model.GetTopicList(db, cmd, "topic_update", key, score, scf.PageShowNum)
 	tbName := "user_" + lstType + ":" + strconv.FormatUint(user.ID, 10)
 	topicPageInfo := model.GetTopicList(db, cmd, tbName, key, score, scf.PageShowNum)
-
-	curUser, _ := h.CurrentUser(ctx)
 
 	evn := &model.MemberPage{}
 	evn.SiteCf = scf

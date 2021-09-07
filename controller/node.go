@@ -8,6 +8,17 @@ import (
 )
 
 func (h *BaseHandler) NodePage(ctx *fasthttp.RequestCtx) {
+	curUser, _ := h.CurrentUser(ctx)
+
+	if h.App.Cf.Site.Authorized && curUser.Flag < model.FlagAuthor {
+		if curUser.ID == 0 {
+			ctx.Redirect(h.App.Cf.Site.MainDomain+"/login", 302)
+			return
+		}
+		ctx.Redirect(h.App.Cf.Site.MainDomain+"/setting", 302)
+		return
+	}
+
 	db := h.App.Db
 	scf := h.App.Cf.Site
 
@@ -50,7 +61,6 @@ func (h *BaseHandler) NodePage(ctx *fasthttp.RequestCtx) {
 	topicPageInfo := model.GetTopicList(db, cmd, "topic_update:"+nidStr, key, score, scf.PageShowNum)
 
 	//log.Println(topicPageInfo)
-	curUser, _ := h.CurrentUser(ctx)
 
 	evn := &model.NodePage{}
 	evn.SiteCf = scf

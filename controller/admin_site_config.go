@@ -93,6 +93,7 @@ func (h *BaseHandler) AdminSiteConfigPost(ctx *fasthttp.RequestCtx) {
 		obj.UploadDir = "data_backup"
 	}
 
+	obj.Authorized = b2bool(ctx.FormValue("Authorized"), false)
 	obj.AllowNameReg = b2bool(ctx.FormValue("AllowNameReg"), true)
 	obj.RegReview = b2bool(ctx.FormValue("RegReview"), false)
 	obj.CloseReg = b2bool(ctx.FormValue("CloseReg"), false)

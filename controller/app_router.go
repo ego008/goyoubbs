@@ -22,6 +22,7 @@ func MainRouter(ap *app.Application, sm *router.Router) {
 	h := BaseHandler{App: ap}
 
 	// 自定义路径及内容 参见 https://youbbs.org/t/3324
+	// 浏览需登录设置对自定义路由无效
 	var keyStart []byte
 	for {
 		rs := ap.Db.Hscan("custom_router", keyStart, 20)

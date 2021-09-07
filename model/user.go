@@ -13,7 +13,7 @@ const (
 	UserTbName    = "user"
 	FlagAdmin     = 99 // 管理员
 	FlagTrust     = 10 // 可信任用户，发帖回帖不审核
-	FlagAuthor    = 5  // 普通用户，可发草稿、评论
+	FlagAuthor    = 5  // 普通用户，可正常浏览、发草稿、评论
 	FlagReview    = 1  // 待审核用户
 	FlagForbidden = 0  // 禁止发草稿、评论
 )

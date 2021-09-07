@@ -18,6 +18,17 @@ import (
 var rangeLock = sync.Mutex{}
 
 func (h *BaseHandler) TopicDetailPage(ctx *fasthttp.RequestCtx) {
+	curUser, _ := h.CurrentUser(ctx)
+
+	if h.App.Cf.Site.Authorized && curUser.Flag < model.FlagAuthor {
+		if curUser.ID == 0 {
+			ctx.Redirect(h.App.Cf.Site.MainDomain+"/login", 302)
+			return
+		}
+		ctx.Redirect(h.App.Cf.Site.MainDomain+"/setting", 302)
+		return
+	}
+
 	tid := ctx.UserValue("tid").(string)
 	tidInt, err := strconv.ParseUint(tid, 10, 64)
 	if err != nil {
@@ -40,8 +51,6 @@ func (h *BaseHandler) TopicDetailPage(ctx *fasthttp.RequestCtx) {
 	node, _ := model.NodeGetById(db, topic.NodeId)
 	// 作者
 	author, _ := model.UserGetById(db, topic.UserId)
-
-	curUser, _ := h.CurrentUser(ctx)
 
 	safeTitle := html.EscapeString(topic.Title)
 

@@ -10,6 +10,17 @@ import (
 )
 
 func (h *BaseHandler) TagPage(ctx *fasthttp.RequestCtx) {
+	curUser, _ := h.CurrentUser(ctx)
+
+	if h.App.Cf.Site.Authorized && curUser.Flag < model.FlagAuthor {
+		if curUser.ID == 0 {
+			ctx.Redirect(h.App.Cf.Site.MainDomain+"/login", 302)
+			return
+		}
+		ctx.Redirect(h.App.Cf.Site.MainDomain+"/setting", 302)
+		return
+	}
+
 	db := h.App.Db
 	scf := h.App.Cf.Site
 
@@ -46,8 +57,6 @@ func (h *BaseHandler) TagPage(ctx *fasthttp.RequestCtx) {
 	}
 
 	topicPageInfo := model.GetTopicListArchives(db, cmd, "tag:"+tagLower, key, score, scf.PageShowNum)
-
-	curUser, _ := h.CurrentUser(ctx)
 
 	evn := &model.TagPage{}
 	evn.SiteCf = scf

@@ -83,6 +83,10 @@ type AdminSiteConfig struct {
                     <input type="text" class="pure-input-1-3" id="DataBackupDir" name="DataBackupDir" value="{%s p.SiteConf.DataBackupDir %}" placeholder="存放备份数据库目录" />
                 </div>
                 <div class="pure-control-group">
+                    <label for="Authorized">浏览网站需要登录</label>
+                    <input type="checkbox" id="Authorized" name="Authorized" value="true" {% if p.SiteConf.Authorized %}checked{% endif %} /> 需要登录才能浏览页面
+                </div>
+                <div class="pure-control-group">
                     <label for="AllowNameReg">允许用户名注册</label>
                     <input type="checkbox" id="AllowNameReg" name="AllowNameReg" value="true" {% if p.SiteConf.AllowNameReg %}checked{% endif %} /> 若不勾选则只允许第三方登录
                 </div>

@@ -9,8 +9,12 @@ import (
 
 func (h *BaseHandler) UserSettingPage(ctx *fasthttp.RequestCtx) {
 	curUser, _ := h.CurrentUser(ctx)
-	if curUser.Flag < model.FlagForbidden {
-		ctx.Redirect(h.App.Cf.Site.MainDomain+"/login", 302)
+	if curUser.Flag < model.FlagReview {
+		if curUser.ID == 0 {
+			ctx.Redirect(h.App.Cf.Site.MainDomain+"/login", 302)
+			return
+		}
+		_, _ = ctx.WriteString("403: forbidden")
 		return
 	}
 
