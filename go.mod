@@ -22,7 +22,7 @@ require (
 	github.com/rs/xid v1.2.1
 	github.com/segmentio/fasthash v1.0.3
 	github.com/syndtr/goleveldb v1.0.0
-	github.com/tidwall/gjson v1.6.8
+	github.com/tidwall/gjson v1.9.3
 	github.com/valyala/fasthttp v1.23.0
 	github.com/valyala/quicktemplate v1.6.3
 	github.com/yuin/goldmark v1.3.5
