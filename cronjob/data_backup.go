@@ -83,7 +83,7 @@ func dataBackup(db *sdb.DB, bakDir string) {
 	}
 
 	// 删掉n天前的备份一个
-	sdbFold = "databackup/" + time.Now().UTC().AddDate(0, 0, -14).Format("20060102")
+	sdbFold = bakDir + "/" + time.Now().UTC().AddDate(0, 0, -14).Format("20060102")
 	_ = os.RemoveAll(sdbFold)
 
 	log.Println("databackup done", ic, ic2, time.Now().Sub(t1))
