@@ -56,7 +56,7 @@ func (h *BaseHandler) MainCronJob() {
 			}
 		case <-tick3:
 			if h.App.Cf.Site.AutoDataBackup {
-				dataBackup(db, h.App.Cf.Site.UploadDir)
+				dataBackup(db, h.App.Cf.Site.DataBackupDir)
 			}
 		case <-tick6:
 			if len(h.App.Cf.Site.GetTagApi) > 0 {
