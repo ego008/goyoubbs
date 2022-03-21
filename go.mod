@@ -16,17 +16,17 @@ require (
 	github.com/google/go-querystring v1.0.0 // indirect
 	github.com/gorilla/securecookie v1.1.1
 	github.com/json-iterator/go v1.1.10
-	github.com/klauspost/compress v1.11.13
+	github.com/klauspost/compress v1.15.0
 	github.com/mssola/user_agent v0.5.2
 	github.com/nfnt/resize v0.0.0-20180221191011-83c6a9932646
 	github.com/rs/xid v1.2.1
 	github.com/segmentio/fasthash v1.0.3
 	github.com/syndtr/goleveldb v1.0.0
 	github.com/tidwall/gjson v1.9.3
-	github.com/valyala/fasthttp v1.23.0
+	github.com/valyala/fasthttp v1.34.0
 	github.com/valyala/quicktemplate v1.6.3
 	github.com/yuin/goldmark v1.3.5
-	golang.org/x/crypto v0.0.0-20210220033148-5ea612d1eb83
+	golang.org/x/crypto v0.0.0-20220214200702-86341886e292
 	golang.org/x/image v0.0.0-20191009234506-e7c1f5e7dbb8
 	golang.org/x/oauth2 v0.0.0-20210220000619-9bb904979d93
 	google.golang.org/api v0.40.0
