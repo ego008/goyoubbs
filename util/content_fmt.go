@@ -33,9 +33,8 @@ var (
 	t4Re              = regexp.MustCompile(`\A( {4}|\t)`)
 	t4Re2             = regexp.MustCompile(`^( {4}|\t)`)
 	htmlRe            = regexp.MustCompile("<.*?>|&.*?;")
-	//MdImgRe = regexp.MustCompile(`![.+](.+)`)
-	MdImgRe  = regexp.MustCompile(`(!\[.*]\(.+\))|(/static/upload/([a-z0-9]+)\.(jpg|jpe|jpeg|gif|png))`)
-	imgStrRe = regexp.MustCompile(`([\w./]+\.(jpg|jpe|jpeg|gif|png))`)
+	MdImgRe = regexp.MustCompile(`(!\[.*]\(.{10,}\))|([\w./:]*/static/upload/([a-z\d-.]+)\.(jpg|jpe|jpeg|gif|png))`)
+	//imgStrRe = regexp.MustCompile(`([\w./]+\.(jpg|jpe|jpeg|gif|png))`)
 )
 
 // HasCodeBlock 检测是否有代码块
@@ -304,7 +303,15 @@ func ColorCode(source, lang string) (langName, codeHtml string) {
 func FindAllImgInContent(text string) (imgLst []string) {
 	for _, imgSrc := range MdImgRe.FindAllString(text, 3) {
 		imgSrc = strings.TrimSpace(imgSrc)
-		imgLst = append(imgLst, strings.TrimSpace(imgStrRe.FindString(imgSrc)))
+		var imgSrcRaw string
+		if strings.Index(imgSrc, "](") > 0 {
+			indexL := strings.Index(imgSrc, "(")
+			indexR := strings.LastIndex(imgSrc, ")")
+			imgSrcRaw = imgSrc[indexL+1 : indexR]
+		} else {
+			imgSrcRaw = imgSrc
+		}
+		imgLst = append(imgLst, strings.TrimSpace(imgSrcRaw))
 	}
 	return
 }
