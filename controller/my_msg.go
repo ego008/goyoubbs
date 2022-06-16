@@ -3,6 +3,7 @@ package controller
 import (
 	"github.com/valyala/fasthttp"
 	"goyoubbs/model"
+	"goyoubbs/views/ybs"
 )
 
 func (h *BaseHandler) MyMsgPage(ctx *fasthttp.RequestCtx) {
@@ -15,7 +16,7 @@ func (h *BaseHandler) MyMsgPage(ctx *fasthttp.RequestCtx) {
 	db := h.App.Db
 	scf := h.App.Cf.Site
 
-	evn := &model.MyMsg{}
+	evn := &ybs.MyMsg{}
 	evn.CurrentUser = curUser
 	evn.SiteCf = scf
 	evn.Title = "未读信息"
@@ -29,8 +30,6 @@ func (h *BaseHandler) MyMsgPage(ctx *fasthttp.RequestCtx) {
 		evn.HasReplyReview = model.CheckHasComment2Review(db)
 	}
 
-	model.WritePageTemplate(ctx, evn)
+	ybs.WritePageTemplate(ctx, evn)
 	ctx.SetContentType("text/html; charset=utf-8")
-
-	//_ = h.Render(ctx, evn, "admin/layout.html", "admin/my_msg.html")
 }

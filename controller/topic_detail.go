@@ -8,6 +8,7 @@ import (
 	"github.com/valyala/fasthttp"
 	"goyoubbs/model"
 	"goyoubbs/util"
+	"goyoubbs/views/ybs"
 	"html"
 	"strconv"
 	"strings"
@@ -54,7 +55,7 @@ func (h *BaseHandler) TopicDetailPage(ctx *fasthttp.RequestCtx) {
 
 	safeTitle := html.EscapeString(topic.Title)
 
-	evn := &model.TopicDetailPage{}
+	evn := &ybs.TopicDetailPage{}
 	evn.CurrentUser = curUser
 	evn.SiteCf = scf
 	evn.Title = safeTitle + " - " + scf.Name
@@ -253,7 +254,7 @@ func (h *BaseHandler) TopicDetailPage(ctx *fasthttp.RequestCtx) {
 		_ = h.SetCookie(ctx, "token", token, 1)
 	}
 
-	model.WritePageTemplate(ctx, evn)
+	ybs.WritePageTemplate(ctx, evn)
 	ctx.SetContentType("text/html; charset=utf-8")
 }
 

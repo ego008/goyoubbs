@@ -4,6 +4,7 @@ import (
 	"github.com/ego008/sdb"
 	"github.com/valyala/fasthttp"
 	"goyoubbs/model"
+	"goyoubbs/views/ybs"
 	"strconv"
 )
 
@@ -62,7 +63,7 @@ func (h *BaseHandler) NodePage(ctx *fasthttp.RequestCtx) {
 
 	//log.Println(topicPageInfo)
 
-	evn := &model.NodePage{}
+	evn := &ybs.NodePage{}
 	evn.SiteCf = scf
 	evn.Title = "Category: " + node.Name + " - " + scf.Name
 	evn.CurrentUser = curUser
@@ -82,8 +83,6 @@ func (h *BaseHandler) NodePage(ctx *fasthttp.RequestCtx) {
 		}
 	}
 
-	model.WritePageTemplate(ctx, evn)
+	ybs.WritePageTemplate(ctx, evn)
 	ctx.SetContentType("text/html; charset=utf-8")
-
-	//_ = h.Render(ctx, evn, "default/layout.html", "default/sidebar.html", "default/node.html")
 }

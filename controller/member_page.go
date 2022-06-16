@@ -5,6 +5,7 @@ import (
 	"github.com/valyala/fasthttp"
 	"goyoubbs/model"
 	"goyoubbs/util"
+	"goyoubbs/views/ybs"
 	"net/url"
 	"strconv"
 	"strings"
@@ -98,7 +99,7 @@ func (h *BaseHandler) MemberPage(ctx *fasthttp.RequestCtx) {
 	tbName := "user_" + lstType + ":" + strconv.FormatUint(user.ID, 10)
 	topicPageInfo := model.GetTopicList(db, cmd, tbName, key, score, scf.PageShowNum)
 
-	evn := &model.MemberPage{}
+	evn := &ybs.MemberPage{}
 	evn.SiteCf = scf
 	evn.Title = "会员: " + user.Name + " 最近" + titleText + " - " + scf.Name
 	evn.CurrentUser = curUser
@@ -132,7 +133,7 @@ func (h *BaseHandler) MemberPage(ctx *fasthttp.RequestCtx) {
 		}
 	}
 
-	model.WritePageTemplate(ctx, evn)
+	ybs.WritePageTemplate(ctx, evn)
 	ctx.SetContentType("text/html; charset=utf-8")
 
 }

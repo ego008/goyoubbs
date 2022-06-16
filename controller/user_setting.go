@@ -4,6 +4,7 @@ import (
 	"github.com/valyala/fasthttp"
 	"goyoubbs/model"
 	"goyoubbs/util"
+	"goyoubbs/views/ybs"
 	"log"
 )
 
@@ -20,7 +21,7 @@ func (h *BaseHandler) UserSettingPage(ctx *fasthttp.RequestCtx) {
 
 	scf := h.App.Cf.Site
 
-	evn := &model.UserSetting{}
+	evn := &ybs.UserSetting{}
 	evn.CurrentUser = curUser
 	evn.SiteCf = scf
 	evn.Title = "个人设置"
@@ -34,7 +35,7 @@ func (h *BaseHandler) UserSettingPage(ctx *fasthttp.RequestCtx) {
 	evn.HasTopicReview = model.CheckHasTopic2Review(h.App.Db)
 	evn.HasReplyReview = model.CheckHasComment2Review(h.App.Db)
 
-	model.WritePageTemplate(ctx, evn)
+	ybs.WritePageTemplate(ctx, evn)
 	ctx.SetContentType("text/html; charset=utf-8")
 }
 

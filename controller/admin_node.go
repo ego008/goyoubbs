@@ -4,6 +4,7 @@ import (
 	"github.com/ego008/sdb"
 	"github.com/valyala/fasthttp"
 	"goyoubbs/model"
+	"goyoubbs/views/ybs"
 	"strconv"
 )
 
@@ -16,7 +17,7 @@ func (h *BaseHandler) AdminNodePage(ctx *fasthttp.RequestCtx) {
 
 	scf := h.App.Cf.Site
 
-	evn := &model.AdminNode{}
+	evn := &ybs.AdminNode{}
 	evn.CurrentUser = curUser
 	evn.SiteCf = scf
 	evn.Title = "分区管理"
@@ -42,7 +43,7 @@ func (h *BaseHandler) AdminNodePage(ctx *fasthttp.RequestCtx) {
 	evn.HasTopicReview = model.CheckHasTopic2Review(h.App.Db)
 	evn.HasReplyReview = model.CheckHasComment2Review(h.App.Db)
 
-	model.WritePageTemplate(ctx, evn)
+	ybs.WritePageTemplate(ctx, evn)
 	ctx.SetContentType("text/html; charset=utf-8")
 
 	//_ = h.Render(ctx, evn, "admin/layout.html", "admin/node.html")

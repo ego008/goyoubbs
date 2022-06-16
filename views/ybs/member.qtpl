@@ -1,0 +1,84 @@
+{% func (p *MemberPage) MainBody() %}
+
+<div class="index">
+    <div class="user-detail bot-line">
+        <img src="/static/avatar/{%dul p.UserFmt.ID %}.jpg" alt="{%s p.UserFmt.Name %} avatar" class="avatar right" >
+        <h1>
+        会员: {%s p.UserFmt.Name %}
+        {% if p.CurrentUser.Flag >= 99 %}
+        - <a href="/admin/user?id={%dul p.UserFmt.ID %}">Edit</a>
+        {% endif %}
+        </h1>
+        <ul class="user-info">
+            <li>注册时间： {%s p.UserFmt.RegTimeFmt %}</li>
+            <li>Web: <a href="{%s p.UserFmt.Url %}" target="_blank">{%s p.UserFmt.Url %}</a></li>
+            <li>About: {%s p.UserFmt.About %}</li>
+        </ul>
+        <div class="pure-button-group">
+            <a class="pure-button {% if p.LstType == "topic" %}pure-button-active{% endif %}" href="?type=topic">主题</a>
+            <a class="pure-button {% if p.LstType == "comment" %}pure-button-active{% endif %}" href="?type=comment">评论</a>
+        </div>
+    </div>
+
+    {% if len(p.TopicLst)>0 %}
+    <h2 class="bot-line">待审核主题</h2>
+    <ul class="bot-line">
+        {% for _, item := range p.TopicLst %}
+        <li>
+            [{%s item.AddTimeFmt %}] {%s item.Title %} <br>&nbsp;
+        </li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+
+    {% if len(p.CommentReviewLst)>0 %}
+    <h2 class="bot-line">待审核评论</h2>
+    <ul class="bot-line">
+        {% for _, item := range p.CommentReviewLst %}
+        <li>
+            主题: <a href="/t/{%dul item.TopicId %}">{%s item.TopicTitle %}</a><br>
+            <div class="gray">{%s item.AddTimeFmt %}</div>
+            <div class="markdown-body entry-content">
+                {%s= item.ContentFmt %}
+            </div>
+        </li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+
+    {% for _, item := range p.TopicPageInfo.Items %}
+    <article>
+
+        <header>
+            {% if item.Comments > 0 %}
+            <a href="/t/{%dul item.ID %}#r{%dul item.Comments %}"><img alt="{%s item.Title %} icon" src="/icon/t/{%dul item.ID %}.jpg?r={%dul item.Comments %}" class="avatar"></a>
+            {% else %}
+            <a href="/t/{%dul item.ID %}"><img alt="{%s item.Title %} icon" src="/static/avatar/{%dul item.UserId %}.jpg" class="avatar"></a>
+            {% endif %}
+            <h1><a href="/t/{%dul item.ID %}" rel="bookmark" title="Permanent Link to {%s item.Title %}">{%s item.Title %}</a></h1>
+            <p class="meta">
+                <a href="/n/{%dul item.NodeId %}">{%s item.NodeName %}</a>
+                <a href="/member/{%dul item.UserId %}" rel="nofollow">{%s item.AuthorName %}</a>
+                <time datetime="{%s item.AddTimeFmt %}" pubdate data-updated="true">{%s item.EditTimeFmt %}</time>
+                {% if item.Comments > 0 %}
+                <a class="right count" href="/t/{%dul item.ID %}#r{%dul item.Comments %}" title="Comment on {%s item.Title %}" rel="nofollow">{%dul item.Comments %}</a>
+                {% endif %}
+            </p>
+        </header>
+
+    </article>
+
+    {% endfor %}
+
+    <div class="pagination">
+        {% if p.TopicPageInfo.HasPrev %}
+        <a class="prev" href="?type={%s p.LstType %}&btn=prev&key={%dul p.TopicPageInfo.FirstKey %}&score={%dul p.TopicPageInfo.FirstScore %}">← Newer</a>
+        {% endif %}
+        {% if p.TopicPageInfo.HasNext %}
+        <a class="next" href="?type={%s p.LstType %}&btn=next&key={%dul p.TopicPageInfo.LastKey %}&score={%dul p.TopicPageInfo.LastScore %}">Older →</a>
+        {% endif %}
+    </div>
+
+</div>
+
+{% endfunc %}

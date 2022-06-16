@@ -1,0 +1,37 @@
+{% func (p *MyMsg) MainBody() %}
+<div class="index">
+
+    <h1>{%s p.Title %}</h1>
+    <p class="bot-line">有人在下面帖子回复里 @ 了你，请及时前往查看</p>
+
+    {% for _, item := range p.TopicPageInfo.Items %}
+    <article>
+
+        <header>
+            <a href="/member/{%dul item.UserId %}" rel="nofollow"><img alt="{%s item.AuthorName %} avatar" src="/static/avatar/{%dul item.UserId %}.jpg" class="avatar"></a>
+            <h1><a href="/t/{%dul item.ID %}" rel="bookmark" title="Permanent Link to {%s item.Title %}">{%s item.Title %}</a></h1>
+            <p class="meta">
+                <a href="/n/{%dul item.NodeId %}">{%s item.NodeName %}</a>
+                <a href="/member/{%dul item.UserId %}" rel="nofollow">{%s item.AuthorName %}</a>
+                <time datetime="{%s item.AddTimeFmt %}" pubdate data-updated="true">{%s item.EditTimeFmt %}</time>
+                {% if item.Comments > 0 %}
+                <a class="right count" href="/t/{%dul item.ID %}#r{%dul item.Comments %}" title="Comment on {%s item.Title %}" rel="nofollow">{%dul item.Comments %}</a>
+                {% endif %}
+            </p>
+        </header>
+
+    </article>
+
+    {% endfor %}
+
+    <div class="top-line">
+    {% if len(p.TopicPageInfo.Items) == 10 %}
+    * 以上只显示最早 10 条信息
+    {% else %}
+    &nbsp;
+    {% endif %}
+    </div>
+
+</div>
+
+{% endfunc %}

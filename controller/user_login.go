@@ -7,6 +7,7 @@ import (
 	"github.com/valyala/fasthttp"
 	"goyoubbs/model"
 	"goyoubbs/util"
+	"goyoubbs/views/ybs"
 	"strconv"
 	"strings"
 	"time"
@@ -23,7 +24,7 @@ func (h *BaseHandler) UserLoginPage(ctx *fasthttp.RequestCtx) {
 		title = "注册"
 	}
 
-	evn := &model.UserLogin{}
+	evn := &ybs.UserLogin{}
 	evn.SiteCf = scf
 	evn.Title = title
 	evn.PageName = "user_login_register"
@@ -56,14 +57,12 @@ func (h *BaseHandler) UserLoginPage(ctx *fasthttp.RequestCtx) {
 
 	token := h.GetCookie(ctx, "token")
 	if len(token) == 0 {
-		token := xid.New().String()
+		token = xid.New().String()
 		_ = h.SetCookie(ctx, "token", token, 1)
 	}
 
-	model.WritePageTemplate(ctx, evn)
+	ybs.WritePageTemplate(ctx, evn)
 	ctx.SetContentType("text/html; charset=utf-8")
-
-	//_ = h.Render(ctx, evn, "admin/layout.html", "admin/login_or_register.html")
 }
 
 func (h *BaseHandler) UserLoginPost(ctx *fasthttp.RequestCtx) {

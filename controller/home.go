@@ -4,6 +4,7 @@ import (
 	"github.com/ego008/sdb"
 	"github.com/valyala/fasthttp"
 	"goyoubbs/model"
+	"goyoubbs/views/ybs"
 	"strconv"
 )
 
@@ -46,7 +47,7 @@ func (h *BaseHandler) HomePage(ctx *fasthttp.RequestCtx) {
 	topicPageInfo := model.GetTopicList(db, cmd, "topic_update", key, score, scf.PageShowNum)
 	//topicPageInfo := model.GetTopicListSortById(db, cmd, "topic_update", key, score, scf.PageShowNum)
 
-	evn := &model.HomePage{}
+	evn := &ybs.HomePage{}
 	evn.SiteCf = scf
 	evn.Title = scf.Name
 	evn.CurrentUser = curUser
@@ -68,7 +69,7 @@ func (h *BaseHandler) HomePage(ctx *fasthttp.RequestCtx) {
 		}
 	}
 
-	model.WritePageTemplate(ctx, evn)
+	ybs.WritePageTemplate(ctx, evn)
 	ctx.SetContentType("text/html; charset=utf-8")
 
 	//_ = h.Render(ctx, evn, "default/layout.html", "default/sidebar.html", "default/home.html")

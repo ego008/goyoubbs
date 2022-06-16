@@ -7,6 +7,7 @@ import (
 	"github.com/valyala/fasthttp"
 	"goyoubbs/model"
 	"goyoubbs/util"
+	"goyoubbs/views/ybs"
 	"strconv"
 	"strings"
 	"time"
@@ -22,7 +23,7 @@ func (h *BaseHandler) TopicAddPage(ctx *fasthttp.RequestCtx) {
 	db := h.App.Db
 	scf := h.App.Cf.Site
 
-	evn := &model.UserTopicAdd{}
+	evn := &ybs.UserTopicAdd{}
 	evn.CurrentUser = curUser
 	evn.SiteCf = scf
 	evn.Title = "发表文章"
@@ -51,10 +52,8 @@ func (h *BaseHandler) TopicAddPage(ctx *fasthttp.RequestCtx) {
 		evn.HasReplyReview = model.CheckHasComment2Review(db)
 	}
 
-	model.WritePageTemplate(ctx, evn)
+	ybs.WritePageTemplate(ctx, evn)
 	ctx.SetContentType("text/html; charset=utf-8")
-
-	//_ = h.Render(ctx, evn, "admin/layout.html", "admin/topic_add.html")
 }
 
 //TopicAddPost 发表

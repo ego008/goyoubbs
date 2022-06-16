@@ -5,6 +5,7 @@ import (
 	"github.com/valyala/fasthttp"
 	"goyoubbs/model"
 	"goyoubbs/util"
+	"goyoubbs/views/ybs"
 	"strconv"
 	"strings"
 )
@@ -19,7 +20,7 @@ func (h *BaseHandler) AdminCommentReviewPage(ctx *fasthttp.RequestCtx) {
 	scf := h.App.Cf.Site
 	db := h.App.Db
 
-	evn := &model.AdminCommentEdit{}
+	evn := &ybs.AdminCommentEdit{}
 	evn.CurrentUser = curUser
 	evn.SiteCf = scf
 	evn.Title = "待审核评论"
@@ -71,11 +72,11 @@ func (h *BaseHandler) AdminCommentReviewPage(ctx *fasthttp.RequestCtx) {
 	evn.HasTopicReview = model.CheckHasTopic2Review(h.App.Db)
 	evn.HasReplyReview = model.CheckHasComment2Review(h.App.Db)
 
-	model.WritePageTemplate(ctx, evn)
+	ybs.WritePageTemplate(ctx, evn)
 	ctx.SetContentType("text/html; charset=utf-8")
 }
 
-// 管理员编辑与审核公用
+//AdminCommentReviewPost 管理员编辑与审核公用
 func (h *BaseHandler) AdminCommentReviewPost(ctx *fasthttp.RequestCtx) {
 	ctx.SetContentType("application/json; charset=UTF-8")
 

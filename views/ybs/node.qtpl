@@ -1,0 +1,44 @@
+{% func (p *NodePage) MainBody() %}
+
+<div class="index">
+
+    <header class="bot-line">
+        <h1 class="entry-title">Category: {%s p.DefaultNode.Name %}</h1>
+    </header>
+
+    {% for _, item := range p.TopicPageInfo.Items %}
+    <article>
+
+        <header>
+            {% if item.Comments > 0 %}
+            <a href="/t/{%dul item.ID %}#r{%dul item.Comments %}"><img alt="{%s item.Title %} icon" src="/icon/t/{%dul item.ID %}.jpg?r={%dul item.Comments %}" class="avatar"></a>
+            {% else %}
+            <a href="/t/{%dul item.ID %}"><img alt="{%s item.Title %} icon" src="/static/avatar/{%dul item.UserId %}.jpg" class="avatar"></a>
+            {% endif %}
+            <h1><a href="/t/{%dul item.ID %}" rel="bookmark" title="Permanent Link to {%s item.Title %}">{%s item.Title %}</a></h1>
+            <p class="meta">
+                <a href="/n/{%dul item.NodeId %}">{%s item.NodeName %}</a>
+                <a href="/member/{%dul item.UserId %}" rel="nofollow">{%s item.AuthorName %}</a>
+                <time datetime="{%s item.AddTimeFmt %}" pubdate data-updated="true">{%s item.EditTimeFmt %}</time>
+                {% if item.Comments > 0 %}
+                <a class="right count" href="/t/{%dul item.ID %}#r{%dul item.Comments %}" title="Comment on {%s item.Title %}" rel="nofollow">{%dul item.Comments %}</a>
+                {% endif %}
+            </p>
+        </header>
+
+    </article>
+
+    {% endfor %}
+
+    <div class="pagination">
+        {% if p.TopicPageInfo.HasPrev %}
+        <a class="prev" href="/n/{%dul p.DefaultNode.ID %}?btn=prev&key={%dul p.TopicPageInfo.FirstKey %}&score={%dul p.TopicPageInfo.FirstScore %}">← Newer</a>
+        {% endif %}
+        {% if p.TopicPageInfo.HasNext %}
+        <a class="next" href="/n/{%dul p.DefaultNode.ID %}?btn=next&key={%dul p.TopicPageInfo.LastKey %}&score={%dul p.TopicPageInfo.LastScore %}">Older →</a>
+        {% endif %}
+    </div>
+
+</div>
+
+{% endfunc %}

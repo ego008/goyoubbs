@@ -4,6 +4,7 @@ import (
 	"github.com/ego008/sdb"
 	"github.com/valyala/fasthttp"
 	"goyoubbs/model"
+	"goyoubbs/views/ybs"
 	"net/url"
 	"strconv"
 	"strings"
@@ -58,7 +59,7 @@ func (h *BaseHandler) TagPage(ctx *fasthttp.RequestCtx) {
 
 	topicPageInfo := model.GetTopicListArchives(db, cmd, "tag:"+tagLower, key, score, scf.PageShowNum)
 
-	evn := &model.TagPage{}
+	evn := &ybs.TagPage{}
 	evn.SiteCf = scf
 	evn.Title = "Tag: " + tagRaw + " - " + scf.Name
 	evn.CurrentUser = curUser
@@ -78,8 +79,6 @@ func (h *BaseHandler) TagPage(ctx *fasthttp.RequestCtx) {
 		}
 	}
 
-	model.WritePageTemplate(ctx, evn)
+	ybs.WritePageTemplate(ctx, evn)
 	ctx.SetContentType("text/html; charset=utf-8")
-
-	//_ = h.Render(ctx, evn, "default/layout.html", "default/sidebar.html", "default/tag.html")
 }

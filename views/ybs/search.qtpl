@@ -1,0 +1,41 @@
+{% func (p *SearchPage) MainBody() %}
+
+<div class="index">
+
+    <article>
+        <header>
+            <h1 class="entry-title">Search: {%s p.Q %}</h1>
+        </header>
+    </article>
+
+    {% for _, item := range p.TopicPageInfo.Items %}
+    <article>
+
+        <header>
+            {% if item.Comments > 0 %}
+            <a href="/t/{%dul item.ID %}#r{%dul item.Comments %}"><img alt="{%s item.Title %} icon" src="/icon/t/{%dul item.ID %}.jpg?r={%dul item.Comments %}" class="avatar"></a>
+            {% else %}
+            <a href="/t/{%dul item.ID %}"><img alt="{%s item.Title %} icon" src="/static/avatar/{%dul item.UserId %}.jpg" class="avatar"></a>
+            {% endif %}
+            <h1 class="entry-title"><a href="/t/{%dul item.ID %}" rel="bookmark" title="Permanent Link to {%s item.Title %}">{%s item.Title %}</a></h1>
+            <p class="meta">
+                <time datetime="{%s item.AddTimeFmt %}" pubdate data-updated="true">{%s item.EditTimeFmt %}</time>
+                in <a href="/n/{%dul item.NodeId %}" rel="bookmark">{%s item.NodeName %}</a>
+                by <a href="/member/{%dul item.UserId %}" rel="nofollow">{%s item.AuthorName %}</a>
+                {% if item.Comments > 0 %}
+                <a class="count" href="/t/{%dul item.ID %}#r{%dul item.Comments %}" title="Comment on {%s item.Title %}">{%dul item.Comments %}</a>
+                {% endif %}
+            </p>
+        </header>
+
+        <div class="entry-content">
+            {%s item.FirstCon %}
+        </div>
+
+    </article>
+
+    {% endfor %}
+
+</div>
+
+{% endfunc %}

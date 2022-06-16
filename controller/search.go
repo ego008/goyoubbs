@@ -5,6 +5,7 @@ import (
 	"github.com/valyala/fasthttp"
 	"goyoubbs/model"
 	"goyoubbs/util"
+	"goyoubbs/views/ybs"
 	"strings"
 )
 
@@ -55,7 +56,7 @@ func (h *BaseHandler) SearchPage(ctx *fasthttp.RequestCtx) {
 		util.ObjCachedSet(h.App.Mc, mcKey, pageInfo)
 	}
 
-	evn := &model.SearchPage{}
+	evn := &ybs.SearchPage{}
 	evn.SiteCf = scf
 	evn.Title = "搜索: " + q + " - " + scf.Name
 	evn.CurrentUser = curUser
@@ -75,8 +76,6 @@ func (h *BaseHandler) SearchPage(ctx *fasthttp.RequestCtx) {
 		}
 	}
 
-	model.WritePageTemplate(ctx, evn)
+	ybs.WritePageTemplate(ctx, evn)
 	ctx.SetContentType("text/html; charset=utf-8")
-
-	//_ = h.Render(ctx, evn, "default/layout.html", "default/sidebar.html", "default/search.html")
 }
