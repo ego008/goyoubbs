@@ -2,6 +2,7 @@ package controller
 
 import (
 	"github.com/VictoriaMetrics/fastcache"
+	"github.com/ego008/goutils/json"
 	"github.com/ego008/sdb"
 	"github.com/gorilla/securecookie"
 	"github.com/valyala/fasthttp"

@@ -2,6 +2,7 @@ package model
 
 import (
 	"github.com/VictoriaMetrics/fastcache"
+	"github.com/ego008/goutils/json"
 	"github.com/ego008/sdb"
 	"goyoubbs/util"
 	"strconv"

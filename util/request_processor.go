@@ -3,6 +3,7 @@ package util
 import (
 	"bytes"
 	"encoding/xml"
+	"github.com/ego008/goutils/json"
 	"github.com/valyala/fasthttp"
 )
 

@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"github.com/ego008/goutils/json"
 	"github.com/valyala/fasthttp"
 	"goyoubbs/model"
 	"goyoubbs/util"

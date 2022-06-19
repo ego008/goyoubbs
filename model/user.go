@@ -2,6 +2,7 @@ package model
 
 import (
 	"errors"
+	"github.com/ego008/goutils/json"
 	"github.com/ego008/sdb"
 	"github.com/tidwall/gjson"
 	"strconv"

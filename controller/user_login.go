@@ -2,6 +2,7 @@ package controller
 
 import (
 	"github.com/ego008/captcha"
+	"github.com/ego008/goutils/json"
 	"github.com/ego008/sdb"
 	"github.com/rs/xid"
 	"github.com/valyala/fasthttp"

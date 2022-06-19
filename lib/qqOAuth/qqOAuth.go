@@ -1,8 +1,8 @@
 package qqOAuth
 
 import (
-	"encoding/json"
 	"errors"
+	"github.com/ego008/goutils/json"
 	"io/ioutil"
 	"log"
 	"net/http"

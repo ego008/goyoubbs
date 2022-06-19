@@ -2,11 +2,9 @@ package util
 
 import (
 	"github.com/VictoriaMetrics/fastcache"
+	"github.com/ego008/goutils/json"
 	"github.com/ego008/sdb"
-	jsonIter "github.com/json-iterator/go"
 )
-
-var json = jsonIter.ConfigCompatibleWithStandardLibrary
 
 // ObjCachedSet 存缓存
 // v 为 string、[]byte 直存，为struct、slice 则 json.Marshal 序列化后再存

@@ -1,6 +1,7 @@
 package cronjob
 
 import (
+	"github.com/ego008/goutils/json"
 	"github.com/ego008/sdb"
 	"goyoubbs/model"
 	"goyoubbs/util"

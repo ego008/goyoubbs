@@ -1,6 +1,9 @@
 package model
 
-import "github.com/ego008/sdb"
+import (
+	"github.com/ego008/goutils/json"
+	"github.com/ego008/sdb"
+)
 
 type CustomRouter struct {
 	Router   string
