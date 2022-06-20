@@ -39,8 +39,8 @@ func (h *BaseHandler) AdminSiteConfigPage(ctx *fasthttp.RequestCtx) {
 	evn.HasTopicReview = model.CheckHasTopic2Review(h.App.Db)
 	evn.HasReplyReview = model.CheckHasComment2Review(h.App.Db)
 
-	ybs.WritePageTemplate(ctx, evn)
 	ctx.SetContentType("text/html; charset=utf-8")
+	ybs.WritePageTemplate(ctx, evn)
 }
 
 func b2int(b []byte, df int) int {

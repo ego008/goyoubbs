@@ -43,10 +43,8 @@ func (h *BaseHandler) AdminNodePage(ctx *fasthttp.RequestCtx) {
 	evn.HasTopicReview = model.CheckHasTopic2Review(h.App.Db)
 	evn.HasReplyReview = model.CheckHasComment2Review(h.App.Db)
 
-	ybs.WritePageTemplate(ctx, evn)
 	ctx.SetContentType("text/html; charset=utf-8")
-
-	//_ = h.Render(ctx, evn, "admin/layout.html", "admin/node.html")
+	ybs.WritePageTemplate(ctx, evn)
 }
 
 func (h *BaseHandler) AdminNodePost(ctx *fasthttp.RequestCtx) {

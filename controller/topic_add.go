@@ -53,8 +53,8 @@ func (h *BaseHandler) TopicAddPage(ctx *fasthttp.RequestCtx) {
 		evn.HasReplyReview = model.CheckHasComment2Review(db)
 	}
 
-	ybs.WritePageTemplate(ctx, evn)
 	ctx.SetContentType("text/html; charset=utf-8")
+	ybs.WritePageTemplate(ctx, evn)
 }
 
 //TopicAddPost 发表

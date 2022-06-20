@@ -62,8 +62,8 @@ func (h *BaseHandler) UserLoginPage(ctx *fasthttp.RequestCtx) {
 		_ = h.SetCookie(ctx, "token", token, 1)
 	}
 
-	ybs.WritePageTemplate(ctx, evn)
 	ctx.SetContentType("text/html; charset=utf-8")
+	ybs.WritePageTemplate(ctx, evn)
 }
 
 func (h *BaseHandler) UserLoginPost(ctx *fasthttp.RequestCtx) {

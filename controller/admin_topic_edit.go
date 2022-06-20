@@ -78,8 +78,6 @@ func (h *BaseHandler) AdminTopicEditPage(ctx *fasthttp.RequestCtx) {
 	evn.HasTopicReview = model.CheckHasTopic2Review(h.App.Db)
 	evn.HasReplyReview = model.CheckHasComment2Review(h.App.Db)
 
-	ybs.WritePageTemplate(ctx, evn)
 	ctx.SetContentType("text/html; charset=utf-8")
-
-	//_ = h.Render(ctx, evn, "admin/layout.html", "admin/topic_add.html")
+	ybs.WritePageTemplate(ctx, evn)
 }

@@ -69,8 +69,6 @@ func (h *BaseHandler) HomePage(ctx *fasthttp.RequestCtx) {
 		}
 	}
 
-	ybs.WritePageTemplate(ctx, evn)
 	ctx.SetContentType("text/html; charset=utf-8")
-
-	//_ = h.Render(ctx, evn, "default/layout.html", "default/sidebar.html", "default/home.html")
+	ybs.WritePageTemplate(ctx, evn)
 }

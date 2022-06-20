@@ -46,10 +46,8 @@ func (h *BaseHandler) AdminTopicAddPage(ctx *fasthttp.RequestCtx) {
 		evn.HasReplyReview = model.CheckHasComment2Review(db)
 	}
 
-	ybs.WritePageTemplate(ctx, evn)
 	ctx.SetContentType("text/html; charset=utf-8")
-
-	//_ = h.Render(ctx, evn, "admin/layout.html", "admin/topic_add.html")
+	ybs.WritePageTemplate(ctx, evn)
 }
 
 // AdminTopicAddPost 发表、审核、编辑 公用

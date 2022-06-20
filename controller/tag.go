@@ -79,6 +79,6 @@ func (h *BaseHandler) TagPage(ctx *fasthttp.RequestCtx) {
 		}
 	}
 
-	ybs.WritePageTemplate(ctx, evn)
 	ctx.SetContentType("text/html; charset=utf-8")
+	ybs.WritePageTemplate(ctx, evn)
 }
