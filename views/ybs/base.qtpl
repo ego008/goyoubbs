@@ -197,7 +197,6 @@ This is a base MainBody
             <a href="/n/{%dul item.ID %}">{%s item.Name %}<span class="tag_meta">({%dul item.TopicNum %})</span></a>
             {% endfor %}
         </div>
-        <a id="id-showMoreNode" href="#" class="more-node" onclick="ShowMoreNode();return false;">显示更多</a>
     </section>
     {% endif %}
 
@@ -248,34 +247,6 @@ This is a base MainBody
     {% endif %}
 
 </aside>
-
-<script>
-let show_node_btn = document.getElementById("id-showMoreNode");
-let node_ul = document.getElementById("top-category-list");
-let showAll = false;
-function ShowMoreNode(){
-    var showNum = 10;
-    var liLst = node_ul.querySelectorAll("a");
-    for (i = 0; i < liLst.length; i++) {
-        if(showAll) {
-            liLst[i].style.display = 'inline-block';
-        } else {
-            if(i<showNum){
-                liLst[i].style.display = 'inline-block';
-            }else{
-                liLst[i].style.display = 'none';
-            }
-        }
-    }
-    showAll = !showAll;
-    if(showAll) {
-        show_node_btn.innerText = "↓ 显示更多 ↓";
-    }else{
-        show_node_btn.innerText = "↑ 显示更少 ↑";
-    }
-}
-ShowMoreNode();
-</script>
 
 {% endfunc %}
 // Aside ed

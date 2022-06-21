@@ -650,289 +650,260 @@ func (p *BasePage) StreamAside(qw422016 *qt422016.Writer) {
 //line views/ybs/base.qtpl:198
 		qw422016.N().S(`
         </div>
-        <a id="id-showMoreNode" href="#" class="more-node" onclick="ShowMoreNode();return false;">显示更多</a>
     </section>
     `)
-//line views/ybs/base.qtpl:202
+//line views/ybs/base.qtpl:201
 	}
-//line views/ybs/base.qtpl:202
+//line views/ybs/base.qtpl:201
 	qw422016.N().S(`
 
     `)
-//line views/ybs/base.qtpl:204
+//line views/ybs/base.qtpl:203
 	if len(p.RangeTopicLst) > 0 {
-//line views/ybs/base.qtpl:204
+//line views/ybs/base.qtpl:203
 		qw422016.N().S(`
     <section>
         <h1>📝 最近浏览</h1>
         <ul id="recent_posts">
             `)
-//line views/ybs/base.qtpl:208
+//line views/ybs/base.qtpl:207
 		for _, item := range p.RangeTopicLst {
-//line views/ybs/base.qtpl:208
+//line views/ybs/base.qtpl:207
 			qw422016.N().S(`
             <li><a href="/t/`)
-//line views/ybs/base.qtpl:209
+//line views/ybs/base.qtpl:208
 			qw422016.N().DUL(item.ID)
-//line views/ybs/base.qtpl:209
+//line views/ybs/base.qtpl:208
 			qw422016.N().S(`">`)
-//line views/ybs/base.qtpl:209
+//line views/ybs/base.qtpl:208
 			qw422016.E().S(item.Title)
-//line views/ybs/base.qtpl:209
+//line views/ybs/base.qtpl:208
 			qw422016.N().S(`</a></li>
             `)
-//line views/ybs/base.qtpl:210
+//line views/ybs/base.qtpl:209
 		}
-//line views/ybs/base.qtpl:210
+//line views/ybs/base.qtpl:209
 		qw422016.N().S(`
         </ul>
     </section>
     `)
-//line views/ybs/base.qtpl:213
+//line views/ybs/base.qtpl:212
 	}
-//line views/ybs/base.qtpl:213
+//line views/ybs/base.qtpl:212
 	qw422016.N().S(`
 
     `)
-//line views/ybs/base.qtpl:215
+//line views/ybs/base.qtpl:214
 	if len(p.TagCloud) > 0 {
-//line views/ybs/base.qtpl:215
+//line views/ybs/base.qtpl:214
 		qw422016.N().S(`
     <section>
         <h1>🏷️ 标签</h1>
         <div id="tag-cloud">
             `)
-//line views/ybs/base.qtpl:219
+//line views/ybs/base.qtpl:218
 		for _, item := range p.TagCloud {
-//line views/ybs/base.qtpl:219
+//line views/ybs/base.qtpl:218
 			qw422016.N().S(`
             <a href="/tag/`)
-//line views/ybs/base.qtpl:220
+//line views/ybs/base.qtpl:219
 			qw422016.N().U(item.Name)
-//line views/ybs/base.qtpl:220
+//line views/ybs/base.qtpl:219
 			qw422016.N().S(`">`)
-//line views/ybs/base.qtpl:220
+//line views/ybs/base.qtpl:219
 			qw422016.E().S(item.Name)
-//line views/ybs/base.qtpl:220
+//line views/ybs/base.qtpl:219
 			qw422016.N().S(`<span class="tag-meta">(`)
-//line views/ybs/base.qtpl:220
+//line views/ybs/base.qtpl:219
 			qw422016.N().D(item.Size)
-//line views/ybs/base.qtpl:220
+//line views/ybs/base.qtpl:219
 			qw422016.N().S(`)</span></a>
             `)
-//line views/ybs/base.qtpl:221
+//line views/ybs/base.qtpl:220
 		}
-//line views/ybs/base.qtpl:221
+//line views/ybs/base.qtpl:220
 		qw422016.N().S(`
         </div>
     </section>
     `)
-//line views/ybs/base.qtpl:224
+//line views/ybs/base.qtpl:223
 	}
-//line views/ybs/base.qtpl:224
+//line views/ybs/base.qtpl:223
 	qw422016.N().S(`
 
     `)
-//line views/ybs/base.qtpl:226
+//line views/ybs/base.qtpl:225
 	if len(p.LinkLst) > 0 {
-//line views/ybs/base.qtpl:226
+//line views/ybs/base.qtpl:225
 		qw422016.N().S(`
     <section>
         <h1>🔗 链接</h1>
         <ul id="link-cloud">
             `)
-//line views/ybs/base.qtpl:230
+//line views/ybs/base.qtpl:229
 		for _, item := range p.LinkLst {
-//line views/ybs/base.qtpl:230
+//line views/ybs/base.qtpl:229
 			qw422016.N().S(`
             <li><a href="`)
-//line views/ybs/base.qtpl:231
+//line views/ybs/base.qtpl:230
 			qw422016.E().S(item.Url)
-//line views/ybs/base.qtpl:231
+//line views/ybs/base.qtpl:230
 			qw422016.N().S(`" target="_blank">`)
-//line views/ybs/base.qtpl:231
+//line views/ybs/base.qtpl:230
 			qw422016.E().S(item.Name)
-//line views/ybs/base.qtpl:231
+//line views/ybs/base.qtpl:230
 			qw422016.N().S(`</a></li>
             `)
-//line views/ybs/base.qtpl:232
+//line views/ybs/base.qtpl:231
 		}
-//line views/ybs/base.qtpl:232
+//line views/ybs/base.qtpl:231
 		qw422016.N().S(`
         </ul>
     </section>
     `)
-//line views/ybs/base.qtpl:235
+//line views/ybs/base.qtpl:234
 	}
-//line views/ybs/base.qtpl:235
+//line views/ybs/base.qtpl:234
 	qw422016.N().S(`
 
     `)
-//line views/ybs/base.qtpl:237
+//line views/ybs/base.qtpl:236
 	if p.SiteInfo.NodeNum > 0 {
-//line views/ybs/base.qtpl:237
+//line views/ybs/base.qtpl:236
 		qw422016.N().S(`
     <section>
         <h1>💡 本站已稳定运行 `)
-//line views/ybs/base.qtpl:239
+//line views/ybs/base.qtpl:238
 		qw422016.E().S(p.SiteInfo.Days)
-//line views/ybs/base.qtpl:239
+//line views/ybs/base.qtpl:238
 		qw422016.N().S(`</h1>
         <ul id="site-info">
             <li>会员: `)
-//line views/ybs/base.qtpl:241
+//line views/ybs/base.qtpl:240
 		qw422016.N().DUL(p.SiteInfo.UserNum)
-//line views/ybs/base.qtpl:241
+//line views/ybs/base.qtpl:240
 		qw422016.N().S(`</li>
             <li>帖子: `)
-//line views/ybs/base.qtpl:242
+//line views/ybs/base.qtpl:241
 		qw422016.N().DUL(p.SiteInfo.PostNum)
-//line views/ybs/base.qtpl:242
+//line views/ybs/base.qtpl:241
 		qw422016.N().S(`</li>
             <li>回复: `)
-//line views/ybs/base.qtpl:243
+//line views/ybs/base.qtpl:242
 		qw422016.N().DUL(p.SiteInfo.ReplyNum)
-//line views/ybs/base.qtpl:243
+//line views/ybs/base.qtpl:242
 		qw422016.N().S(`</li>
             <li>分类: `)
-//line views/ybs/base.qtpl:244
+//line views/ybs/base.qtpl:243
 		qw422016.N().DUL(p.SiteInfo.NodeNum)
-//line views/ybs/base.qtpl:244
+//line views/ybs/base.qtpl:243
 		qw422016.N().S(`</li>
             <li>标签: `)
-//line views/ybs/base.qtpl:245
+//line views/ybs/base.qtpl:244
 		qw422016.N().DUL(p.SiteInfo.TagNum)
-//line views/ybs/base.qtpl:245
+//line views/ybs/base.qtpl:244
 		qw422016.N().S(`</li>
         </ul>
     </section>
     `)
-//line views/ybs/base.qtpl:248
+//line views/ybs/base.qtpl:247
 	}
-//line views/ybs/base.qtpl:248
+//line views/ybs/base.qtpl:247
 	qw422016.N().S(`
 
 </aside>
 
-<script>
-let show_node_btn = document.getElementById("id-showMoreNode");
-let node_ul = document.getElementById("top-category-list");
-let showAll = false;
-function ShowMoreNode(){
-    var showNum = 10;
-    var liLst = node_ul.querySelectorAll("a");
-    for (i = 0; i < liLst.length; i++) {
-        if(showAll) {
-            liLst[i].style.display = 'inline-block';
-        } else {
-            if(i<showNum){
-                liLst[i].style.display = 'inline-block';
-            }else{
-                liLst[i].style.display = 'none';
-            }
-        }
-    }
-    showAll = !showAll;
-    if(showAll) {
-        show_node_btn.innerText = "↓ 显示更多 ↓";
-    }else{
-        show_node_btn.innerText = "↑ 显示更少 ↑";
-    }
-}
-ShowMoreNode();
-</script>
-
 `)
-//line views/ybs/base.qtpl:280
+//line views/ybs/base.qtpl:251
 }
 
-//line views/ybs/base.qtpl:280
+//line views/ybs/base.qtpl:251
 func (p *BasePage) WriteAside(qq422016 qtio422016.Writer) {
-//line views/ybs/base.qtpl:280
+//line views/ybs/base.qtpl:251
 	qw422016 := qt422016.AcquireWriter(qq422016)
-//line views/ybs/base.qtpl:280
+//line views/ybs/base.qtpl:251
 	p.StreamAside(qw422016)
-//line views/ybs/base.qtpl:280
+//line views/ybs/base.qtpl:251
 	qt422016.ReleaseWriter(qw422016)
-//line views/ybs/base.qtpl:280
+//line views/ybs/base.qtpl:251
 }
 
-//line views/ybs/base.qtpl:280
+//line views/ybs/base.qtpl:251
 func (p *BasePage) Aside() string {
-//line views/ybs/base.qtpl:280
+//line views/ybs/base.qtpl:251
 	qb422016 := qt422016.AcquireByteBuffer()
-//line views/ybs/base.qtpl:280
+//line views/ybs/base.qtpl:251
 	p.WriteAside(qb422016)
-//line views/ybs/base.qtpl:280
+//line views/ybs/base.qtpl:251
 	qs422016 := string(qb422016.B)
-//line views/ybs/base.qtpl:280
+//line views/ybs/base.qtpl:251
 	qt422016.ReleaseByteBuffer(qb422016)
-//line views/ybs/base.qtpl:280
+//line views/ybs/base.qtpl:251
 	return qs422016
-//line views/ybs/base.qtpl:280
+//line views/ybs/base.qtpl:251
 }
 
 // Aside ed
 //
 // Footer bg
 
-//line views/ybs/base.qtpl:284
+//line views/ybs/base.qtpl:255
 func (p *BasePage) StreamFooter(qw422016 *qt422016.Writer) {
-//line views/ybs/base.qtpl:284
+//line views/ybs/base.qtpl:255
 	qw422016.N().S(`
 <p>
     Copyright &copy; <a href="/">`)
-//line views/ybs/base.qtpl:286
+//line views/ybs/base.qtpl:257
 	qw422016.E().S(p.SiteCf.Name)
-//line views/ybs/base.qtpl:286
+//line views/ybs/base.qtpl:257
 	qw422016.N().S(`</a> -
     <span class="credit">Powered by <a href="https://youbbs.org">goYouBBS</a> - <a href="#">&uarr;Go Top</a> </span>
 </p>
 
 `)
-//line views/ybs/base.qtpl:290
+//line views/ybs/base.qtpl:261
 	if len(p.SiteCf.FooterPartHtml) > 0 {
-//line views/ybs/base.qtpl:290
+//line views/ybs/base.qtpl:261
 		qw422016.N().S(`
 `)
-//line views/ybs/base.qtpl:291
+//line views/ybs/base.qtpl:262
 		qw422016.N().S(p.SiteCf.FooterPartHtml)
-//line views/ybs/base.qtpl:291
+//line views/ybs/base.qtpl:262
 		qw422016.N().S(`
 `)
-//line views/ybs/base.qtpl:292
+//line views/ybs/base.qtpl:263
 	}
-//line views/ybs/base.qtpl:292
+//line views/ybs/base.qtpl:263
 	qw422016.N().S(`
 
 `)
-//line views/ybs/base.qtpl:294
+//line views/ybs/base.qtpl:265
 }
 
-//line views/ybs/base.qtpl:294
+//line views/ybs/base.qtpl:265
 func (p *BasePage) WriteFooter(qq422016 qtio422016.Writer) {
-//line views/ybs/base.qtpl:294
+//line views/ybs/base.qtpl:265
 	qw422016 := qt422016.AcquireWriter(qq422016)
-//line views/ybs/base.qtpl:294
+//line views/ybs/base.qtpl:265
 	p.StreamFooter(qw422016)
-//line views/ybs/base.qtpl:294
+//line views/ybs/base.qtpl:265
 	qt422016.ReleaseWriter(qw422016)
-//line views/ybs/base.qtpl:294
+//line views/ybs/base.qtpl:265
 }
 
-//line views/ybs/base.qtpl:294
+//line views/ybs/base.qtpl:265
 func (p *BasePage) Footer() string {
-//line views/ybs/base.qtpl:294
+//line views/ybs/base.qtpl:265
 	qb422016 := qt422016.AcquireByteBuffer()
-//line views/ybs/base.qtpl:294
+//line views/ybs/base.qtpl:265
 	p.WriteFooter(qb422016)
-//line views/ybs/base.qtpl:294
+//line views/ybs/base.qtpl:265
 	qs422016 := string(qb422016.B)
-//line views/ybs/base.qtpl:294
+//line views/ybs/base.qtpl:265
 	qt422016.ReleaseByteBuffer(qb422016)
-//line views/ybs/base.qtpl:294
+//line views/ybs/base.qtpl:265
 	return qs422016
-//line views/ybs/base.qtpl:294
+//line views/ybs/base.qtpl:265
 }
 
 // Footer ed
