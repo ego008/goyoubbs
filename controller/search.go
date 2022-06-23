@@ -64,7 +64,7 @@ func (h *BaseHandler) SearchPage(ctx *fasthttp.RequestCtx) {
 	evn.Q = q
 	evn.NodeLst = model.NodeGetAll(h.App.Mc, db)
 	evn.TopicPageInfo = pageInfo
-	evn.TagCloud = model.GetTagsForSide(h.App.Mc, db, 100)
+	evn.TagCloud = model.GetTagsForSide(h.App.Mc, db, showTagNum)
 	evn.RangeTopicLst = rangeTopicLst[:]
 	evn.RecentComment = model.CommentGetRecent(h.App.Mc, db, scf.RecentCommentNum)
 

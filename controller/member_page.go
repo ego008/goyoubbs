@@ -121,7 +121,7 @@ func (h *BaseHandler) MemberPage(ctx *fasthttp.RequestCtx) {
 		}
 	}
 
-	evn.TagCloud = model.GetTagsForSide(h.App.Mc, db, 100)
+	evn.TagCloud = model.GetTagsForSide(h.App.Mc, db, showTagNum)
 	evn.RangeTopicLst = rangeTopicLst[:]
 	evn.RecentComment = model.CommentGetRecent(h.App.Mc, db, scf.RecentCommentNum)
 

@@ -56,7 +56,7 @@ func (h *BaseHandler) HomePage(ctx *fasthttp.RequestCtx) {
 	evn.DefaultNode = model.Node{ID: 1}
 	evn.NodeLst = model.NodeGetAll(h.App.Mc, db)
 	evn.TopicPageInfo = topicPageInfo
-	evn.TagCloud = model.GetTagsForSide(h.App.Mc, db, 100)
+	evn.TagCloud = model.GetTagsForSide(h.App.Mc, db, showTagNum)
 	evn.RangeTopicLst = rangeTopicLst[:]
 	evn.RecentComment = model.CommentGetRecent(h.App.Mc, db, scf.RecentCommentNum)
 	evn.LinkLst = model.LinkList(h.App.Mc, h.App.Db, false)
