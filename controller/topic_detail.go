@@ -275,6 +275,11 @@ func (h *BaseHandler) TopicDetailPost(ctx *fasthttp.RequestCtx) {
 	}
 
 	scf := h.App.Cf.Site
+	if scf.CloseReply && curUser.Flag < model.FlagAdmin {
+		_, _ = ctx.WriteString(`{"Code":403,"Msg":"评论已关闭"}`)
+		return
+	}
+
 	db := h.App.Db
 	topic := model.TopicGetById(db, tidInt)
 	if topic.ID == 0 {

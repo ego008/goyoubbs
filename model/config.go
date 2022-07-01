@@ -38,6 +38,7 @@ type SiteConf struct {
 	AllowNameReg       bool   // 是否允许用户名注册（false 时只允许第三方用户登录）
 	RegReview          bool   // 用户注册审核
 	CloseReg           bool   // 关闭用户注册
+	CloseReply         bool   // 关闭评论
 	PostReview         bool   // 发帖、回复审核
 	ResetCookieKey     bool   // 重设cookie key （强迫重新登录）
 	GetTagApi          string // 远程取 tag 网址

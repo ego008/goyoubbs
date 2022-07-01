@@ -99,6 +99,7 @@ func (h *BaseHandler) AdminSiteConfigPost(ctx *fasthttp.RequestCtx) {
 	obj.AllowNameReg = b2bool(ctx.FormValue("AllowNameReg"), true)
 	obj.RegReview = b2bool(ctx.FormValue("RegReview"), false)
 	obj.CloseReg = b2bool(ctx.FormValue("CloseReg"), false)
+	obj.CloseReply = b2bool(ctx.FormValue("CloseReply"), false)
 	obj.PostReview = b2bool(ctx.FormValue("PostReview"), false)
 
 	obj.ResetCookieKey = b2bool(ctx.FormValue("ResetCookieKey"), false)

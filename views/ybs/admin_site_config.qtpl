@@ -90,6 +90,10 @@
                     <input type="checkbox" id="CloseReg" name="CloseReg" value="true" {% if p.SiteConf.CloseReg %}checked{% endif %} />
                 </div>
                 <div class="pure-control-group">
+                    <label for="CloseReply">关闭评论</label>
+                    <input type="checkbox" id="CloseReply" name="CloseReply" value="true" {% if p.SiteConf.CloseReply %}checked{% endif %} />
+                </div>
+                <div class="pure-control-group">
                     <label for="PostReview">发布审核</label>
                     <input type="checkbox" id="PostReview" name="PostReview" value="true" {% if p.SiteConf.PostReview %}checked{% endif %} /> 发帖、回复审核
                 </div>

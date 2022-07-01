@@ -98,8 +98,12 @@
                 <textarea name="comment" id="id-comment" class="pure-u-1" placeholder="* 字符限制 {%d p.SiteCf.CommentConMaxLen %}"></textarea>
                 {% if p.CurrentUser.ID > 0 %}
                 <div class="pure-button-group">
+                {% if p.SiteCf.CloseReply && p.CurrentUser.Flag < 99 %}
+                    <input id="btn-preview" type="button" value="评论已关闭" name="submit" onclick="return false;" class="pure-button" disabled="" />
+                {% else %}
                     <input id="btn-preview" type="button" value="预览" name="submit" onclick="previewComment(); return false;" class="pure-button button-success" />
                     <input id="btn-submit" type="button" value="发表" name="submit" onclick="submitComment(); return false;" class="pure-button pure-button-primary" />
+                {% endif %}
                 </div>
                 <span id="id-msg"></span>
                 {% else %}
