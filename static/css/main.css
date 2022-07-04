@@ -125,7 +125,7 @@ h1.br-nav, h2.br-nav, h3.br-nav, h4.br-nav {color:#777;font-size: 1.2em;padding-
 .button-secondary {background: rgb(66, 184, 221);}
 
 .header-wrap {}
-.home-menu {background-color: #474747;border-bottom-left-radius: .5em;border-bottom-right-radius: .5em;}
+.home-menu {background-color: #474747;}
 .home-menu img.avatar {width: 18px;height: 18px;vertical-align: middle;}
 .home-menu a {color: #fff;}
 .home-menu a:hover {color: #000;background-color: #fff}
@@ -133,8 +133,6 @@ h1.br-nav, h2.br-nav, h3.br-nav, h4.br-nav {color:#777;font-size: 1.2em;padding-
 
 .main-wrap {margin: 1.2em 0;}
 .main-left-body {padding: 0;margin: 0 1.618em 1.2em 0;}
-.main-left-body div:first-of-type {border-top-left-radius: .5em;border-top-right-radius: .5em;}
-.main-left-body div:last-of-type {border-bottom-left-radius: .5em;border-bottom-right-radius: .5em;}
 .main-right-body {padding: 0;}
 
 .body-nav {background-color: #FCFCFC;}
@@ -196,8 +194,8 @@ section ul.seealso li:before {
 .user-info a:hover {color: #008A2E}
 
 .sidebar {}
-.sidebar h1 {color:#ccc;font-size: initial;border-bottom: 1px solid #678;margin: 0;padding: .5em;background-color: #464747;border-radius: .5em .5em 0 0;}
-.sidebar section {color: #353535;background-color: #D6D6D6;margin-bottom: 1.2em;border-radius: .5em;}
+.sidebar h1 {color:#ccc;font-size: initial;border-bottom: 1px solid #678;margin: 0;padding: .5em;background-color: #464747;}
+.sidebar section {color: #353535;background-color: #D6D6D6;margin-bottom: 1.2em;}
 
 img.avatar {
     max-width: 119px;
@@ -287,8 +285,6 @@ body>footer {
     position: relative;
     padding: .5em .5em 0 .5em;
     z-index: 1;
-    border-top-left-radius: .5em;
-    border-top-right-radius: .5em;
 }
 body>footer p {margin: 0}
 body>footer a {color: #bbb}
@@ -654,11 +650,9 @@ figure .highlight .s1 {color: #2aa198}
 .write-box {margin: 0;background-color: #FCFCFC;}
 .write-box h1 {margin: 0;font-size: 1.6em;}
 /* fixed */
-.home-menu .pure-menu-heading {border-bottom-left-radius: .5em;}
-.pure-menu-list li:last-of-type a {border-bottom-right-radius: .5em;}
 .pure-form select {height: 2.5em;}
 .pure-form fieldset select,.pure-form fieldset input,.pure-form textarea {color: #000;background-color: #FDFDFD;}
-.body-nav .pure-button-group .pure-button:first-child {border-top-left-radius: .5em;border-bottom-left-radius: 0;}
+.body-nav .pure-button-group .pure-button:first-child {border-top-left-radius: 0;border-bottom-left-radius: 0;}
 .pure-button-group .pure-button:last-child {border-radius: 0;}
 .pure-form select,.pure-form textarea,.pure-form .pure-group input:last-child, .pure-form .pure-group textarea:last-child {border-radius: 0;}
 
