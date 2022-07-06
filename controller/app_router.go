@@ -93,6 +93,7 @@ func MainRouter(ap *app.Application, sm *router.Router) {
 	sm.GET("/ads.txt", h.Ads)
 	sm.GET("/feed", h.FeedHandler)
 	sm.GET("/sitemap.xml", h.SiteMapHandler)
+	sm.GET("/favicon.ico", h.ShowIcon)
 
 	sm.POST("/get/link/count", h.GetLinkCount)
 	sm.POST("/api/post/content", h.ApiAdminRemotePost) // 管理员发帖、评论接口

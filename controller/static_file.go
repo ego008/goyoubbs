@@ -48,3 +48,13 @@ func (h *BaseHandler) StaticFile(ctx *fasthttp.RequestCtx) {
 	ctx.SetContentType(fileType)
 	_, _ = ctx.Write(buf)
 }
+
+func (h *BaseHandler) ShowIcon(ctx *fasthttp.RequestCtx) {
+	ctx.SetContentType("image/png")
+	buf, err := ioutil.ReadFile("static/logo.png")
+	if err != nil {
+		ctx.NotFound()
+		return
+	}
+	_, _ = ctx.Write(buf)
+}
