@@ -50,6 +50,14 @@ type TopicTag struct {
 	NewTags string
 }
 
+// TopicLoc for site map
+type TopicLoc struct {
+	Id      uint64
+	Title   string
+	Slug    string
+	AddTime int64
+}
+
 type TopicLi struct {
 	ID    uint64
 	Title string
@@ -124,7 +132,7 @@ func TopicAdd(mc *fastcache.Cache, db *sdb.DB, obj Topic) Topic {
 	_ = db.Hset(TopicTbName, sdb.I2b(obj.ID), jb)
 	// 添加时间轴
 	// 首页
-	_ = db.Zset("topic_update", sdb.I2b(obj.ID), uint64(obj.AddTime))
+	_ = db.Zset(TbnPostUpdate, sdb.I2b(obj.ID), uint64(obj.AddTime))
 	// 分类页
 	_ = db.Zset("topic_update:"+strconv.FormatUint(obj.NodeId, 10), sdb.I2b(obj.ID), uint64(obj.AddTime))
 	// 个人主贴
@@ -143,7 +151,7 @@ func TopicAdd(mc *fastcache.Cache, db *sdb.DB, obj Topic) Topic {
 //TopicDel 删除文章
 func TopicDel(mc *fastcache.Cache, db *sdb.DB, obj Topic) {
 	// 首页
-	_ = db.Zdel("topic_update", sdb.I2b(obj.ID))
+	_ = db.Zdel(TbnPostUpdate, sdb.I2b(obj.ID))
 	// 分类页
 	_ = db.Zdel("topic_update:"+strconv.FormatUint(obj.NodeId, 10), sdb.I2b(obj.ID))
 	// 个人主贴

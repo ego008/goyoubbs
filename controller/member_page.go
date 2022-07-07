@@ -95,7 +95,7 @@ func (h *BaseHandler) MemberPage(ctx *fasthttp.RequestCtx) {
 	db := h.App.Db
 	scf := h.App.Cf.Site
 
-	//topicPageInfo := model.GetTopicList(db, cmd, "topic_update", key, score, scf.PageShowNum)
+	//topicPageInfo := model.GetTopicList(db, cmd, model.TbnPostUpdate, key, score, scf.PageShowNum)
 	tbName := "user_" + lstType + ":" + strconv.FormatUint(user.ID, 10)
 	topicPageInfo := model.GetTopicList(db, cmd, tbName, key, score, scf.PageShowNum)
 

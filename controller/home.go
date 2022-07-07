@@ -44,8 +44,8 @@ func (h *BaseHandler) HomePage(ctx *fasthttp.RequestCtx) {
 	db := h.App.Db
 	scf := h.App.Cf.Site
 
-	topicPageInfo := model.GetTopicList(db, cmd, "topic_update", key, score, scf.PageShowNum)
-	//topicPageInfo := model.GetTopicListSortById(db, cmd, "topic_update", key, score, scf.PageShowNum)
+	topicPageInfo := model.GetTopicList(db, cmd, model.TbnPostUpdate, key, score, scf.PageShowNum)
+	//topicPageInfo := model.GetTopicListSortById(db, cmd, model.TbnPostUpdate, key, score, scf.PageShowNum)
 
 	evn := &ybs.HomePage{}
 	evn.SiteCf = scf

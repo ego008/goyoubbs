@@ -69,7 +69,7 @@ func CommentAdd(mc *fastcache.Cache, db *sdb.DB, obj Comment) Comment {
 	// 更新 topic 相关时间线
 	topic := TopicGetById(db, obj.TopicId)
 	// 首页
-	_ = db.Zset("topic_update", sdb.I2b(obj.TopicId), uint64(obj.AddTime))
+	_ = db.Zset(TbnPostUpdate, sdb.I2b(obj.TopicId), uint64(obj.AddTime))
 	// 分类页
 	_ = db.Zset("topic_update:"+strconv.FormatUint(topic.NodeId, 10), sdb.I2b(obj.TopicId), uint64(obj.AddTime))
 	// 个人回复的帖子
