@@ -81,9 +81,8 @@ func MainRouter(ap *app.Application, sm *router.Router) {
 	// static file server
 	//mux.ServeFiles("/static/{filepath:*}", staticPath)
 	sm.ServeFilesCustom("/static/{filepath:*}", &fasthttp.FS{
-		Root: "static",
-		//IndexNames:         []string{"index.html"},
-		GenerateIndexPages: false, // 设为 false 时不能浏览目录
+		Root:               "static",
+		GenerateIndexPages: false,
 		AcceptByteRange:    true,
 	})
 

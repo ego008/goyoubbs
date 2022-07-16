@@ -49,8 +49,6 @@ func (app *Application) Init(addr, sdbDir string) {
 	// /var/folders/bw/8bnjyv6j4k73h6j2qwh9s7xr0000gn/T/go-build1539771127/b001/exe/main
 	scf.IsDevMod = strings.HasSuffix(os.Args[0], "exe/main")
 
-	/// ---
-
 	app.Cf = &MyAppConf{mcf, &scf}
 
 	var hashKey []byte
