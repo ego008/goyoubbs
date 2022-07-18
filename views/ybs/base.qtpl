@@ -180,9 +180,9 @@ This is a base MainBody
     <section>
         <h1>💬 最近评论</h1>
         <ul id="recent_comments">
-            {% for _, item := range p.RecentComment %}
+            {% for k := range p.RecentComment %}
             <li>
-                <img alt="{%s item.Name %} avatar" src="/static/avatar/{%dul item.UserId %}.jpg" class="avatar"> <a href="{%s item.Link %}">{%s item.Content %}</a>
+                <img alt="{%s p.RecentComment[k].Name %} avatar" src="/static/avatar/{%dul p.RecentComment[k].UserId %}.jpg" class="avatar"> <a href="{%s p.RecentComment[k].Link %}">{%s p.RecentComment[k].Content %}</a>
             </li>
             {% endfor %}
         </ul>
@@ -193,8 +193,8 @@ This is a base MainBody
     <section>
         <h1>📁 分类</h1>
         <div id="top-category-list">
-            {% for _, item := range p.NodeLst %}
-            <a href="/n/{%dul item.ID %}">{%s item.Name %}<span class="tag_meta">({%dul item.TopicNum %})</span></a>
+            {% for k := range p.NodeLst %}
+            <a href="/n/{%dul p.NodeLst[k].ID %}">{%s p.NodeLst[k].Name %}<span class="tag_meta">({%dul p.NodeLst[k].TopicNum %})</span></a>
             {% endfor %}
         </div>
     </section>
@@ -204,8 +204,8 @@ This is a base MainBody
     <section>
         <h1>📝 最近浏览</h1>
         <ul id="recent_posts">
-            {% for _, item := range p.RangeTopicLst %}
-            <li><a href="/t/{%dul item.ID %}">{%s item.Title %}</a></li>
+            {% for k := range p.RangeTopicLst %}
+            <li><a href="/t/{%dul p.RangeTopicLst[k].ID %}">{%s p.RangeTopicLst[k].Title %}</a></li>
             {% endfor %}
         </ul>
     </section>
@@ -215,8 +215,8 @@ This is a base MainBody
     <section>
         <h1>🏷️ 标签</h1>
         <div id="tag-cloud">
-            {% for _, item := range p.TagCloud %}
-            <a href="/tag/{%u item.Name %}">{%s item.Name %}<span class="tag-meta">({%d item.Size %})</span></a>
+            {% for k := range p.TagCloud %}
+            <a href="/tag/{%u p.TagCloud[k].Name %}">{%s p.TagCloud[k].Name %}<span class="tag-meta">({%d p.TagCloud[k].Size %})</span></a>
             {% endfor %}
         </div>
     </section>
@@ -226,8 +226,8 @@ This is a base MainBody
     <section>
         <h1>🔗 链接</h1>
         <ul id="link-cloud">
-            {% for _, item := range p.LinkLst %}
-            <li><a href="{%s item.Url %}" target="_blank">{%s item.Name %}</a></li>
+            {% for k := range p.LinkLst %}
+            <li><a href="{%s p.LinkLst[k].Url %}" target="_blank">{%s p.LinkLst[k].Name %}</a></li>
             {% endfor %}
         </ul>
     </section>

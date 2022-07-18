@@ -583,25 +583,25 @@ func (p *BasePage) StreamAside(qw422016 *qt422016.Writer) {
         <ul id="recent_comments">
             `)
 //line views/ybs/base.qtpl:183
-		for _, item := range p.RecentComment {
+		for k := range p.RecentComment {
 //line views/ybs/base.qtpl:183
 			qw422016.N().S(`
             <li>
                 <img alt="`)
 //line views/ybs/base.qtpl:185
-			qw422016.E().S(item.Name)
+			qw422016.E().S(p.RecentComment[k].Name)
 //line views/ybs/base.qtpl:185
 			qw422016.N().S(` avatar" src="/static/avatar/`)
 //line views/ybs/base.qtpl:185
-			qw422016.N().DUL(item.UserId)
+			qw422016.N().DUL(p.RecentComment[k].UserId)
 //line views/ybs/base.qtpl:185
 			qw422016.N().S(`.jpg" class="avatar"> <a href="`)
 //line views/ybs/base.qtpl:185
-			qw422016.E().S(item.Link)
+			qw422016.E().S(p.RecentComment[k].Link)
 //line views/ybs/base.qtpl:185
 			qw422016.N().S(`">`)
 //line views/ybs/base.qtpl:185
-			qw422016.E().S(item.Content)
+			qw422016.E().S(p.RecentComment[k].Content)
 //line views/ybs/base.qtpl:185
 			qw422016.N().S(`</a>
             </li>
@@ -628,20 +628,20 @@ func (p *BasePage) StreamAside(qw422016 *qt422016.Writer) {
         <div id="top-category-list">
             `)
 //line views/ybs/base.qtpl:196
-		for _, item := range p.NodeLst {
+		for k := range p.NodeLst {
 //line views/ybs/base.qtpl:196
 			qw422016.N().S(`
             <a href="/n/`)
 //line views/ybs/base.qtpl:197
-			qw422016.N().DUL(item.ID)
+			qw422016.N().DUL(p.NodeLst[k].ID)
 //line views/ybs/base.qtpl:197
 			qw422016.N().S(`">`)
 //line views/ybs/base.qtpl:197
-			qw422016.E().S(item.Name)
+			qw422016.E().S(p.NodeLst[k].Name)
 //line views/ybs/base.qtpl:197
 			qw422016.N().S(`<span class="tag_meta">(`)
 //line views/ybs/base.qtpl:197
-			qw422016.N().DUL(item.TopicNum)
+			qw422016.N().DUL(p.NodeLst[k].TopicNum)
 //line views/ybs/base.qtpl:197
 			qw422016.N().S(`)</span></a>
             `)
@@ -667,16 +667,16 @@ func (p *BasePage) StreamAside(qw422016 *qt422016.Writer) {
         <ul id="recent_posts">
             `)
 //line views/ybs/base.qtpl:207
-		for _, item := range p.RangeTopicLst {
+		for k := range p.RangeTopicLst {
 //line views/ybs/base.qtpl:207
 			qw422016.N().S(`
             <li><a href="/t/`)
 //line views/ybs/base.qtpl:208
-			qw422016.N().DUL(item.ID)
+			qw422016.N().DUL(p.RangeTopicLst[k].ID)
 //line views/ybs/base.qtpl:208
 			qw422016.N().S(`">`)
 //line views/ybs/base.qtpl:208
-			qw422016.E().S(item.Title)
+			qw422016.E().S(p.RangeTopicLst[k].Title)
 //line views/ybs/base.qtpl:208
 			qw422016.N().S(`</a></li>
             `)
@@ -702,20 +702,20 @@ func (p *BasePage) StreamAside(qw422016 *qt422016.Writer) {
         <div id="tag-cloud">
             `)
 //line views/ybs/base.qtpl:218
-		for _, item := range p.TagCloud {
+		for k := range p.TagCloud {
 //line views/ybs/base.qtpl:218
 			qw422016.N().S(`
             <a href="/tag/`)
 //line views/ybs/base.qtpl:219
-			qw422016.N().U(item.Name)
+			qw422016.N().U(p.TagCloud[k].Name)
 //line views/ybs/base.qtpl:219
 			qw422016.N().S(`">`)
 //line views/ybs/base.qtpl:219
-			qw422016.E().S(item.Name)
+			qw422016.E().S(p.TagCloud[k].Name)
 //line views/ybs/base.qtpl:219
 			qw422016.N().S(`<span class="tag-meta">(`)
 //line views/ybs/base.qtpl:219
-			qw422016.N().D(item.Size)
+			qw422016.N().D(p.TagCloud[k].Size)
 //line views/ybs/base.qtpl:219
 			qw422016.N().S(`)</span></a>
             `)
@@ -741,16 +741,16 @@ func (p *BasePage) StreamAside(qw422016 *qt422016.Writer) {
         <ul id="link-cloud">
             `)
 //line views/ybs/base.qtpl:229
-		for _, item := range p.LinkLst {
+		for k := range p.LinkLst {
 //line views/ybs/base.qtpl:229
 			qw422016.N().S(`
             <li><a href="`)
 //line views/ybs/base.qtpl:230
-			qw422016.E().S(item.Url)
+			qw422016.E().S(p.LinkLst[k].Url)
 //line views/ybs/base.qtpl:230
 			qw422016.N().S(`" target="_blank">`)
 //line views/ybs/base.qtpl:230
-			qw422016.E().S(item.Name)
+			qw422016.E().S(p.LinkLst[k].Name)
 //line views/ybs/base.qtpl:230
 			qw422016.N().S(`</a></li>
             `)
