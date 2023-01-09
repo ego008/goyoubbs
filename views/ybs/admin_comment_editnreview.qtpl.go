@@ -74,16 +74,17 @@ func (p *AdminCommentEdit) StreamMainBody(qw422016 *qt422016.Writer) {
             <div class="fleft pure-button-group">
                 <input id="btn-preview" type="button" value="预览" name="submit" onclick="previewComment(); return false;" class="pure-button button-success" />
                 <input id="btn-submit" type="submit" value="发表" name="submit" onclick="submitComment(); return false;" class="pure-button pure-button-primary" />
+                <input id="fileUpload" type="file" onChange="uploadFile()" class="pure-button" name="fileUpload" style="font-size: .8334em;" />
                 `)
-//line views/ybs/admin_comment_editnreview.qtpl:19
+//line views/ybs/admin_comment_editnreview.qtpl:20
 		if p.PageName == "admin_comment_review" {
-//line views/ybs/admin_comment_editnreview.qtpl:19
+//line views/ybs/admin_comment_editnreview.qtpl:20
 			qw422016.N().S(`
                 <a href="?act=del" class="pure-button button-warning fr">直接删除</a>
                 `)
-//line views/ybs/admin_comment_editnreview.qtpl:21
+//line views/ybs/admin_comment_editnreview.qtpl:22
 		}
-//line views/ybs/admin_comment_editnreview.qtpl:21
+//line views/ybs/admin_comment_editnreview.qtpl:22
 		qw422016.N().S(`
             </div>
             <div class="c"></div>
@@ -126,25 +127,25 @@ func (p *AdminCommentEdit) StreamMainBody(qw422016 *qt422016.Writer) {
                 return
             }
             postAjax("/admin/comment/edit", JSON.stringify({"ID": `)
-//line views/ybs/admin_comment_editnreview.qtpl:62
+//line views/ybs/admin_comment_editnreview.qtpl:63
 		qw422016.N().DUL(p.DefaultComment.ID)
-//line views/ybs/admin_comment_editnreview.qtpl:62
+//line views/ybs/admin_comment_editnreview.qtpl:63
 		qw422016.N().S(`, "TopicId": `)
-//line views/ybs/admin_comment_editnreview.qtpl:62
+//line views/ybs/admin_comment_editnreview.qtpl:63
 		qw422016.N().DUL(p.DefaultComment.TopicId)
-//line views/ybs/admin_comment_editnreview.qtpl:62
+//line views/ybs/admin_comment_editnreview.qtpl:63
 		qw422016.N().S(`, "ReplyId": `)
-//line views/ybs/admin_comment_editnreview.qtpl:62
+//line views/ybs/admin_comment_editnreview.qtpl:63
 		qw422016.N().DUL(p.DefaultComment.ReplyId)
-//line views/ybs/admin_comment_editnreview.qtpl:62
+//line views/ybs/admin_comment_editnreview.qtpl:63
 		qw422016.N().S(`, "Content": con, "UserId": `)
-//line views/ybs/admin_comment_editnreview.qtpl:62
+//line views/ybs/admin_comment_editnreview.qtpl:63
 		qw422016.N().DUL(p.DefaultComment.UserId)
-//line views/ybs/admin_comment_editnreview.qtpl:62
+//line views/ybs/admin_comment_editnreview.qtpl:63
 		qw422016.N().S(`, "AddTime": `)
-//line views/ybs/admin_comment_editnreview.qtpl:62
+//line views/ybs/admin_comment_editnreview.qtpl:63
 		qw422016.N().DL(p.DefaultComment.AddTime)
-//line views/ybs/admin_comment_editnreview.qtpl:62
+//line views/ybs/admin_comment_editnreview.qtpl:63
 		qw422016.N().S(`}), function(data){
                 var obj = JSON.parse(data)
                 msgEle.innerText = obj.Msg;
@@ -153,35 +154,35 @@ func (p *AdminCommentEdit) StreamMainBody(qw422016 *qt422016.Writer) {
                 toReplyId = 0;
                 if(obj.Code === 200) {
                     `)
-//line views/ybs/admin_comment_editnreview.qtpl:69
+//line views/ybs/admin_comment_editnreview.qtpl:70
 		if p.GoBack {
-//line views/ybs/admin_comment_editnreview.qtpl:69
+//line views/ybs/admin_comment_editnreview.qtpl:70
 			qw422016.N().S(`
                     window.location.href = "/t/`)
-//line views/ybs/admin_comment_editnreview.qtpl:70
+//line views/ybs/admin_comment_editnreview.qtpl:71
 			qw422016.N().DUL(p.DefaultComment.TopicId)
-//line views/ybs/admin_comment_editnreview.qtpl:70
+//line views/ybs/admin_comment_editnreview.qtpl:71
 			qw422016.N().S(`#r`)
-//line views/ybs/admin_comment_editnreview.qtpl:70
+//line views/ybs/admin_comment_editnreview.qtpl:71
 			qw422016.N().DUL(p.DefaultComment.ID)
-//line views/ybs/admin_comment_editnreview.qtpl:70
+//line views/ybs/admin_comment_editnreview.qtpl:71
 			qw422016.N().S(`";
                     return false;
                     `)
-//line views/ybs/admin_comment_editnreview.qtpl:72
+//line views/ybs/admin_comment_editnreview.qtpl:73
 		}
-//line views/ybs/admin_comment_editnreview.qtpl:72
+//line views/ybs/admin_comment_editnreview.qtpl:73
 		qw422016.N().S(`
                     `)
-//line views/ybs/admin_comment_editnreview.qtpl:73
+//line views/ybs/admin_comment_editnreview.qtpl:74
 		if p.PageName == "admin_comment_review" {
-//line views/ybs/admin_comment_editnreview.qtpl:73
+//line views/ybs/admin_comment_editnreview.qtpl:74
 			qw422016.N().S(`
                     window.location.href = "/admin/comment/review";
                     `)
-//line views/ybs/admin_comment_editnreview.qtpl:75
+//line views/ybs/admin_comment_editnreview.qtpl:76
 		} else {
-//line views/ybs/admin_comment_editnreview.qtpl:75
+//line views/ybs/admin_comment_editnreview.qtpl:76
 			qw422016.N().S(`
                     if(data.Tid > 0){
                         window.location.href = "/t/"+data.Tid;
@@ -189,16 +190,16 @@ func (p *AdminCommentEdit) StreamMainBody(qw422016 *qt422016.Writer) {
                         window.location.href = "/admin/my/comment";
                     }
                     `)
-//line views/ybs/admin_comment_editnreview.qtpl:81
+//line views/ybs/admin_comment_editnreview.qtpl:82
 		}
-//line views/ybs/admin_comment_editnreview.qtpl:81
+//line views/ybs/admin_comment_editnreview.qtpl:82
 		qw422016.N().S(`
                     return false;
                 } else if (obj.Code === 201) {
                     window.location.href = "/member/`)
-//line views/ybs/admin_comment_editnreview.qtpl:84
+//line views/ybs/admin_comment_editnreview.qtpl:85
 		qw422016.N().DUL(p.CurrentUser.ID)
-//line views/ybs/admin_comment_editnreview.qtpl:84
+//line views/ybs/admin_comment_editnreview.qtpl:85
 		qw422016.N().S(`?type=comment";
                     return false;
                 }
@@ -238,44 +239,58 @@ func (p *AdminCommentEdit) StreamMainBody(qw422016 *qt422016.Writer) {
                     }
                 }
             }
-
         });
+        function uploadFile() {
+            let form = new FormData();
+            form.append("file", fileUpload.files[0]);
+            postAjax("/file/upload", form, function(data){
+                let obj = JSON.parse(data)
+                if(obj.Code === 200) {
+                    let img_url = "\n" + obj.Url + "\n";
+                    let pos = conEle.selectionStart;
+                    let con = conEle.value;
+                    conEle.value = con.slice(0, pos) + img_url + con.slice(pos);
+                }else{
+                    console.warn(obj.Msg);
+                }
+            });
+        }
     </script>
 
     `)
-//line views/ybs/admin_comment_editnreview.qtpl:127
+//line views/ybs/admin_comment_editnreview.qtpl:142
 	}
-//line views/ybs/admin_comment_editnreview.qtpl:127
+//line views/ybs/admin_comment_editnreview.qtpl:142
 	qw422016.N().S(`
 
 </div>
 
 `)
-//line views/ybs/admin_comment_editnreview.qtpl:131
+//line views/ybs/admin_comment_editnreview.qtpl:146
 }
 
-//line views/ybs/admin_comment_editnreview.qtpl:131
+//line views/ybs/admin_comment_editnreview.qtpl:146
 func (p *AdminCommentEdit) WriteMainBody(qq422016 qtio422016.Writer) {
-//line views/ybs/admin_comment_editnreview.qtpl:131
+//line views/ybs/admin_comment_editnreview.qtpl:146
 	qw422016 := qt422016.AcquireWriter(qq422016)
-//line views/ybs/admin_comment_editnreview.qtpl:131
+//line views/ybs/admin_comment_editnreview.qtpl:146
 	p.StreamMainBody(qw422016)
-//line views/ybs/admin_comment_editnreview.qtpl:131
+//line views/ybs/admin_comment_editnreview.qtpl:146
 	qt422016.ReleaseWriter(qw422016)
-//line views/ybs/admin_comment_editnreview.qtpl:131
+//line views/ybs/admin_comment_editnreview.qtpl:146
 }
 
-//line views/ybs/admin_comment_editnreview.qtpl:131
+//line views/ybs/admin_comment_editnreview.qtpl:146
 func (p *AdminCommentEdit) MainBody() string {
-//line views/ybs/admin_comment_editnreview.qtpl:131
+//line views/ybs/admin_comment_editnreview.qtpl:146
 	qb422016 := qt422016.AcquireByteBuffer()
-//line views/ybs/admin_comment_editnreview.qtpl:131
+//line views/ybs/admin_comment_editnreview.qtpl:146
 	p.WriteMainBody(qb422016)
-//line views/ybs/admin_comment_editnreview.qtpl:131
+//line views/ybs/admin_comment_editnreview.qtpl:146
 	qs422016 := string(qb422016.B)
-//line views/ybs/admin_comment_editnreview.qtpl:131
+//line views/ybs/admin_comment_editnreview.qtpl:146
 	qt422016.ReleaseByteBuffer(qb422016)
-//line views/ybs/admin_comment_editnreview.qtpl:131
+//line views/ybs/admin_comment_editnreview.qtpl:146
 	return qs422016
-//line views/ybs/admin_comment_editnreview.qtpl:131
+//line views/ybs/admin_comment_editnreview.qtpl:146
 }

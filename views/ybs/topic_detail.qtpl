@@ -103,6 +103,9 @@
                 {% else %}
                     <input id="btn-preview" type="button" value="预览" name="submit" onclick="previewComment(); return false;" class="pure-button button-success" />
                     <input id="btn-submit" type="button" value="发表" name="submit" onclick="submitComment(); return false;" class="pure-button pure-button-primary" />
+                    {% if !p.SiteCf.UploadLimit || (p.SiteCf.UploadLimit && p.CurrentUser.Flag >= 99) %}
+                    <input id="fileUpload" type="file" onChange="uploadFile()" class="pure-button" name="fileUpload" style="font-size: .8334em;" />
+                    {% endif %}
                 {% endif %}
                 </div>
                 <span id="id-msg"></span>
@@ -197,8 +200,22 @@
                             }
                         }
                     }
-
                 });
+                function uploadFile() {
+                    let form = new FormData();
+                    form.append("file", fileUpload.files[0]);
+                    postAjax("/file/upload", form, function(data){
+                        let obj = JSON.parse(data)
+                        if(obj.Code === 200) {
+                            let img_url = "\n" + obj.Url + "\n";
+                            let pos = conEle.selectionStart;
+                            let con = conEle.value;
+                            conEle.value = con.slice(0, pos) + img_url + con.slice(pos);
+                        }else{
+                            console.warn(obj.Msg);
+                        }
+                    });
+                }
                 {% endif %}
             {% endif %}
 

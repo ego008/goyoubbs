@@ -178,16 +178,17 @@ func (p *AdminTopicAdd) StreamMainBody(qw422016 *qt422016.Writer) {
         <div class="fleft pure-button-group">
             <input id="btn-preview" type="button" value="预览" name="submit" class="pure-button button-success" />
             <input id="btn-submit" type="submit" value="发表" name="submit" class="pure-button pure-button-primary" />
+            <input id="fileUpload" type="file" onChange="uploadFile()" class="pure-button" name="fileUpload" style="font-size: .8334em;" />
             `)
-//line views/ybs/admin_topic_add.qtpl:39
+//line views/ybs/admin_topic_add.qtpl:40
 		if p.PageName == "admin_topic_review" {
-//line views/ybs/admin_topic_add.qtpl:39
+//line views/ybs/admin_topic_add.qtpl:40
 			qw422016.N().S(`
             <a href="?act=del" class="pure-button button-warning fr">直接删除</a>
             `)
-//line views/ybs/admin_topic_add.qtpl:41
+//line views/ybs/admin_topic_add.qtpl:42
 		}
-//line views/ybs/admin_topic_add.qtpl:41
+//line views/ybs/admin_topic_add.qtpl:42
 		qw422016.N().S(`
         </div>
         <div class="c"></div>
@@ -253,40 +254,40 @@ func (p *AdminTopicAdd) StreamMainBody(qw422016 *qt422016.Writer) {
 
             submitEle.setAttribute("disabled", "disabled");
             postAjax("/admin/topic/add", JSON.stringify({"Act": "submit", "ID": `)
-//line views/ybs/admin_topic_add.qtpl:105
+//line views/ybs/admin_topic_add.qtpl:106
 		qw422016.N().DUL(p.DefaultTopic.ID)
-//line views/ybs/admin_topic_add.qtpl:105
+//line views/ybs/admin_topic_add.qtpl:106
 		qw422016.N().S(`, "NodeId": parseInt(nodeEle.value, 10), "Title": title, "Content": con, "UserId": parseInt(userIdEle.value, 10), "AddTime": parseInt(addTimeEle.value.trim(), 10)}), function(data){
                 var obj = JSON.parse(data)
                 //console.log(obj);
                 if(obj.Code === 200) {
                     msgEle.style.display = "none";
                     `)
-//line views/ybs/admin_topic_add.qtpl:110
+//line views/ybs/admin_topic_add.qtpl:111
 		if p.GoBack {
-//line views/ybs/admin_topic_add.qtpl:110
+//line views/ybs/admin_topic_add.qtpl:111
 			qw422016.N().S(`
                     window.location.href = "/t/`)
-//line views/ybs/admin_topic_add.qtpl:111
+//line views/ybs/admin_topic_add.qtpl:112
 			qw422016.N().DUL(p.DefaultTopic.ID)
-//line views/ybs/admin_topic_add.qtpl:111
+//line views/ybs/admin_topic_add.qtpl:112
 			qw422016.N().S(`";
                     return
                     `)
-//line views/ybs/admin_topic_add.qtpl:113
+//line views/ybs/admin_topic_add.qtpl:114
 		}
-//line views/ybs/admin_topic_add.qtpl:113
+//line views/ybs/admin_topic_add.qtpl:114
 		qw422016.N().S(`
                     `)
-//line views/ybs/admin_topic_add.qtpl:114
+//line views/ybs/admin_topic_add.qtpl:115
 		if p.PageName == "admin_topic_review" {
-//line views/ybs/admin_topic_add.qtpl:114
+//line views/ybs/admin_topic_add.qtpl:115
 			qw422016.N().S(`
                     window.location.href = "/admin/topic/review";
                     `)
-//line views/ybs/admin_topic_add.qtpl:116
+//line views/ybs/admin_topic_add.qtpl:117
 		} else {
-//line views/ybs/admin_topic_add.qtpl:116
+//line views/ybs/admin_topic_add.qtpl:117
 			qw422016.N().S(`
                     if(data.Tid > 0){
                         window.location.href = "/t/"+data.Tid;
@@ -294,9 +295,9 @@ func (p *AdminTopicAdd) StreamMainBody(qw422016 *qt422016.Writer) {
                         window.location.href = "/admin/my/topic";
                     }
                     `)
-//line views/ybs/admin_topic_add.qtpl:122
+//line views/ybs/admin_topic_add.qtpl:123
 		}
-//line views/ybs/admin_topic_add.qtpl:122
+//line views/ybs/admin_topic_add.qtpl:123
 		qw422016.N().S(`
                     return false;
                 } else if(obj.Code === 201){
@@ -306,9 +307,9 @@ func (p *AdminTopicAdd) StreamMainBody(qw422016 *qt422016.Writer) {
                     conEle.value = "";
 
                     window.location.href = "/member/`)
-//line views/ybs/admin_topic_add.qtpl:130
+//line views/ybs/admin_topic_add.qtpl:131
 		qw422016.N().DUL(p.CurrentUser.ID)
-//line views/ybs/admin_topic_add.qtpl:130
+//line views/ybs/admin_topic_add.qtpl:131
 		qw422016.N().S(`";
                     return false;
                 }else{
@@ -352,44 +353,58 @@ func (p *AdminTopicAdd) StreamMainBody(qw422016 *qt422016.Writer) {
                     }
                 }
             }
-
         });
+        function uploadFile() {
+            let form = new FormData();
+            form.append("file", fileUpload.files[0]);
+            postAjax("/file/upload", form, function(data){
+                let obj = JSON.parse(data)
+                if(obj.Code === 200) {
+                    let img_url = "\n" + obj.Url + "\n";
+                    let pos = conEle.selectionStart;
+                    let con = conEle.value;
+                    conEle.value = con.slice(0, pos) + img_url + con.slice(pos);
+                }else{
+                    console.warn(obj.Msg);
+                }
+            });
+        }
     </script>
 
     `)
-//line views/ybs/admin_topic_add.qtpl:177
+//line views/ybs/admin_topic_add.qtpl:192
 	}
-//line views/ybs/admin_topic_add.qtpl:177
+//line views/ybs/admin_topic_add.qtpl:192
 	qw422016.N().S(`
 
 </div>
 
 `)
-//line views/ybs/admin_topic_add.qtpl:181
+//line views/ybs/admin_topic_add.qtpl:196
 }
 
-//line views/ybs/admin_topic_add.qtpl:181
+//line views/ybs/admin_topic_add.qtpl:196
 func (p *AdminTopicAdd) WriteMainBody(qq422016 qtio422016.Writer) {
-//line views/ybs/admin_topic_add.qtpl:181
+//line views/ybs/admin_topic_add.qtpl:196
 	qw422016 := qt422016.AcquireWriter(qq422016)
-//line views/ybs/admin_topic_add.qtpl:181
+//line views/ybs/admin_topic_add.qtpl:196
 	p.StreamMainBody(qw422016)
-//line views/ybs/admin_topic_add.qtpl:181
+//line views/ybs/admin_topic_add.qtpl:196
 	qt422016.ReleaseWriter(qw422016)
-//line views/ybs/admin_topic_add.qtpl:181
+//line views/ybs/admin_topic_add.qtpl:196
 }
 
-//line views/ybs/admin_topic_add.qtpl:181
+//line views/ybs/admin_topic_add.qtpl:196
 func (p *AdminTopicAdd) MainBody() string {
-//line views/ybs/admin_topic_add.qtpl:181
+//line views/ybs/admin_topic_add.qtpl:196
 	qb422016 := qt422016.AcquireByteBuffer()
-//line views/ybs/admin_topic_add.qtpl:181
+//line views/ybs/admin_topic_add.qtpl:196
 	p.WriteMainBody(qb422016)
-//line views/ybs/admin_topic_add.qtpl:181
+//line views/ybs/admin_topic_add.qtpl:196
 	qs422016 := string(qb422016.B)
-//line views/ybs/admin_topic_add.qtpl:181
+//line views/ybs/admin_topic_add.qtpl:196
 	qt422016.ReleaseByteBuffer(qb422016)
-//line views/ybs/admin_topic_add.qtpl:181
+//line views/ybs/admin_topic_add.qtpl:196
 	return qs422016
-//line views/ybs/admin_topic_add.qtpl:181
+//line views/ybs/admin_topic_add.qtpl:196
 }

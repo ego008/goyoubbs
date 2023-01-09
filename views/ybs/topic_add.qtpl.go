@@ -141,6 +141,17 @@ func (p *UserTopicAdd) StreamMainBody(qw422016 *qt422016.Writer) {
             <input id="btn-preview" type="button" value="预览" name="submit" class="pure-button button-success" />
             <input id="btn-submit" type="submit" value="发表" name="submit" class="pure-button pure-button-primary" />
         </div>
+        `)
+//line views/ybs/topic_add.qtpl:30
+	if !p.SiteCf.UploadLimit || (p.SiteCf.UploadLimit && p.CurrentUser.Flag >= 99) {
+//line views/ybs/topic_add.qtpl:30
+		qw422016.N().S(`
+        <input id="fileUpload" type="file" onChange="uploadFile()" class="pure-button" name="fileUpload" style="font-size: .8334em;" />
+        `)
+//line views/ybs/topic_add.qtpl:32
+	}
+//line views/ybs/topic_add.qtpl:32
+	qw422016.N().S(`
         <div class="c"></div>
 
         <div id="id-preview" class="topic-content markdown-body"></div>
@@ -219,9 +230,9 @@ func (p *UserTopicAdd) StreamMainBody(qw422016 *qt422016.Writer) {
                     conEle.value = "";
 
                     window.location.href = "/member/`)
-//line views/ybs/topic_add.qtpl:107
+//line views/ybs/topic_add.qtpl:110
 	qw422016.N().DUL(p.CurrentUser.ID)
-//line views/ybs/topic_add.qtpl:107
+//line views/ybs/topic_add.qtpl:110
 	qw422016.N().S(`";
                     return;
                 }else{
@@ -235,9 +246,9 @@ func (p *UserTopicAdd) StreamMainBody(qw422016 *qt422016.Writer) {
         }
 
         `)
-//line views/ybs/topic_add.qtpl:119
+//line views/ybs/topic_add.qtpl:122
 	if !p.SiteCf.UploadLimit || (p.SiteCf.UploadLimit && p.CurrentUser.Flag >= 99) {
-//line views/ybs/topic_add.qtpl:119
+//line views/ybs/topic_add.qtpl:122
 		qw422016.N().S(`
         document.addEventListener('paste', function (evt) {
             var url = "/file/upload";
@@ -272,10 +283,25 @@ func (p *UserTopicAdd) StreamMainBody(qw422016 *qt422016.Writer) {
             }
 
         });
+        function uploadFile() {
+            let form = new FormData();
+            form.append("file", fileUpload.files[0]);
+            postAjax("/file/upload", form, function(data){
+                let obj = JSON.parse(data)
+                if(obj.Code === 200) {
+                    let img_url = "\n" + obj.Url + "\n";
+                    let pos = conEle.selectionStart;
+                    let con = conEle.value;
+                    conEle.value = con.slice(0, pos) + img_url + con.slice(pos);
+                }else{
+                    console.warn(obj.Msg);
+                }
+            });
+        }
         `)
-//line views/ybs/topic_add.qtpl:153
+//line views/ybs/topic_add.qtpl:171
 	}
-//line views/ybs/topic_add.qtpl:153
+//line views/ybs/topic_add.qtpl:171
 	qw422016.N().S(`
 
     </script>
@@ -283,31 +309,31 @@ func (p *UserTopicAdd) StreamMainBody(qw422016 *qt422016.Writer) {
 </div>
 
 `)
-//line views/ybs/topic_add.qtpl:159
+//line views/ybs/topic_add.qtpl:177
 }
 
-//line views/ybs/topic_add.qtpl:159
+//line views/ybs/topic_add.qtpl:177
 func (p *UserTopicAdd) WriteMainBody(qq422016 qtio422016.Writer) {
-//line views/ybs/topic_add.qtpl:159
+//line views/ybs/topic_add.qtpl:177
 	qw422016 := qt422016.AcquireWriter(qq422016)
-//line views/ybs/topic_add.qtpl:159
+//line views/ybs/topic_add.qtpl:177
 	p.StreamMainBody(qw422016)
-//line views/ybs/topic_add.qtpl:159
+//line views/ybs/topic_add.qtpl:177
 	qt422016.ReleaseWriter(qw422016)
-//line views/ybs/topic_add.qtpl:159
+//line views/ybs/topic_add.qtpl:177
 }
 
-//line views/ybs/topic_add.qtpl:159
+//line views/ybs/topic_add.qtpl:177
 func (p *UserTopicAdd) MainBody() string {
-//line views/ybs/topic_add.qtpl:159
+//line views/ybs/topic_add.qtpl:177
 	qb422016 := qt422016.AcquireByteBuffer()
-//line views/ybs/topic_add.qtpl:159
+//line views/ybs/topic_add.qtpl:177
 	p.WriteMainBody(qb422016)
-//line views/ybs/topic_add.qtpl:159
+//line views/ybs/topic_add.qtpl:177
 	qs422016 := string(qb422016.B)
-//line views/ybs/topic_add.qtpl:159
+//line views/ybs/topic_add.qtpl:177
 	qt422016.ReleaseByteBuffer(qb422016)
-//line views/ybs/topic_add.qtpl:159
+//line views/ybs/topic_add.qtpl:177
 	return qs422016
-//line views/ybs/topic_add.qtpl:159
+//line views/ybs/topic_add.qtpl:177
 }
