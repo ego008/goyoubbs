@@ -24,6 +24,16 @@ type locItem struct {
 }
 
 func (h *BaseHandler) SiteMapHandler(ctx *fasthttp.RequestCtx) {
+	curUser, _ := h.CurrentUser(ctx)
+	if h.App.Cf.Site.Authorized && curUser.Flag < model.FlagAuthor {
+		if curUser.ID == 0 {
+			ctx.Redirect(h.App.Cf.Site.MainDomain+"/login", 302)
+			return
+		}
+		ctx.Redirect(h.App.Cf.Site.MainDomain+"/setting", 302)
+		return
+	}
+
 	ctx.SetContentType("application/xml; charset=utf-8")
 
 	db := h.App.Db
@@ -96,6 +106,16 @@ func (h *BaseHandler) SiteMapHandler(ctx *fasthttp.RequestCtx) {
 }
 
 func (h *BaseHandler) SitemapIndexHandler(ctx *fasthttp.RequestCtx) {
+	curUser, _ := h.CurrentUser(ctx)
+	if h.App.Cf.Site.Authorized && curUser.Flag < model.FlagAuthor {
+		if curUser.ID == 0 {
+			ctx.Redirect(h.App.Cf.Site.MainDomain+"/login", 302)
+			return
+		}
+		ctx.Redirect(h.App.Cf.Site.MainDomain+"/setting", 302)
+		return
+	}
+
 	//ctx.SetContentType("application/xml; charset=utf-8")
 
 	xmlFile := strings.TrimSpace(ctx.UserValue("xmlFile").(string))

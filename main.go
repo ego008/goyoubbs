@@ -106,15 +106,15 @@ func main() {
 		}()
 	} else if len(*certFile) > 0 && len(*keyFile) > 0 {
 		// TLS with ertFile & keyFile
-		go func() {
-			log.Printf("TCP address to listen to %q", *addr)
-			if err := fasthttp.ListenAndServe(*addr, redirectHandler); err != nil {
-				log.Fatalf("HTTP server ListenAndServe: %v", err)
-			}
-		}()
+		//go func() {
+		//	log.Printf("TCP address to listen to %q", *addr)
+		//	if err := fasthttp.ListenAndServe(*addr, redirectHandler); err != nil {
+		//		log.Fatalf("HTTP server ListenAndServe: %v", err)
+		//	}
+		//}()
 
 		go func() {
-			if err := srv.ListenAndServeTLS("0.0.0.0:443", *certFile, *keyFile); err != nil {
+			if err := srv.ListenAndServeTLS("0.0.0.0"+*addr, *certFile, *keyFile); err != nil {
 				log.Fatalf("HTTPS ListenAndServeTLS: %v", err)
 			}
 		}()
