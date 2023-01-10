@@ -288,6 +288,7 @@ body>footer {
     position: relative;
     padding: .5em .5em 0 .5em;
     z-index: 1;
+    font-family: var(--b-font-main)
 }
 body>footer p {margin: 0}
 body>footer a {color: #bbb}
