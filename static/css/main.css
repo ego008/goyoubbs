@@ -382,8 +382,8 @@ a.external_link {
     border-radius: 10px;
 }
 
-.entry p.meta {margin:0;color: #999;font-size: .9em;font-family: var(--b-font-main)}
-.entry .meta a {color: #666;background-color: #E8E8E8;padding: 0 .2em 0 .2em;font-weight: 300;text-decoration: none;}
+.entry p.meta {margin:0;color: #ccc;font-size: .9em;font-family: var(--b-font-main)}
+.entry .meta a {color: #ccc;background-color: #E8E8E8;padding: 0 .2em 0 .2em;font-weight: 300;text-decoration: none;}
 .entry .meta a:hover {color: #FCFCFC;background-color: #474747;}
 
 .seealso li {line-height: 1.5em;width: 98%;text-overflow: ellipsis;white-space: nowrap;overflow: hidden;display: inline-block;}
