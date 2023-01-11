@@ -65,9 +65,9 @@ func (h *BaseHandler) AdminNodePost(ctx *fasthttp.RequestCtx) {
 
 	obj := model.Node{}
 	obj.ID = id
-	obj.Name = sdb.B2s(ctx.FormValue("Name"))
+	obj.Name = string(ctx.FormValue("Name"))
 	obj.Score, _ = strconv.Atoi(sdb.B2s(ctx.FormValue("Score")))
-	obj.About = sdb.B2s(ctx.FormValue("About"))
+	obj.About = string(ctx.FormValue("About"))
 
 	_, _ = model.NodeSet(h.App.Db, obj)
 
