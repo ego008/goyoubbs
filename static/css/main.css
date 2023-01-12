@@ -3,6 +3,7 @@
     --b-font-main: "San Francisco","Lucida Grande","Lucida Sans Unicode","helvetica neue",Verdana,tahoma,Aril,PingFangSC-Light,"hiragino sans gb",STXihei,"华文细黑","WenQuanYi Micro Hei","Microsoft YaHei UI","Microsoft YaHei","微软雅黑",Heiti,"黑体",sans-serif;
     --b-font-mono: Consolas, Monaco, monospace;
     --line-color: #ececec;
+    --body-bg-color: #f0f0f0;
     --main-bg-color: #fff;
     --bar-bg-color: #e6e6e6;
 }
@@ -27,7 +28,7 @@ body {
     margin: 0 auto;
     color: #121212;
     font-size: 15px;
-    background-color: #f0f0f0;
+    background-color: var(--body-bg-color);
     font-family: var(--b-font-main);
 }
 
@@ -114,8 +115,8 @@ h1 a:hover, h2 a:hover
 
 .top-line {border-top: 1px solid var(--line-color);}
 .bot-line {border-bottom: 1px solid var(--line-color);}
-.br-nav {background-color: #E8E8E8;padding: .5em;margin: 0 -.5em;}
-h1.br-nav, h2.br-nav, h3.br-nav, h4.br-nav {color:#777;font-size: 1.2em;padding-top: 1.2em;padding-bottom: .1em;}
+.br-nav {background-color: var(--body-bg-color);padding: .5em;margin: 0 -.5em;}
+h1.br-nav, h2.br-nav, h3.br-nav, h4.br-nav {color:#777;font-size: 1em;font-weight:normal;padding-top: 1.2em;padding-bottom: .1em;}
 .left {float: left;}
 .right {float: right;}
 .c {clear: both}
@@ -173,7 +174,7 @@ h1.br-nav, h2.br-nav, h3.br-nav, h4.br-nav {color:#777;font-size: 1.2em;padding-
 #comments .meta em {color: #ccc;}
 #comments .meta a {color: #ccc;background-color: #efefef;}
 #comments .meta a:hover {color: #FCFCFC;background-color: #474747;}
-.comments {font-size: 1em;padding: .5em 0;margin: 0;font-family: var(--b-font-main)}
+.comments {font-size: 1em;font-weight: normal; padding: .5em 0;margin: 0;font-family: var(--b-font-main)}
 .comment-count {display: inline-block;
     background-color: #e9ecef;
     color: #666;
@@ -200,7 +201,7 @@ section ul.seealso li:before {
 .user-info a:hover {color: #008A2E}
 
 .sidebar {font-family: var(--b-font-main)}
-.sidebar h1 {color:#474747;font-size: initial;border-bottom: 1px solid var(--line-color);margin: 0;padding: .5em;background-color: var(--bar-bg-color);}
+.sidebar h1 {color:#474747;font-size: 1em;font-weight: normal;border-bottom: 1px solid var(--line-color);margin: 0;padding: .5em;background-color: var(--bar-bg-color);}
 .sidebar section {color: #353535;background-color: var(--main-bg-color);margin-bottom: 1.2em;}
 
 img.avatar {
@@ -328,7 +329,7 @@ body>footer a:hover {color: #eee}
 #tag-cloud {line-height: 1.8em;padding: .5em 1em .5em 1em;font-size: .9em;}
 #tag-cloud a {color: #333;text-decoration:none;padding: 2px 4px;}
 #tag-cloud a:hover {color: #fff;background-color: #464747}
-#tag-cloud .tag-meta {color: #777;}
+#tag-cloud .tag-meta {color: #ccc;}
 #link-cloud {color: #999;padding-bottom: .5em;font-size: .9em;}
 #link-cloud li {line-height: 1.6em}
 #link-cloud li a {color: #333;text-decoration:none;font-weight: 300;}
@@ -337,7 +338,7 @@ body>footer a:hover {color: #eee}
 
 .more-node {color: #777;font-size:.9em;position: relative;right: -1em;top: -.5em;text-decoration: none;}
 
-.tag_meta {color: #777;font-size: 12px;}
+.tag_meta {color: #ccc;font-size: 12px;}
 .rsptime {padding: 0 .5em .5em .5em;background-image:none;border-bottom:none;font-size: .85em;color: #778899;background-color: var(--bar-bg-color);}
 
 #go-to-top {
@@ -386,7 +387,7 @@ a.external_link {
 }
 
 .entry p.meta {margin:0;color: #ccc;font-size: .9em;font-family: var(--b-font-main)}
-.entry .meta a {color: #ccc;background-color: #E8E8E8;padding: 0 .2em 0 .2em;font-weight: 300;text-decoration: none;}
+.entry .meta a {color: #666;background-color:#E8E8E8;padding: 0 .2em 0 .2em;font-weight: 300;text-decoration: none;}
 .entry .meta a:hover {color: #FCFCFC;background-color: #474747;}
 
 .seealso li {line-height: 1.5em;width: 98%;text-overflow: ellipsis;white-space: nowrap;overflow: hidden;display: inline-block;}
@@ -396,7 +397,7 @@ a.external_link {
 
 ul.seealso {margin: 0 0 .5em 0;padding: .5em 0;list-style: none;}
 
-footer ul.seealso {margin: 0;padding: .5em 0;list-style: none;color: #666;font-family: var(--b-font-main)}
+footer ul.seealso {margin: 0;padding: .5em 0;list-style: none;color: #ccc;font-family: var(--b-font-main)}
 
 .entry-content {color: #6a737d;margin-bottom: .5em;}
 #comments .entry-content {margin-left: 36px;}
@@ -421,8 +422,8 @@ footer ul.seealso {margin: 0;padding: .5em 0;list-style: none;color: #666;font-f
 .markdown-body blockquote > :last-child{margin-bottom:0}
 .markdown-body table{display:block;width:100%;overflow:auto}
 
-.markdown-body .line-numbers {color: #ccc;background-color: #fcfcfc;}
-.markdown-body figcaption {padding: .2em;}
+.markdown-body .line-numbers {color: #ccc;background-color: #fefefe;}
+.markdown-body figcaption {color: #ccc;font-size: .85em;}
 .highlight .gutter {padding: 0;background-color: #f9f9f9;width: 56px;}
 .highlight .gutter pre {padding-left: 5px;padding-right: 5px;text-align: center;}
 .highlight .code {padding: 0}
@@ -444,18 +445,16 @@ footer ul.seealso {margin: 0;padding: .5em 0;list-style: none;color: #666;font-f
 }
 
 .markdown-body pre {
-    font-size: 15px;
     line-height: 1.4em;
     display: block;
-    color: #000;
-    background-color: #f3f3f3;
+    color: #232323;
+    background-color: #f9f9f9;
     font-family: var(--b-font-mono);
 }
 
 .markdown-body pre code {
     white-space: pre;
     overflow: auto;
-    border-radius: 3px;
     padding: 0;
     display: block;
 }
@@ -517,11 +516,13 @@ footer ul.seealso {margin: 0;padding: .5em 0;list-style: none;color: #666;font-f
 }
 
 .markdown-body blockquote, .markdown-body q {
-    border-left: 2px solid #009688;
-    padding: 0 10px;
-    color: #777;
+    border-left: 2px solid #ccc;
+    padding: 0 0 0 2px;
+    font-style: italic;
+    font-size: .85em;
+    color: #999;
     quotes: none;
-    margin-left: 1em;
+    margin-left: .5em;
 }
 
 .markdown-body blockquote::before, .markdown-body blockquote::after, .markdown-body q::before, .markdown-body q::after {
@@ -568,7 +569,6 @@ footer ul.seealso {margin: 0;padding: .5em 0;list-style: none;color: #666;font-f
 
 .markdown-body table tr {
     border: 0;
-    border-top: 1px solid var(--line-color);
     background-color: white;
     margin: 0;
     padding: 0;
@@ -580,7 +580,6 @@ footer ul.seealso {margin: 0;padding: .5em 0;list-style: none;color: #666;font-f
 
 .markdown-body table tr th, .markdown-body table tr td {
     font-size: 16px;
-    border: 1px solid #e3e3e3;
     margin: 0;
     padding: 0;
 }
@@ -645,10 +644,10 @@ figure .highlight .s1 {color: #2aa198}
 .markdown-body p code, .markdown-body li code {
     display: inline-block;
     white-space: nowrap;
-    background: #f3f3f3;
+    background: #f9f9f9;
     font-size: .95em;
     line-height: 1.5em;
-    color: #000;
+    color: #232323;
     padding: 0 0.3em;
     margin: -2px 4px;
 }
