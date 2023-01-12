@@ -14,6 +14,11 @@ import (
 	"strconv"
 )
 
+const (
+	fileMaxSize = 10 << 20 // 10 MB
+	imgMaxWidth = 1920
+)
+
 func (h *BaseHandler) FileUpload(ctx *fasthttp.RequestCtx) {
 	ctx.SetContentType("application/json; charset=UTF-8")
 
@@ -43,7 +48,7 @@ func (h *BaseHandler) FileUpload(ctx *fasthttp.RequestCtx) {
 		_, _ = ctx.WriteString(`{"code":400,"msg":"` + err.Error() + `"}`)
 		return
 	} else {
-		if fileSize > 5360690 {
+		if fileSize > fileMaxSize {
 			_, _ = ctx.WriteString(`{"code":400,"msg":"image size too much"}`)
 			return
 		}
@@ -71,7 +76,7 @@ func (h *BaseHandler) FileUpload(ctx *fasthttp.RequestCtx) {
 	saveName := strconv.FormatUint(imgHashValue, 10) + ".jpg"
 	showPath := "/static/upload/" + saveName
 	saveFullPath := h.App.Cf.Site.UploadDir + "/" + saveName
-	dstImg := util.ImageResize(img, 880, 0) // 1024
+	dstImg := util.ImageResize(img, imgMaxWidth, 0) // 1024
 
 	type response struct {
 		model.NormalRsp

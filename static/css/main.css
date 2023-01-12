@@ -147,7 +147,7 @@ h1.br-nav, h2.br-nav, h3.br-nav, h4.br-nav {color:#777;font-size: 1em;font-weigh
 .index {padding: .5em;background-color: var(--main-bg-color);}
 .index article {border-bottom: 1px solid var(--line-color);}
 .index header img {float: left;margin: .1em .5em 0 0;width: 48px;height: 48px;}
-.index article h1 {font-size: 1.12em;font-weight:normal;font-family: var(--b-font-main)}
+.index article h1 {font-size: 1.2em;font-weight:normal;font-family: var(--b-font-main)}
 .index article h1 a {font-weight:400;-webkit-transition: all .3s ease-in-out;-moz-transition: all .3s ease-in-out;transition: all .3s ease-in-out;width: 85%;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -222,7 +222,8 @@ a.count:link {
     font-weight: bold;
     color: white;
     background-color: #AAB0C6;
-    padding: 4px 10px 2px 10px;
+    margin-top: -0.2em;
+    padding: 4px 10px 4px 10px;
     -moz-border-radius: 12px;
     -webkit-border-radius: 12px;
     text-decoration: none;
@@ -233,7 +234,8 @@ a.count:visited {
     font-weight: bold;
     color: #aaa;
     background-color: #E8E8E8;
-    padding: 4px 10px 2px 10px;
+    margin-top: -0.2em;
+    padding: 4px 10px 4px 10px;
     -moz-border-radius: 12px;
     -webkit-border-radius: 12px;
     text-decoration: none;
@@ -244,7 +246,8 @@ a.count:hover {
     font-weight: bold;
     color: white;
     background-color: #474747;
-    padding: 4px 10px 2px 10px;
+    margin-top: -0.2em;
+    padding: 4px 10px 4px 10px;
     -moz-border-radius: 12px;
     -webkit-border-radius: 12px;
     text-decoration: none;
@@ -668,6 +671,8 @@ figure .highlight .s1 {color: #2aa198}
     .main-left-body {margin-right:0;}
     .index {font-size: .8em;}
     .index header img {width: 36px;height: 36px;}
+    .index article h1 {font-size: 1.4em;margin-top: 0.4em}
+    .index .meta {margin: -0.5em 0 .5em 0;}
     .entry header h1 {font-size: 1.3em;}
     .entry header img {width: 48px;height: 48px;}
     #comments header img {width: 36px;height: 36px;}
