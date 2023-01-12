@@ -74,7 +74,7 @@ func (p *AdminCommentEdit) StreamMainBody(qw422016 *qt422016.Writer) {
             <div class="fleft pure-button-group">
                 <input id="btn-preview" type="button" value="预览" name="submit" onclick="previewComment(); return false;" class="pure-button button-success" />
                 <input id="btn-submit" type="submit" value="发表" name="submit" onclick="submitComment(); return false;" class="pure-button pure-button-primary" />
-                <input id="fileUpload" type="file" onChange="uploadFile()" class="pure-button" name="fileUpload" style="font-size: .8334em;" />
+                <input id="fileUpload" type="file" onChange="uploadFile()" class="pure-button" name="fileUpload" style="font-size: .8334em;width: 95px;" />
                 `)
 //line views/ybs/admin_comment_editnreview.qtpl:20
 		if p.PageName == "admin_comment_review" {

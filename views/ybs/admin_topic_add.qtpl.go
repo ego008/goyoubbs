@@ -178,7 +178,7 @@ func (p *AdminTopicAdd) StreamMainBody(qw422016 *qt422016.Writer) {
         <div class="fleft pure-button-group">
             <input id="btn-preview" type="button" value="预览" name="submit" class="pure-button button-success" />
             <input id="btn-submit" type="submit" value="发表" name="submit" class="pure-button pure-button-primary" />
-            <input id="fileUpload" type="file" onChange="uploadFile()" class="pure-button" name="fileUpload" style="font-size: .8334em;" />
+            <input id="fileUpload" type="file" onChange="uploadFile()" class="pure-button" name="fileUpload" style="font-size: .8334em;width: 95px;" />
             `)
 //line views/ybs/admin_topic_add.qtpl:40
 		if p.PageName == "admin_topic_review" {

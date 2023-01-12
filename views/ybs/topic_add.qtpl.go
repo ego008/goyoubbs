@@ -146,7 +146,7 @@ func (p *UserTopicAdd) StreamMainBody(qw422016 *qt422016.Writer) {
 	if !p.SiteCf.UploadLimit || (p.SiteCf.UploadLimit && p.CurrentUser.Flag >= 99) {
 //line views/ybs/topic_add.qtpl:30
 		qw422016.N().S(`
-        <input id="fileUpload" type="file" onChange="uploadFile()" class="pure-button" name="fileUpload" style="font-size: .8334em;" />
+        <input id="fileUpload" type="file" onChange="uploadFile()" class="pure-button" name="fileUpload" style="font-size: .8334em;width: 95px;" />
         `)
 //line views/ybs/topic_add.qtpl:32
 	}
