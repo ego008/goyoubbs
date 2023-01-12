@@ -450,6 +450,7 @@ footer ul.seealso {margin: 0;padding: .5em 0;list-style: none;color: #ccc;font-f
 .markdown-body pre {
     line-height: 1.4em;
     display: block;
+    padding: .5em 0;
     color: #232323;
     background-color: #f9f9f9;
     font-family: var(--b-font-mono);
