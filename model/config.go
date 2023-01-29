@@ -48,6 +48,7 @@ type SiteConf struct {
 	UploadMaxSizeByte  int64  // 上传文件最大 b
 	CachedSize         int    // 缓存大小 x MB
 	SaveTopicIcon      bool   // 帖子九宫格图片保存到数据库（以空间换CPU）
+	SaveImg2db         bool   // 上传的图片保存到数据库
 	RemotePostPw       string // 供管理员远程发布帖子、评论密码
 	IsDevMod           bool   // 开发模式
 	Socks5Proxy        string // 122.33.44.55:123

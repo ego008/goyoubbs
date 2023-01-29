@@ -139,6 +139,7 @@ func (h *BaseHandler) AdminSiteConfigPost(ctx *fasthttp.RequestCtx) {
 	oldSaveTopicIcon := obj.SaveTopicIcon
 	obj.SaveTopicIcon = b2bool(ctx.FormValue("SaveTopicIcon"), false)
 
+	obj.SaveImg2db = b2bool(ctx.FormValue("SaveImg2db"), false)
 	obj.RemotePostPw = sdb.B2s(ctx.FormValue("RemotePostPw"))
 	obj.BaiduSubUrl = sdb.B2s(ctx.FormValue("BaiduSubUrl"))
 	obj.BingSubUrl = sdb.B2s(ctx.FormValue("BingSubUrl"))

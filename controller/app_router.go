@@ -64,6 +64,9 @@ func MainRouter(ap *app.Application, sm *router.Router) {
 	sm.GET("/static/avatar/{uid}.jpg", h.UserAvatarHandle)
 	sm.GET("/icon/t/{tid}.jpg", h.TopicIconHandle)
 
+	// db img
+	sm.GET("/dbi/{key}", h.DbImageHandle)
+
 	// 用户上传图片
 	log.Printf("UploadDir from %q", ap.Cf.Site.UploadDir)
 	if _, err := os.Stat(ap.Cf.Site.UploadDir); err != nil {

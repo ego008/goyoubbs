@@ -128,6 +128,10 @@
                     <input type="checkbox" id="SaveTopicIcon" name="SaveTopicIcon" value="true" {% if p.SiteConf.SaveTopicIcon %}checked{% endif %} /> 帖子九宫格图片保存到数据库（以空间换CPU）
                 </div>
                 <div class="pure-control-group">
+                    <label for="SaveImg2db">上传图片到数据库</label>
+                    <input type="checkbox" id="SaveImg2db" name="SaveImg2db" value="true" {% if p.SiteConf.SaveImg2db %}checked{% endif %} /> 用户上传的图片保存到数据库
+                </div>
+                <div class="pure-control-group">
                     <label for="RemotePostPw">管理员远程发布密码</label>
                     <input type="text" class="pure-input-1-3" id="RemotePostPw" name="RemotePostPw" value="{%s p.SiteConf.RemotePostPw %}" placeholder="请填写强类型密码" /> 管理员远程发布帖子、评论密码
                 </div>

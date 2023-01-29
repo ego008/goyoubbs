@@ -342,7 +342,7 @@ func (p *AdminTopicAdd) StreamMainBody(qw422016 *qt422016.Writer) {
                             let obj = JSON.parse(data)
                             //console.log(obj);
                             if(obj.Code === 200) {
-                                let img_url = "\n" + obj.Url + "\n";
+                                let img_url = "\n![](" + obj.Url + ")\n";
                                 let pos = conEle.selectionStart;
                                 let con = conEle.value;
                                 conEle.value = con.slice(0, pos) + img_url + con.slice(pos);
@@ -360,7 +360,7 @@ func (p *AdminTopicAdd) StreamMainBody(qw422016 *qt422016.Writer) {
             postAjax("/file/upload", form, function(data){
                 let obj = JSON.parse(data)
                 if(obj.Code === 200) {
-                    let img_url = "\n" + obj.Url + "\n";
+                    let img_url = "\n![](" + obj.Url + ")\n";
                     let pos = conEle.selectionStart;
                     let con = conEle.value;
                     conEle.value = con.slice(0, pos) + img_url + con.slice(pos);

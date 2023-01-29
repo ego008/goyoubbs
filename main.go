@@ -19,7 +19,7 @@ import (
 )
 
 //go:generate go get -u github.com/valyala/quicktemplate/qtc
-//go:generate qtc -dir=model
+//go:generate qtc -dir=views
 
 var (
 	addr     = flag.String("addr", ":8080", "TCP address to listen to")

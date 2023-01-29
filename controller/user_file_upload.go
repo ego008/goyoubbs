@@ -19,6 +19,11 @@ const (
 	imgMaxWidth = 1920
 )
 
+type response struct {
+	model.NormalRsp
+	Url string
+}
+
 func (h *BaseHandler) FileUpload(ctx *fasthttp.RequestCtx) {
 	ctx.SetContentType("application/json; charset=UTF-8")
 
@@ -58,12 +63,69 @@ func (h *BaseHandler) FileUpload(ctx *fasthttp.RequestCtx) {
 	if len(imgData.Bytes()) > 512 {
 		buff = imgData.Bytes()[:512]
 	}
-	if len(util.CheckImageType(buff)) == 0 {
+	imgType := util.CheckImageType(buff)
+	if len(imgType) == 0 {
 		_, _ = ctx.WriteString(`{"Code":400,"Msg":"unknown image format"}`)
 		return
 	}
 
 	imgHashValue := util.Xxhash(imgData.Bytes())
+	imgKeyS := strconv.FormatUint(imgHashValue, 10)
+	imgKeyB := sdb.I2b(imgHashValue)
+
+	var saveName, showPath string
+	if imgType == "gif" {
+		saveName = imgKeyS + ".gif"
+	} else {
+		saveName = imgKeyS + ".jpg"
+	}
+	if h.App.Cf.Site.SaveImg2db {
+		showPath = "/dbi/" + saveName
+	} else {
+		showPath = "/static/upload/" + saveName
+	}
+
+	saveFullPath := h.App.Cf.Site.UploadDir + "/" + saveName
+
+	rsp := response{}
+
+	db := h.App.Db
+
+	if db.Hget("local_upload_md5_key", imgKeyB).OK() {
+		rsp.Code = 200
+		rsp.Url = showPath
+		rsp.Msg = "上传成功"
+		_ = json.NewEncoder(ctx).Encode(rsp)
+		return
+	}
+
+	if imgType == "gif" {
+		if h.App.Cf.Site.SaveImg2db {
+			// db
+			if err = db.Hset(model.TbnDbImg, imgKeyB, imgData.Bytes()); err != nil {
+				_, _ = ctx.WriteString(`{"Code":400,"Msg":"` + err.Error() + `"}`)
+				imgData.Reset()
+				return
+			}
+		} else {
+			// local
+			if err = os.WriteFile(saveFullPath, imgData.Bytes(), 0644); err != nil {
+				_, _ = ctx.WriteString(`{"Code":400,"Msg":"` + err.Error() + `"}`)
+				imgData.Reset()
+				return
+			}
+		}
+		imgData.Reset()
+		rsp.Code = 200
+		rsp.Msg = "上传成功"
+		rsp.Url = showPath
+
+		// 保存hash值
+		_ = db.Hset("local_upload_md5_key", imgKeyB, sdb.I2b(curUser.ID))
+
+		_ = json.NewEncoder(ctx).Encode(rsp)
+		return
+	}
 
 	var img image.Image
 	img, err = util.GetImageObj(&imgData)
@@ -73,42 +135,26 @@ func (h *BaseHandler) FileUpload(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
-	saveName := strconv.FormatUint(imgHashValue, 10) + ".jpg"
-	showPath := "/static/upload/" + saveName
-	saveFullPath := h.App.Cf.Site.UploadDir + "/" + saveName
 	dstImg := util.ImageResize(img, imgMaxWidth, 0) // 1024
 
-	type response struct {
-		model.NormalRsp
-		Url string
-	}
-
-	rsp := response{}
-
-	db := h.App.Db
-
-	if db.Hget("local_upload_md5_key", sdb.I2b(imgHashValue)).OK() {
-		rsp.Code = 200
-		rsp.Url = showPath
-		rsp.Msg = "上传成功"
-		_ = json.NewEncoder(ctx).Encode(rsp)
-		return
-	}
-
-	var f3 *os.File
-	f3, err = os.Create(saveFullPath)
-	if err != nil {
+	buf := new(bytes.Buffer)
+	if err = jpeg.Encode(buf, dstImg, &jpeg.Options{Quality: 95}); err != nil {
 		_, _ = ctx.WriteString(`{"Code":400,"Msg":"` + err.Error() + `"}`)
 		return
 	}
-	defer func() {
-		_ = f3.Close()
-	}()
 
-	err = jpeg.Encode(f3, dstImg, &jpeg.Options{Quality: 95})
-	if err != nil {
-		_, _ = ctx.WriteString(`{"Code":400,"Msg":"` + err.Error() + `"}`)
-		return
+	if h.App.Cf.Site.SaveImg2db {
+		// db
+		if err = db.Hset(model.TbnDbImg, imgKeyB, buf.Bytes()); err != nil {
+			_, _ = ctx.WriteString(`{"Code":400,"Msg":"` + err.Error() + `"}`)
+			return
+		}
+	} else {
+		// local
+		if err = os.WriteFile(saveFullPath, buf.Bytes(), 0644); err != nil {
+			_, _ = ctx.WriteString(`{"Code":400,"Msg":"` + err.Error() + `"}`)
+			return
+		}
 	}
 
 	rsp.Code = 200
@@ -116,7 +162,7 @@ func (h *BaseHandler) FileUpload(ctx *fasthttp.RequestCtx) {
 	rsp.Url = showPath
 
 	// 保存hash值
-	_ = db.Hset("local_upload_md5_key", sdb.I2b(imgHashValue), sdb.I2b(curUser.ID))
+	_ = db.Hset("local_upload_md5_key", imgKeyB, sdb.I2b(curUser.ID))
 
 	_ = json.NewEncoder(ctx).Encode(rsp)
 }
