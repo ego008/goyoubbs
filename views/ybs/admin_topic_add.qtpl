@@ -36,7 +36,7 @@
         <div class="fleft pure-button-group">
             <input id="btn-preview" type="button" value="预览" name="submit" class="pure-button button-success" />
             <input id="btn-submit" type="submit" value="发表" name="submit" class="pure-button pure-button-primary" />
-            <input id="fileUpload" type="file" onChange="uploadFile()" class="pure-button" name="fileUpload" style="font-size: .8334em;width: 95px;" />
+            <input id="fileUpload" type="file" accept="image/*" onChange="uploadFile()" class="pure-button" name="fileUpload" style="font-size: .8334em;width: 95px;" />
             {% if p.PageName == "admin_topic_review" %}
             <a href="?act=del" class="pure-button button-warning fr">直接删除</a>
             {% endif %}
