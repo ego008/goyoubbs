@@ -55,7 +55,7 @@ func (h *BaseHandler) AdminNodePost(ctx *fasthttp.RequestCtx) {
 	}
 
 	var id uint64
-	_id := sdb.B2s(ctx.FormValue("id"))
+	_id := string(ctx.FormValue("id"))
 	if len(_id) > 0 {
 		idI, err := strconv.ParseUint(_id, 10, 64)
 		if err == nil {
@@ -66,7 +66,7 @@ func (h *BaseHandler) AdminNodePost(ctx *fasthttp.RequestCtx) {
 	obj := model.Node{}
 	obj.ID = id
 	obj.Name = string(ctx.FormValue("Name"))
-	obj.Score, _ = strconv.Atoi(sdb.B2s(ctx.FormValue("Score")))
+	obj.Score, _ = strconv.Atoi(string(ctx.FormValue("Score")))
 	obj.About = string(ctx.FormValue("About"))
 
 	_, _ = model.NodeSet(h.App.Db, obj)

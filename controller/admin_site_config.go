@@ -3,7 +3,6 @@ package controller
 import (
 	"github.com/VictoriaMetrics/fastcache"
 	"github.com/ego008/goutils/json"
-	"github.com/ego008/sdb"
 	"github.com/gorilla/securecookie"
 	"github.com/valyala/fasthttp"
 	"goyoubbs/model"
@@ -44,7 +43,7 @@ func (h *BaseHandler) AdminSiteConfigPage(ctx *fasthttp.RequestCtx) {
 }
 
 func b2int(b []byte, df int) int {
-	i, err := strconv.Atoi(sdb.B2s(b))
+	i, err := strconv.Atoi(string(b))
 	if err != nil {
 		return df
 	}
@@ -52,7 +51,7 @@ func b2int(b []byte, df int) int {
 }
 
 func b2bool(b []byte, df bool) bool {
-	i, err := strconv.ParseBool(sdb.B2s(b))
+	i, err := strconv.ParseBool(string(b))
 	if err != nil {
 		return df
 	}
@@ -69,12 +68,12 @@ func (h *BaseHandler) AdminSiteConfigPost(ctx *fasthttp.RequestCtx) {
 	obj := model.SiteConf{}
 	model.SiteConfLoad(&obj, h.App.Db)
 
-	obj.Name = sdb.B2s(ctx.FormValue("Name"))
-	obj.Desc = sdb.B2s(ctx.FormValue("Desc"))
-	obj.MainDomain = strings.TrimSuffix(sdb.B2s(ctx.FormValue("MainDomain")), "/")
-	obj.HeaderPartCon = sdb.B2s(ctx.FormValue("HeaderPartCon"))
-	obj.GoogleAutoAdJs = sdb.B2s(ctx.FormValue("GoogleAutoAdJs"))
-	obj.FooterPartHtml = sdb.B2s(ctx.FormValue("FooterPartHtml"))
+	obj.Name = string(ctx.FormValue("Name"))
+	obj.Desc = string(ctx.FormValue("Desc"))
+	obj.MainDomain = strings.TrimSuffix(string(ctx.FormValue("MainDomain")), "/")
+	obj.HeaderPartCon = string(ctx.FormValue("HeaderPartCon"))
+	obj.GoogleAutoAdJs = string(ctx.FormValue("GoogleAutoAdJs"))
+	obj.FooterPartHtml = string(ctx.FormValue("FooterPartHtml"))
 
 	obj.TimeZone = b2int(ctx.FormValue("TimeZone"), 8)
 	if obj.TimeZone < -12 || obj.TimeZone > 12 {
@@ -90,7 +89,7 @@ func (h *BaseHandler) AdminSiteConfigPost(ctx *fasthttp.RequestCtx) {
 	obj.CommentConMaxLen = b2int(ctx.FormValue("CommentConMaxLen"), 5000)
 
 	obj.AutoDataBackup = b2bool(ctx.FormValue("AutoDataBackup"), false)
-	obj.DataBackupDir = strings.TrimSuffix(sdb.B2s(ctx.FormValue("DataBackupDir")), "/")
+	obj.DataBackupDir = strings.TrimSuffix(string(ctx.FormValue("DataBackupDir")), "/")
 	if obj.UploadDir == "" {
 		obj.UploadDir = "data_backup"
 	}
@@ -110,13 +109,13 @@ func (h *BaseHandler) AdminSiteConfigPost(ctx *fasthttp.RequestCtx) {
 		h.App.Sc = securecookie.New(hashKey, blockKey)
 	}
 
-	obj.GetTagApi = sdb.B2s(ctx.FormValue("GetTagApi"))
+	obj.GetTagApi = string(ctx.FormValue("GetTagApi"))
 
 	obj.UploadLimit = b2bool(ctx.FormValue("UploadLimit"), false)
 
 	var reloadRouter bool
 	oldUploadDir := obj.UploadDir
-	obj.UploadDir = strings.TrimSuffix(sdb.B2s(ctx.FormValue("UploadDir")), "/")
+	obj.UploadDir = strings.TrimSuffix(string(ctx.FormValue("UploadDir")), "/")
 	if obj.UploadDir == "" {
 		obj.UploadDir = "upload"
 	}
@@ -140,22 +139,22 @@ func (h *BaseHandler) AdminSiteConfigPost(ctx *fasthttp.RequestCtx) {
 	obj.SaveTopicIcon = b2bool(ctx.FormValue("SaveTopicIcon"), false)
 
 	obj.SaveImg2db = b2bool(ctx.FormValue("SaveImg2db"), false)
-	obj.RemotePostPw = sdb.B2s(ctx.FormValue("RemotePostPw"))
-	obj.BaiduSubUrl = sdb.B2s(ctx.FormValue("BaiduSubUrl"))
-	obj.BingSubUrl = sdb.B2s(ctx.FormValue("BingSubUrl"))
-	obj.GoogleJWTConf = sdb.B2s(ctx.FormValue("GoogleJWTConf"))
-	obj.QQClientID = sdb.B2s(ctx.FormValue("QQClientID"))
-	obj.QQClientSecret = sdb.B2s(ctx.FormValue("QQClientSecret"))
-	obj.WeiboClientID = sdb.B2s(ctx.FormValue("WeiboClientID"))
-	obj.WeiboClientSecret = sdb.B2s(ctx.FormValue("WeiboClientSecret"))
-	obj.GithubClientID = sdb.B2s(ctx.FormValue("GithubClientID"))
-	obj.GithubClientSecret = sdb.B2s(ctx.FormValue("GithubClientSecret"))
+	obj.RemotePostPw = string(ctx.FormValue("RemotePostPw"))
+	obj.BaiduSubUrl = string(ctx.FormValue("BaiduSubUrl"))
+	obj.BingSubUrl = string(ctx.FormValue("BingSubUrl"))
+	obj.GoogleJWTConf = string(ctx.FormValue("GoogleJWTConf"))
+	obj.QQClientID = string(ctx.FormValue("QQClientID"))
+	obj.QQClientSecret = string(ctx.FormValue("QQClientSecret"))
+	obj.WeiboClientID = string(ctx.FormValue("WeiboClientID"))
+	obj.WeiboClientSecret = string(ctx.FormValue("WeiboClientSecret"))
+	obj.GithubClientID = string(ctx.FormValue("GithubClientID"))
+	obj.GithubClientSecret = string(ctx.FormValue("GithubClientSecret"))
 	obj.SendEmail = b2bool(ctx.FormValue("SendEmail"), false)
-	obj.SmtpHost = sdb.B2s(ctx.FormValue("SmtpHost"))
+	obj.SmtpHost = string(ctx.FormValue("SmtpHost"))
 	obj.SmtpPort = b2int(ctx.FormValue("SmtpPort"), 465)
-	obj.SmtpEmail = sdb.B2s(ctx.FormValue("SmtpEmail"))
-	obj.SmtpPassword = sdb.B2s(ctx.FormValue("SmtpPassword"))
-	obj.SendToEmail = sdb.B2s(ctx.FormValue("SendToEmail"))
+	obj.SmtpEmail = string(ctx.FormValue("SmtpEmail"))
+	obj.SmtpPassword = string(ctx.FormValue("SmtpPassword"))
+	obj.SendToEmail = string(ctx.FormValue("SendToEmail"))
 
 	jb, _ := json.Marshal(obj)
 	_ = h.App.Db.Hset(model.KeyValueTb, []byte("site_config"), jb)
