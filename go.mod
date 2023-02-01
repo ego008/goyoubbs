@@ -8,13 +8,13 @@ require (
 	github.com/cespare/xxhash/v2 v2.2.0
 	github.com/disintegration/imaging v1.6.2
 	github.com/ego008/captcha v0.0.0-20210207145536-b16672dce081
-	github.com/ego008/goutils v0.0.0-20230113022656-7ea2aeb0d441
+	github.com/ego008/goutils v0.0.0-20230128130825-0bb5fbbbc81c
 	github.com/ego008/sdb v0.0.0-20220425030734-1f07301d26a5
-	github.com/fasthttp/router v1.4.14
+	github.com/fasthttp/router v1.4.15
 	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0
 	github.com/google/go-github v17.0.0+incompatible
 	github.com/gorilla/securecookie v1.1.1
-	github.com/klauspost/compress v1.15.14
+	github.com/klauspost/compress v1.15.15
 	github.com/mssola/user_agent v0.5.3
 	github.com/nfnt/resize v0.0.0-20180221191011-83c6a9932646
 	github.com/rs/xid v1.4.0
@@ -27,14 +27,14 @@ require (
 	golang.org/x/crypto v0.5.0
 	golang.org/x/image v0.3.0
 	golang.org/x/oauth2 v0.4.0
-	google.golang.org/api v0.107.0
+	google.golang.org/api v0.108.0
 )
 
 require (
-	cloud.google.com/go/compute v1.15.1 // indirect
+	cloud.google.com/go/compute v1.18.0 // indirect
 	cloud.google.com/go/compute/metadata v0.2.3 // indirect
 	github.com/andybalholm/brotli v1.0.4 // indirect
-	github.com/dlclark/regexp2 v1.7.0 // indirect
+	github.com/dlclark/regexp2 v1.8.0 // indirect
 	github.com/goccy/go-json v0.10.0 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
@@ -55,8 +55,8 @@ require (
 	golang.org/x/sys v0.4.0 // indirect
 	golang.org/x/text v0.6.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
-	google.golang.org/genproto v0.0.0-20230112194545-e10362b5ecf9 // indirect
-	google.golang.org/grpc v1.52.0 // indirect
+	google.golang.org/genproto v0.0.0-20230127162408-596548ed4efa // indirect
+	google.golang.org/grpc v1.52.3 // indirect
 	google.golang.org/protobuf v1.28.1 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 )

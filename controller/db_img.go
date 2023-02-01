@@ -10,6 +10,14 @@ import (
 )
 
 func (h *BaseHandler) DbImageHandle(ctx *fasthttp.RequestCtx) {
+	if h.App.Cf.Site.Authorized {
+		ssValue := h.GetCookie(ctx, "SessionID")
+		if len(ssValue) == 0 {
+			_, _ = ctx.WriteString("401")
+			return
+		}
+	}
+
 	keys := ctx.UserValue("key").(string)
 	index := strings.Index(keys, ".")
 	var key, exn string

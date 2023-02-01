@@ -77,6 +77,14 @@ func MainRouter(ap *app.Application, sm *router.Router) {
 		}
 	}
 	sm.GET("/static/upload/{filepath:*}", func(ctx *fasthttp.RequestCtx) {
+		if ap.Cf.Site.Authorized {
+			ssValue := h.GetCookie(ctx, "SessionID")
+			if len(ssValue) == 0 {
+				_, _ = ctx.WriteString("401")
+				return
+			}
+		}
+
 		fp := ap.Cf.Site.UploadDir + sdb.B2s(ctx.Path()[14:])
 		fasthttp.ServeFile(ctx, fp)
 	})
