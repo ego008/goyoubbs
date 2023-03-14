@@ -43,7 +43,7 @@ func (p *UserLogin) StreamMainBody(qw422016 *qt422016.Writer) {
 //line views/ybs/user_loginnregister.qtpl:12
 	qw422016.E().S(p.DefaultName)
 //line views/ybs/user_loginnregister.qtpl:12
-	qw422016.N().S(`" autofocus>
+	qw422016.N().S(`" autocomplete="off" autofocus>
             </div>
 
             <div class="pure-control-group">

@@ -569,7 +569,7 @@ func (p *BasePage) StreamAside(qw422016 *qt422016.Writer) {
 
     <section class="search-form">
         <form action="/q" method="get" class="pure-form">
-            <input type="text" name="q" class="pure-input-rounded" placeholder="站内搜索" />
+            <input type="text" name="q" class="pure-input-rounded" placeholder="站内搜索" autocomplete="off" />
         </form>
     </section>
 

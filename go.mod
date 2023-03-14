@@ -10,7 +10,7 @@ require (
 	github.com/ego008/captcha v0.0.0-20210207145536-b16672dce081
 	github.com/ego008/goutils v0.0.0-20230128130825-0bb5fbbbc81c
 	github.com/ego008/sdb v0.0.0-20220425030734-1f07301d26a5
-	github.com/fasthttp/router v1.4.15
+	github.com/fasthttp/router v1.4.16
 	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0
 	github.com/google/go-github v17.0.0+incompatible
 	github.com/gorilla/securecookie v1.1.1
@@ -23,11 +23,11 @@ require (
 	github.com/tidwall/gjson v1.14.4
 	github.com/valyala/fasthttp v1.44.0
 	github.com/valyala/quicktemplate v1.7.0
-	github.com/yuin/goldmark v1.5.3
+	github.com/yuin/goldmark v1.5.4
 	golang.org/x/crypto v0.5.0
 	golang.org/x/image v0.3.0
 	golang.org/x/oauth2 v0.4.0
-	google.golang.org/api v0.108.0
+	google.golang.org/api v0.109.0
 )
 
 require (
@@ -55,7 +55,7 @@ require (
 	golang.org/x/sys v0.4.0 // indirect
 	golang.org/x/text v0.6.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
-	google.golang.org/genproto v0.0.0-20230127162408-596548ed4efa // indirect
+	google.golang.org/genproto v0.0.0-20230131230820-1c016267d619 // indirect
 	google.golang.org/grpc v1.52.3 // indirect
 	google.golang.org/protobuf v1.28.1 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect

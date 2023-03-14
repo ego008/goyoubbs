@@ -9,7 +9,7 @@
         <fieldset>
             <div class="pure-control-group">
                 <label for="name">登录名： </label>
-                <input id="name" type="text" value="{%s p.DefaultName %}" autofocus>
+                <input id="name" type="text" value="{%s p.DefaultName %}" autocomplete="off" autofocus>
             </div>
 
             <div class="pure-control-group">

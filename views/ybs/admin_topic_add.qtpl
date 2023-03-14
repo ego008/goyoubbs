@@ -18,7 +18,7 @@
                 <option value="{%dul item.ID %}" {% if item.ID == p.DefaultTopic.NodeId %}selected="selected"{% endif %}>{%s item.Name %}</option>
                 {% endfor %}
             </select>
-            <input id="id-title" type="text" value="{%s p.DefaultTopic.Title %}" class="pure-input-1" placeholder="* 标题 MaxLen {%d p.SiteCf.TitleMaxLen %}" />
+            <input id="id-title" type="text" value="{%s p.DefaultTopic.Title %}" class="pure-input-1" placeholder="* 标题 MaxLen {%d p.SiteCf.TitleMaxLen %}" autocomplete="off" />
             <textarea id="id-content" class="pure-input-1 topic-con-input" placeholder="* 内容 MaxLen {%d p.SiteCf.TopicConMaxLen %}">{%s= p.DefaultTopic.Content %}</textarea>
             {% if p.CurrentUser.Flag >= 99 %}
             <select id="select-uid">

@@ -66,7 +66,7 @@ func (p *UserTopicAdd) StreamMainBody(qw422016 *qt422016.Writer) {
 //line views/ybs/topic_add.qtpl:11
 	qw422016.N().D(p.SiteCf.TitleMaxLen)
 //line views/ybs/topic_add.qtpl:11
-	qw422016.N().S(`" />
+	qw422016.N().S(`" autocomplete="off" />
             <textarea id="id-content" class="pure-input-1 topic-con-input" placeholder="* 内容 字符限制 `)
 //line views/ybs/topic_add.qtpl:12
 	qw422016.N().D(p.SiteCf.TopicConMaxLen)
