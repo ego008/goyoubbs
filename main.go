@@ -18,9 +18,6 @@ import (
 	"time"
 )
 
-//go:generate go get -u github.com/valyala/quicktemplate/qtc
-//go:generate qtc -dir=views
-
 var (
 	addr     = flag.String("addr", ":8080", "TCP address to listen to")
 	sdbDir   = flag.String("sdbDir", "localdb", "Directory to serve sdb from")
