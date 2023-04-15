@@ -52,9 +52,6 @@ type SiteConf struct {
 	RemotePostPw       string // 供管理员远程发布帖子、评论密码
 	IsDevMod           bool   // 开发模式
 	Socks5Proxy        string // 122.33.44.55:123
-	BaiduSubUrl        string // 百度提交网址
-	BingSubUrl         string // bing 提交网址
-	GoogleJWTConf      string // GoogleApi JWT config json data
 	QQClientID         string
 	QQClientSecret     string
 	WeiboClientID      string

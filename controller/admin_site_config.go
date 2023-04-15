@@ -140,9 +140,6 @@ func (h *BaseHandler) AdminSiteConfigPost(ctx *fasthttp.RequestCtx) {
 
 	obj.SaveImg2db = b2bool(ctx.FormValue("SaveImg2db"), false)
 	obj.RemotePostPw = string(ctx.FormValue("RemotePostPw"))
-	obj.BaiduSubUrl = string(ctx.FormValue("BaiduSubUrl"))
-	obj.BingSubUrl = string(ctx.FormValue("BingSubUrl"))
-	obj.GoogleJWTConf = string(ctx.FormValue("GoogleJWTConf"))
 	obj.QQClientID = string(ctx.FormValue("QQClientID"))
 	obj.QQClientSecret = string(ctx.FormValue("QQClientSecret"))
 	obj.WeiboClientID = string(ctx.FormValue("WeiboClientID"))

@@ -136,18 +136,6 @@
                     <input type="text" class="pure-input-1-3" id="RemotePostPw" name="RemotePostPw" value="{%s p.SiteConf.RemotePostPw %}" placeholder="请填写强类型密码" /> 管理员远程发布帖子、评论密码
                 </div>
                 <div class="pure-control-group">
-                    <label for="BaiduSubUrl">百度提交网址</label>
-                    <input type="text" class="pure-input-2-3" id="BaiduSubUrl" name="BaiduSubUrl" value="{%s p.SiteConf.BaiduSubUrl %}" placeholder="百度提交网址, 发新帖自动提交到 百度" />
-                </div>
-                <div class="pure-control-group">
-                    <label for="BingSubUrl">Bing 提交网址</label>
-                    <input type="text" class="pure-input-2-3" id="BingSubUrl" name="BingSubUrl" value="{%s p.SiteConf.BingSubUrl %}" placeholder="Bing 提交网址, 发新帖自动提交到 Bing" />
-                </div>
-                <div class="pure-control-group">
-                    <label for="GoogleJWTConf">GoogleApi 配置</label>
-                    <textarea id="GoogleJWTConf" name="GoogleJWTConf" class="pure-input-2-3" placeholder="GoogleApi JWT config json，发新帖自动提交到 Google">{%s p.SiteConf.GoogleJWTConf %}</textarea>
-                </div>
-                <div class="pure-control-group">
                     <label for="QQClientID">QQClientID</label>
                     <input type="text" id="QQClientID" name="QQClientID" value="{%s p.SiteConf.QQClientID %}" placeholder="QQClientID" />
                 </div>
