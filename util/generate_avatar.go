@@ -38,8 +38,6 @@ func GenAvatar(db *sdb.DB, uid uint64, text string) error {
 
 	// Colors are defined by Red, Green, Blue, Alpha uint8 values.
 	bgColor := str2rgb(text) //color.RGBA{R: 243, G: 180, B: 121, A: 0xff}
-	//bgColor := str2rgb2(text)
-	//log.Println("bgColor", bgColor)
 
 	// 画背景
 	// Set color for each pixel.

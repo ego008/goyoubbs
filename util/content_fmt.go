@@ -33,8 +33,7 @@ var (
 	t4Re              = regexp.MustCompile(`\A( {4}|\t)`)
 	t4Re2             = regexp.MustCompile(`^( {4}|\t)`)
 	htmlRe            = regexp.MustCompile("<.*?>|&.*?;")
-	MdImgRe = regexp.MustCompile(`(!\[.*]\(.{10,}\))|([\w./:]*/static/upload/([a-z\d-.]+)\.(jpg|jpe|jpeg|gif|png))`)
-	//imgStrRe = regexp.MustCompile(`([\w./]+\.(jpg|jpe|jpeg|gif|png))`)
+	MdImgRe           = regexp.MustCompile(`(!\[.*]\(.{10,}\))|([\w./:]*/static/upload/([a-z\d-.]+)\.(jpg|jpe|jpeg|gif|png))`)
 )
 
 // HasCodeBlock 检测是否有代码块
@@ -194,7 +193,7 @@ func ContentFmt(input string) string {
 	return md
 }
 
-//GetDesc 截取文章摘要 for robots
+// GetDesc 截取文章摘要 for robots
 func GetDesc(input string) (des string) {
 	input = htmlRe.ReplaceAllString(input, "")
 	limit := 150
@@ -220,7 +219,7 @@ func GetDesc(input string) (des string) {
 	return
 }
 
-//GetShortCon 截取文章摘要 for robots
+// GetShortCon 截取文章摘要 for robots
 func GetShortCon(input string) (des string) {
 	input = strings.ReplaceAll(input, "\n", "")
 	input = htmlRe.ReplaceAllString(input, "")

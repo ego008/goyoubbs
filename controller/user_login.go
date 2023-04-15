@@ -14,7 +14,7 @@ import (
 	"time"
 )
 
-//UserLoginPage 把这个页面放到这里为了解决验证码不显示的bug
+// UserLoginPage 把这个页面放到这里为了解决验证码不显示的bug
 func (h *BaseHandler) UserLoginPage(ctx *fasthttp.RequestCtx) {
 
 	scf := h.App.Cf.Site

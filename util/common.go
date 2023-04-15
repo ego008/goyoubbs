@@ -4,8 +4,6 @@ import (
 	"crypto/md5"
 	"encoding/hex"
 	"github.com/cespare/xxhash/v2"
-	"github.com/ego008/sdb"
-	"github.com/segmentio/fasthash/fnv1a"
 	"strings"
 )
 
@@ -19,16 +17,6 @@ func Md5(text string) string {
 // Xxhash hash string 2 uint64
 func Xxhash(s []byte) uint64 {
 	return xxhash.Sum64(s)
-}
-
-// Xxhash4dbKey 直接返回供 db 保存的 key
-func Xxhash4dbKey(s string) []byte {
-	return sdb.I2b(xxhash.Sum64(sdb.S2b(s)))
-}
-
-// Fnv1a hash
-func Fnv1a(s string) uint64 {
-	return fnv1a.HashString64(s)
 }
 
 // GetDomainFromURL 从url 解析出域名

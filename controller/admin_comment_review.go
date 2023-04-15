@@ -77,7 +77,7 @@ func (h *BaseHandler) AdminCommentReviewPage(ctx *fasthttp.RequestCtx) {
 	ybs.WritePageTemplate(ctx, evn)
 }
 
-//AdminCommentReviewPost 管理员编辑与审核公用
+// AdminCommentReviewPost 管理员编辑与审核公用
 func (h *BaseHandler) AdminCommentReviewPost(ctx *fasthttp.RequestCtx) {
 	ctx.SetContentType("application/json; charset=UTF-8")
 

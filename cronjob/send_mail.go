@@ -79,7 +79,7 @@ func sendMail(db *sdb.DB, scf *model.SiteConf) {
 
 }
 
-//Dial return a smtp client
+// Dial return a smtp client
 func Dial(addr string) (*smtp.Client, error) {
 	conn, err := tls.Dial("tcp", addr, nil)
 	if err != nil {
@@ -92,8 +92,8 @@ func Dial(addr string) (*smtp.Client, error) {
 }
 
 // SendMailUsingTLS 参考net/smtp的func SendMail()
-//使用net.Dial连接tls(ssl)端口时,smtp.NewClient()会卡住且不提示err
-//len(to)>1时,to[1]开始提示是密送
+// 使用net.Dial连接tls(ssl)端口时,smtp.NewClient()会卡住且不提示err
+// len(to)>1时,to[1]开始提示是密送
 func SendMailUsingTLS(addr string, auth smtp.Auth, from string,
 	to []string, msg []byte) (err error) {
 

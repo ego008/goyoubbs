@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-//SiteInfo 网站信息
+// SiteInfo 网站信息
 type SiteInfo struct {
 	Days     string // 建站时间
 	UserNum  uint64 // 用户数

@@ -2,18 +2,10 @@ package util
 
 import (
 	"strconv"
-	"strings"
 	"time"
 )
 
-//const offsetTime = 8 * time.Hour
-
-//GetCurrentYear 取得年数
-func GetCurrentYear(timeOffSet time.Duration) int {
-	return time.Now().UTC().Add(timeOffSet).Year()
-}
-
-//NowTimeFmt 格式化时间
+// NowTimeFmt 格式化时间
 func NowTimeFmt(s string, timeOffSet time.Duration) string {
 	if s == "" {
 		s = "2006-01-02 15:04:05"
@@ -22,7 +14,7 @@ func NowTimeFmt(s string, timeOffSet time.Duration) string {
 	return time.Now().UTC().Add(timeOffSet).Format(s)
 }
 
-//TimeFmt 格式化时间
+// TimeFmt 格式化时间
 func TimeFmt(t int64, s string) string {
 	if s == "" {
 		s = "2006-01-02 15:04:05"
@@ -31,32 +23,10 @@ func TimeFmt(t int64, s string) string {
 	return time.Unix(t, 0).UTC().Format(s) // 存取时间戳时已经加上 offsetTime 这里就不再加
 }
 
-//GetUTCNOW 取0时区当前时间
-func GetUTCNOW() time.Time {
-	return time.Now().UTC()
-}
-
-//GetCNNOW 取8时区当前时间
-func GetCNNOW(timeOffSet time.Duration) time.Time {
-	return time.Now().UTC().Add(timeOffSet)
-}
-
-//GetCNTM 取8时区时间戳
+// GetCNTM 取8时区时间戳
 func GetCNTM(timeOffSet time.Duration) int64 {
 	// 10位数
 	return time.Now().UTC().Add(timeOffSet).Unix()
-}
-
-//GetMs 取毫秒
-func GetMs(timeOffSet time.Duration) int64 {
-	// 13位数
-	return time.Now().UTC().Add(timeOffSet).UnixNano() / 1e6
-}
-
-//GetNs 取纳秒
-func GetNs(timeOffSet time.Duration) int64 {
-	// 19位数
-	return time.Now().UTC().Add(timeOffSet).UnixNano()
 }
 
 func TimeHuman(ts interface{}, timeOffSet time.Duration) string {
@@ -132,17 +102,6 @@ func TimeHuman(ts interface{}, timeOffSet time.Duration) string {
 	}
 
 	return "刚刚"
-}
-
-//NowTimeIsBetween 判断当前时间是否在一个时间段,时间格式，24小时
-func NowTimeIsBetween(t1, t2 string, timeOffSet time.Duration) (inThem bool) {
-	// util.NowTimeBetween("21:30", "22:30")
-	t := NowTimeFmt("15:04", timeOffSet)
-	if strings.Compare(t, t1) == 1 && strings.Compare(t, t2) == -1 {
-		//  t1< t < t2
-		inThem = true
-	}
-	return
 }
 
 // U+1F566 -- &#x1f566;

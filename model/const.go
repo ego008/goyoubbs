@@ -4,7 +4,6 @@ import "time"
 
 const (
 	CountTb         = "count"        // 计数专用
-	StatusKvTb      = "status"       // 状态或游标
 	KeyValueTb      = "keyValue"     // 存放一些配置
 	TbnSitemapIndex = "sm_i"         // key: indexStr, value: time
 	TbnPostUpdate   = "topic_update" // key: topicId, value: addTime

@@ -16,7 +16,7 @@ const (
 
 var nodeNameMap = sync.Map{} // 缓存
 
-//Node 节点
+// Node 节点
 type Node struct {
 	ID       uint64
 	Name     string

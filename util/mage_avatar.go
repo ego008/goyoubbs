@@ -97,7 +97,7 @@ func Merge6Grid(src []io.Reader, dst io.Writer) error {
 	//return jpeg.Encode(dst, newBg, nil)
 }
 
-//CreateRoundRect creates a rounded rectangle r is the input image r is the radius of the corner and color is the color of the corner
+// CreateRoundRect creates a rounded rectangle r is the input image r is the radius of the corner and color is the color of the corner
 func CreateRoundRect(rd io.Reader, r int, c *color.RGBA) (*image.RGBA, error) {
 	src, _, err := image.Decode(rd)
 	if err != nil {
@@ -217,7 +217,7 @@ func getXy6Grid(size int) []*Point {
 // The following is an imitation WeChat group avatar
 
 // Merge Jiugongge avatar synthesis fixed new picture size 132*132px gap 3px
-//At least one picture
+// At least one picture
 func Merge(src []io.Reader, dst io.Writer) error {
 	defer func() {
 		if r := recover(); r != nil {
@@ -359,12 +359,12 @@ func getWidth(size int) int {
 }
 
 // Clip
-//Make up the missing code
-//* Clip Picture crop
-//* Input parameters: image input, output, thumbnail width, thumbnail height, Rectangle{Pt(x0, y0), Pt(x1, y1)}, precision
-//* Rule: If the precision is 0, the precision remains unchanged
-//*
-//* returns: error
+// Make up the missing code
+// * Clip Picture crop
+// * Input parameters: image input, output, thumbnail width, thumbnail height, Rectangle{Pt(x0, y0), Pt(x1, y1)}, precision
+// * Rule: If the precision is 0, the precision remains unchanged
+// *
+// * returns: error
 // */
 func Clip(in io.Reader, out io.Writer, wi, hi, x0, y0, x1, y1, quality int) (err error) {
 	err = errors.New("unknown error")

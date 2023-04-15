@@ -7,7 +7,6 @@ import (
 )
 
 var (
-	defaultUA      = "Mozilla/5.0 (Macintosh; Intel Mac OS X 11_0_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.96 Safari/537.36"
 	fastHttpClient = &fasthttp.Client{
 		TLSConfig:                     &tls.Config{InsecureSkipVerify: true},
 		NoDefaultUserAgentHeader:      true, // Don't send: User-Agent: fasthttp

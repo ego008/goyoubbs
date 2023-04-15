@@ -9,7 +9,7 @@ import (
 
 var goVersion = runtime.Version()
 
-//RspTime RequestTimeWrap
+// RspTime RequestTimeWrap
 func RspTime(next fasthttp.RequestHandler) fasthttp.RequestHandler {
 	return func(ctx *fasthttp.RequestCtx) {
 		startTime := time.Now()

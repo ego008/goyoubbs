@@ -34,7 +34,7 @@ func ObjCachedSetBig(mc *fastcache.Cache, k []byte, v interface{}) {
 	}
 }
 
-//ObjCachedGet 取缓存
+// ObjCachedGet 取缓存
 // 输入参数 getByte 指定直取 byte 内容
 func ObjCachedGet(mc *fastcache.Cache, k []byte, v interface{}, getByte bool) (mcValue []byte, exist bool) {
 	if mcValue = mc.Get(nil, k); len(mcValue) > 0 {

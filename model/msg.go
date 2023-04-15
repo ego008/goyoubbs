@@ -5,11 +5,7 @@ import (
 	"strconv"
 )
 
-const (
-	MsgTbName = "msg"
-)
-
-//Msg 站内 帖子被回复 或 被@ 信息提醒，当用户未读信息超过100 条时不再添加
+// Msg 站内 帖子被回复 或 被@ 信息提醒，当用户未读信息超过100 条时不再添加
 // key 为 TopicId，记录最后一次提醒
 type Msg struct {
 	TopicId   uint64

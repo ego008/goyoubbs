@@ -43,7 +43,7 @@ type TopicRecForm struct {
 	AddTimeFmt string
 }
 
-//TopicTag 文章添加、编辑后传给后台任务的信息
+// TopicTag 文章添加、编辑后传给后台任务的信息
 type TopicTag struct {
 	ID      uint64
 	OldTags string
@@ -76,7 +76,7 @@ type TopicLstLi struct {
 	AddDate     string // 9 添加日，归档显示用
 }
 
-//TopicLstLiMsg for msg
+// TopicLstLiMsg for msg
 type TopicLstLiMsg struct {
 	TopicLstLi
 	Href string // 点击链接 /t/10 | /t/10#comment-4
@@ -96,7 +96,7 @@ type TopicPageInfoMsg struct {
 	Items []TopicLstLiMsg
 }
 
-//TopicFmt 详情页
+// TopicFmt 详情页
 type TopicFmt struct {
 	Topic
 	Name        string
@@ -115,7 +115,7 @@ type TopicFeed struct {
 	Des         string
 }
 
-//TopicSet 单纯保存
+// TopicSet 单纯保存
 func TopicSet(db *sdb.DB, obj Topic) Topic {
 	jb, err := json.Marshal(obj)
 	if err != nil {
@@ -148,7 +148,7 @@ func TopicAdd(mc *fastcache.Cache, db *sdb.DB, obj Topic) Topic {
 	return obj
 }
 
-//TopicDel 删除文章
+// TopicDel 删除文章
 func TopicDel(mc *fastcache.Cache, db *sdb.DB, obj Topic) {
 	// 首页
 	_ = db.Zdel(TbnPostUpdate, sdb.I2b(obj.ID))
@@ -199,7 +199,7 @@ func TopicGetById(db *sdb.DB, tid uint64) (obj Topic) {
 	return
 }
 
-//TopicGetTitlesByIds 根据 ids 取 title ，返回id:title 的map
+// TopicGetTitlesByIds 根据 ids 取 title ，返回id:title 的map
 func TopicGetTitlesByIds(db *sdb.DB, ids []uint64) map[uint64]string {
 	id2name := map[uint64]string{}
 	if len(ids) == 0 {
@@ -294,7 +294,7 @@ func TopicGetRelative(mc *fastcache.Cache, db *sdb.DB, aid uint64, tags string) 
 	return
 }
 
-//GetTopicList 分页获取首页、分类页的帖子
+// GetTopicList 分页获取首页、分类页的帖子
 func GetTopicList(db *sdb.DB, cmd, tb, key, score string, limit int) TopicPageInfo {
 	var items []TopicLstLi
 	var keys [][]byte
@@ -410,7 +410,7 @@ func GetTopicList(db *sdb.DB, cmd, tb, key, score string, limit int) TopicPageIn
 	}
 }
 
-//GetTopicListSortById 首页帖子列表，按ID降序排列
+// GetTopicListSortById 首页帖子列表，按ID降序排列
 func GetTopicListSortById(db *sdb.DB, cmd, tb, key, score string, limit int) TopicPageInfo {
 	var items []TopicLstLi
 	var keys [][]byte
@@ -511,7 +511,7 @@ func GetTopicListSortById(db *sdb.DB, cmd, tb, key, score string, limit int) Top
 	}
 }
 
-//GetTopicListArchives 分页获取归档页：分类页、tag 的帖子
+// GetTopicListArchives 分页获取归档页：分类页、tag 的帖子
 // 兼容接口，score 忽略
 func GetTopicListArchives(db *sdb.DB, cmd, tb, key, score string, limit int) TopicPageInfo {
 	var items []TopicLstLi
@@ -618,7 +618,7 @@ func GetTopicListArchives(db *sdb.DB, cmd, tb, key, score string, limit int) Top
 	}
 }
 
-//SearchTopicList 搜索
+// SearchTopicList 搜索
 func SearchTopicList(mc *fastcache.Cache, db *sdb.DB, q string, limit int) (tInfo TopicPageInfo) {
 	qInContent := strings.HasPrefix(q, "c:")
 	if qInContent {
@@ -747,7 +747,7 @@ func SearchTopicList(mc *fastcache.Cache, db *sdb.DB, q string, limit int) (tInf
 	return
 }
 
-//SearchTopicListFenCi 搜索 with fenCi
+// SearchTopicListFenCi 搜索 with fenCi
 // db, where, qLow, words, h.App.Cf.Site.PageShowNum
 func SearchTopicListFenCi(db *sdb.DB, where, kw string, words []string, limit int) (tInfo TopicPageInfo) {
 	var items []TopicLstLi
@@ -944,7 +944,7 @@ func SearchTopicListFenCi(db *sdb.DB, where, kw string, words []string, limit in
 	return
 }
 
-//GetMsgTopicList 站内信息帖子列表
+// GetMsgTopicList 站内信息帖子列表
 func GetMsgTopicList(db *sdb.DB, uid uint64) (tpi TopicPageInfoMsg) {
 	limit := 10 // 只取最早10条
 
@@ -1040,13 +1040,13 @@ func GetMsgTopicList(db *sdb.DB, uid uint64) (tpi TopicPageInfoMsg) {
 	return
 }
 
-//TopicGetV2ReviewNum 获取用户待审核帖子列表条数
+// TopicGetV2ReviewNum 获取用户待审核帖子列表条数
 func TopicGetV2ReviewNum(db *sdb.DB, uid uint64) int {
 	// 限制 10 条，若有10条未审核的则不允许再发
 	return db.Hscan("review_topic:"+strconv.FormatUint(uid, 10), nil, 10).KvLen()
 }
 
-//TopicGetV2Review 获取用户待审核帖子列表
+// TopicGetV2Review 获取用户待审核帖子列表
 func TopicGetV2Review(db *sdb.DB, uid uint64) (objLst []TopicRecForm) {
 	var ids [][]byte
 	var keyStart []byte
@@ -1078,7 +1078,7 @@ func TopicGetV2Review(db *sdb.DB, uid uint64) (objLst []TopicRecForm) {
 	return
 }
 
-//CheckHasTopic2Review 检查有没有待审核帖子
+// CheckHasTopic2Review 检查有没有待审核帖子
 func CheckHasTopic2Review(db *sdb.DB) bool {
 	if db.Hscan(TopicReviewTbName, nil, 1).OK() {
 		return true
@@ -1086,7 +1086,7 @@ func CheckHasTopic2Review(db *sdb.DB) bool {
 	return false
 }
 
-//TopicGetForFeed 为 feed 取帖子
+// TopicGetForFeed 为 feed 取帖子
 func TopicGetForFeed(db *sdb.DB, limit int) (objLst []TopicFeed) {
 	db.Hrscan(TopicTbName, nil, limit).KvEach(func(_, value sdb.BS) {
 		obj := TopicFeed{}
@@ -1103,7 +1103,7 @@ func TopicGetForFeed(db *sdb.DB, limit int) (objLst []TopicFeed) {
 	return
 }
 
-//ArticleGetNearby 获取相邻文章
+// ArticleGetNearby 获取相邻文章
 func ArticleGetNearby(db *sdb.DB, tid uint64) (oldObj, newObj TopicLi) {
 	key := sdb.I2b(tid)
 	if rs := db.Hrscan(TopicTbName, key, 1); rs.OK() {

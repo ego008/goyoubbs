@@ -34,7 +34,7 @@ type CommentFmt struct {
 	ContentFmt string
 }
 
-//CommentReview 待审核评论
+// CommentReview 待审核评论
 type CommentReview struct {
 	Comment
 	TopicTitle string
@@ -52,14 +52,14 @@ func CommentGetById(db *sdb.DB, tid, cid uint64) (obj Comment) {
 	return
 }
 
-//CommentSet 编辑评论，只修改Content
+// CommentSet 编辑评论，只修改Content
 func CommentSet(db *sdb.DB, obj Comment) Comment {
 	jb, _ := json.Marshal(obj)
 	_ = db.Hset(CommentTbName+strconv.FormatUint(obj.TopicId, 10), sdb.I2b(obj.ID), jb)
 	return obj
 }
 
-//CommentAdd 添加评论
+// CommentAdd 添加评论
 func CommentAdd(mc *fastcache.Cache, db *sdb.DB, obj Comment) Comment {
 	_, _ = db.Hincr(CountTb, []byte("comment"), 1)                  // 总评论数
 	newId, _ := db.Hincr(CommentNumTbName, sdb.I2b(obj.TopicId), 1) // 帖子评论数
@@ -162,7 +162,7 @@ func GetAllTopicComment(mc *fastcache.Cache, db *sdb.DB, topic Topic) (objLst []
 	return
 }
 
-//CheckHasComment2Review 检查有没有待审核评论
+// CheckHasComment2Review 检查有没有待审核评论
 func CheckHasComment2Review(db *sdb.DB) bool {
 	if db.Hscan(CommentReviewTbName, nil, 1).OK() {
 		return true
@@ -170,7 +170,7 @@ func CheckHasComment2Review(db *sdb.DB) bool {
 	return false
 }
 
-//CommentGetNumByKeys 通过 []idByte 取评论数
+// CommentGetNumByKeys 通过 []idByte 取评论数
 func CommentGetNumByKeys(db *sdb.DB, keys [][]byte) map[uint64]uint64 {
 	commentsMap := map[uint64]uint64{}
 	db.Hmget(CommentNumTbName, keys).KvEach(func(key, value sdb.BS) {
@@ -179,7 +179,7 @@ func CommentGetNumByKeys(db *sdb.DB, keys [][]byte) map[uint64]uint64 {
 	return commentsMap
 }
 
-//CommentGetRecent 取最近评论
+// CommentGetRecent 取最近评论
 func CommentGetRecent(mc *fastcache.Cache, db *sdb.DB, limit int) (objLst []CommentFmt) {
 	// get from mc
 	mcKey := []byte("CommentGetRecent")
@@ -242,13 +242,13 @@ func CommentGetRecent(mc *fastcache.Cache, db *sdb.DB, limit int) (objLst []Comm
 	return
 }
 
-//CommentGetReviewNum 取个人待审核评论条数
+// CommentGetReviewNum 取个人待审核评论条数
 func CommentGetReviewNum(db *sdb.DB, uid uint64) int {
 	// 限制 10 条，若有10条未审核的则不允许再发
 	return db.Hscan(CommentReviewTbName+":"+strconv.FormatUint(uid, 10), nil, 10).KvLen()
 }
 
-//CommentGetReview 取个人待审核评论
+// CommentGetReview 取个人待审核评论
 func CommentGetReview(db *sdb.DB, uid uint64) (objLst []CommentReview) {
 	var topicIds []uint64
 	var ids [][]byte

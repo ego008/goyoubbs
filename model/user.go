@@ -92,7 +92,7 @@ func UserGetByIds(db *sdb.DB, ids []uint64) (userLst []User) {
 	return
 }
 
-//UserGetNamesByIds 根据 ids 取 name ，返回id:name 的map
+// UserGetNamesByIds 根据 ids 取 name ，返回id:name 的map
 // 只解析 Name 字段，性能提高一丁点
 func UserGetNamesByIds(db *sdb.DB, ids []uint64) map[uint64]string {
 	id2name := map[uint64]string{}

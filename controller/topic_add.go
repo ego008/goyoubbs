@@ -57,7 +57,7 @@ func (h *BaseHandler) TopicAddPage(ctx *fasthttp.RequestCtx) {
 	ybs.WritePageTemplate(ctx, evn)
 }
 
-//TopicAddPost 发表
+// TopicAddPost 发表
 func (h *BaseHandler) TopicAddPost(ctx *fasthttp.RequestCtx) {
 	ctx.SetContentType("application/json; charset=UTF-8")
 
