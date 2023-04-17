@@ -6,10 +6,10 @@ import (
 	"github.com/valyala/fasthttp"
 	"golang.org/x/crypto/acme"
 	"golang.org/x/crypto/acme/autocert"
-	"goyoubbs/app"
 	"goyoubbs/controller"
 	"goyoubbs/cronjob"
 	mdw "goyoubbs/middleware"
+	"goyoubbs/model"
 	"log"
 	"net"
 	"os"
@@ -30,7 +30,7 @@ var (
 func main() {
 	flag.Parse()
 
-	myApp := &app.Application{}
+	myApp := &model.Application{}
 	myApp.Init(*addr, *sdbDir)
 
 	// cron job

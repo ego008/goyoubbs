@@ -5,7 +5,6 @@ import (
 	"github.com/ego008/sdb"
 	"github.com/fasthttp/router"
 	"github.com/valyala/fasthttp"
-	"goyoubbs/app"
 	"goyoubbs/middleware"
 	"goyoubbs/model"
 	"log"
@@ -13,13 +12,13 @@ import (
 	"strings"
 )
 
-func RouterReload(ap *app.Application) {
+func RouterReload(ap *model.Application) {
 	mux := router.New()
 	MainRouter(ap, mux)
 	ap.Mux = mux
 }
 
-func MainRouter(ap *app.Application, sm *router.Router) {
+func MainRouter(ap *model.Application, sm *router.Router) {
 	h := BaseHandler{App: ap}
 
 	// 自定义路径及内容 参见 https://youbbs.org/t/3324

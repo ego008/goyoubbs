@@ -5,7 +5,6 @@ import (
 	"github.com/ego008/goutils/json"
 	"github.com/ego008/sdb"
 	"github.com/valyala/fasthttp"
-	"goyoubbs/app"
 	"goyoubbs/model"
 	"net"
 	"strings"
@@ -16,7 +15,7 @@ var rangeTopicLst []model.TopicLi // 边栏显示最近被浏览的文章
 
 type (
 	BaseHandler struct {
-		App *app.Application
+		App *model.Application
 	}
 )
 

@@ -1,4 +1,4 @@
-package app
+package model
 
 import (
 	"github.com/VictoriaMetrics/fastcache"
@@ -7,15 +7,14 @@ import (
 	"github.com/gorilla/securecookie"
 	"github.com/syndtr/goleveldb/leveldb/filter"
 	"github.com/syndtr/goleveldb/leveldb/opt"
-	"goyoubbs/model"
 	"log"
 	"os"
 	"strings"
 )
 
 type MyAppConf struct {
-	Main *model.MainConf
-	Site *model.SiteConf
+	Main *MainConf
+	Site *SiteConf
 }
 
 type Application struct {
@@ -28,7 +27,7 @@ type Application struct {
 
 func (app *Application) Init(addr, sdbDir string) {
 
-	mcf := &model.MainConf{
+	mcf := &MainConf{
 		Addr:   addr,
 		SdbDir: sdbDir,
 	}
@@ -41,9 +40,9 @@ func (app *Application) Init(addr, sdbDir string) {
 	}
 	app.Db = db
 
-	scf := model.SiteConf{}
+	scf := SiteConf{}
 	// 从数据库读取网站配置
-	model.SiteConfLoad(&scf, db)
+	SiteConfLoad(&scf, db)
 
 	// 简单识别本地开发 go run main.go
 	// /var/folders/bw/8bnjyv6j4k73h6j2qwh9s7xr0000gn/T/go-build1539771127/b001/exe/main
@@ -56,14 +55,14 @@ func (app *Application) Init(addr, sdbDir string) {
 	if scf.ResetCookieKey {
 		hashKey = securecookie.GenerateRandomKey(64)
 		blockKey = securecookie.GenerateRandomKey(32)
-		_ = db.Hmset(model.KeyValueTb, []byte("hashKey"), hashKey, []byte("blockKey"), blockKey)
+		_ = db.Hmset(KeyValueTb, []byte("hashKey"), hashKey, []byte("blockKey"), blockKey)
 	} else {
-		hashKey = append(hashKey, db.Hget(model.KeyValueTb, []byte("hashKey")).Bytes()...)
-		blockKey = append(blockKey, db.Hget(model.KeyValueTb, []byte("blockKey")).Bytes()...)
+		hashKey = append(hashKey, db.Hget(KeyValueTb, []byte("hashKey")).Bytes()...)
+		blockKey = append(blockKey, db.Hget(KeyValueTb, []byte("blockKey")).Bytes()...)
 		if len(hashKey) == 0 {
 			hashKey = securecookie.GenerateRandomKey(64)
 			blockKey = securecookie.GenerateRandomKey(32)
-			_ = db.Hmset(model.KeyValueTb, []byte("hashKey"), hashKey, []byte("blockKey"), blockKey)
+			_ = db.Hmset(KeyValueTb, []byte("hashKey"), hashKey, []byte("blockKey"), blockKey)
 		}
 	}
 

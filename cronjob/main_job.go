@@ -3,12 +3,12 @@ package cronjob
 import (
 	"github.com/ego008/goutils/splock"
 	"github.com/ego008/sdb"
-	"goyoubbs/app"
+	"goyoubbs/model"
 	"time"
 )
 
 type BaseHandler struct {
-	App *app.Application
+	App *model.Application
 }
 
 func (h *BaseHandler) MainCronJob() {
