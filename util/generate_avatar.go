@@ -204,69 +204,9 @@ func str2rgb(text string) color.RGBA {
 		inf.Mul(inf, big.NewFloat(255)).Add(inf, big.NewFloat(0.5)).Sub(inf, big.NewFloat(0.0000005))
 
 		i64, _ := inf.Int64()
-		//fmt.Println(i64)
-		//fmt.Println(strconv.FormatInt(i64, 16))
 
 		rgbInt[i] = i64
 	}
 
 	return color.RGBA{R: uint8(rgbInt[0]), G: uint8(rgbInt[1]), B: uint8(rgbInt[2]), A: 0xff}
-}
-
-func str2rgb2(text string) color.RGBA {
-	s384 := sha512.New384()
-	s384.Write([]byte(text))
-	digest := hex.EncodeToString(s384.Sum(nil))
-
-	tv := big.NewInt(math.MaxInt64)
-	tv.SetString(digest, 16)
-	tvValue := big.NewFloat(math.MaxFloat64)
-	tvValue.SetInt(tv)
-
-	mv := big.NewInt(math.MaxInt64)
-	mv.SetString(strings.Repeat("f", len(digest)), 16)
-
-	maxValue := big.NewFloat(math.MaxFloat64)
-	maxValue.SetInt(mv)
-
-	inf := big.NewFloat(math.MaxFloat64)
-	inf.Quo(tvValue, maxValue)
-
-	f64, _ := inf.Float64()
-	r, g, b := hsv2Rgb(f64, 0.5, 0.95)
-	// fmt.Println(r, g, b)
-
-	return color.RGBA{R: r, G: g, B: b, A: 0xff}
-}
-
-func hsv2Rgb(h, s, v float64) (uint8, uint8, uint8) {
-	// ok
-	h += 0.618033988749895
-	if h > 1 {
-		h -= 1
-	}
-	hi := int(h * 6.0)
-	f := h*6.0 - float64(hi)
-	p := v * (1.0 - s)
-	q := v * (1.0 - f*s)
-	t := v * (1.0 - (1.0-f)*s)
-
-	var r, g, b float64
-	switch hi {
-	case 0:
-		r, g, b = v, t, p
-	case 1:
-		r, g, b = q, v, p
-	case 2:
-		r, g, b = p, v, t
-	case 3:
-		r, g, b = p, q, v
-	case 4:
-		r, g, b = t, p, v
-	case 5:
-		r, g, b = v, p, q
-	default:
-		r, g, b = 0, 0, 0
-	}
-	return uint8(r * 256), uint8(g * 256), uint8(b * 256)
 }

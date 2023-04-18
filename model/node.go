@@ -96,22 +96,6 @@ func NodeGetAll(mc *fastcache.Cache, db *sdb.DB) (objLst []Node) {
 	return
 }
 
-func NodeGetByIds(db *sdb.DB, ids []uint64) (objLst []Node) {
-	var idsb [][]byte
-	for _, k := range ids {
-		idsb = append(idsb, sdb.I2b(k))
-	}
-	db.Hmget(NodeTbName, idsb).KvEach(func(_, value sdb.BS) {
-		obj := Node{}
-		err := json.Unmarshal(value, &obj)
-		if err != nil {
-			return
-		}
-		objLst = append(objLst, obj)
-	})
-	return
-}
-
 // NodeGetNamesByIds 根据 ids 取 name ，返回id:name 的map
 // 只解析 Name 字段，性能提高一丁点
 func NodeGetNamesByIds(db *sdb.DB, ids []uint64) map[uint64]string {

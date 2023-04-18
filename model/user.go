@@ -119,18 +119,6 @@ func UserGetNamesByIds(db *sdb.DB, ids []uint64) map[uint64]string {
 	return id2name
 }
 
-func UserGetRecent(db *sdb.DB, tbn string, limit int) (userLst []User) {
-	db.Hrscan(tbn, nil, limit).KvEach(func(_, value sdb.BS) {
-		obj := User{}
-		err := json.Unmarshal(value, &obj)
-		if err != nil {
-			return
-		}
-		userLst = append(userLst, obj)
-	})
-	return
-}
-
 func UserGetRecentByKw(db *sdb.DB, kw string, limit int) (userLst []User) {
 	var keyStart []byte
 	for {

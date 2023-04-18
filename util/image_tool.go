@@ -45,23 +45,6 @@ func GetImageObj(buff *bytes.Buffer) (image.Image, error) {
 	return img, err
 }
 
-func GetImageObj2(buff []byte) (image.Image, error) {
-	var img image.Image
-	var err error
-	filetype := http.DetectContentType(buff[:512])
-	switch filetype {
-	case "image/jpeg", "image/jpg":
-		img, err = jpeg.Decode(bytes.NewReader(buff))
-	case "image/gif":
-		img, err = gif.Decode(bytes.NewReader(buff))
-	case "image/png":
-		img, err = png.Decode(bytes.NewReader(buff))
-	default:
-		err = errors.New("unknown image format")
-	}
-	return img, err
-}
-
 func ImageResize(srcImg image.Image, w, h int) *image.NRGBA {
 	if w > 73 {
 		srcW := srcImg.Bounds().Max.X

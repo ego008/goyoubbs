@@ -5,15 +5,6 @@ import (
 	"time"
 )
 
-// NowTimeFmt 格式化时间
-func NowTimeFmt(s string, timeOffSet time.Duration) string {
-	if s == "" {
-		s = "2006-01-02 15:04:05"
-	}
-	//offsetTime
-	return time.Now().UTC().Add(timeOffSet).Format(s)
-}
-
 // TimeFmt 格式化时间
 func TimeFmt(t int64, s string) string {
 	if s == "" {

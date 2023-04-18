@@ -3,7 +3,6 @@ package model
 import (
 	"github.com/ego008/goutils/json"
 	"github.com/ego008/sdb"
-	"github.com/tidwall/gjson"
 	"time"
 )
 
@@ -103,18 +102,4 @@ func SiteConfLoad(scf *SiteConf, db *sdb.DB) {
 
 		TimeOffSet = time.Duration(scf.TimeZone) * time.Hour
 	}
-}
-
-func SiteConfGetKeyStr(db *sdb.DB, key string) string {
-	if rs := db.Hget(KeyValueTb, siteConfKeyName); rs.OK() {
-		return gjson.Get(rs.String(), key).String()
-	}
-	return ""
-}
-
-func SiteConfGetKeyInt(db *sdb.DB, key string) int {
-	if rs := db.Hget(KeyValueTb, siteConfKeyName); rs.OK() {
-		return int(gjson.Get(rs.String(), key).Int())
-	}
-	return 0
 }
