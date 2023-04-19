@@ -57,7 +57,7 @@ func (h *BaseHandler) TagPage(ctx *fasthttp.RequestCtx) {
 		cmd = "zscan"
 	}
 
-	topicPageInfo := model.GetTopicListArchives(db, cmd, "tag:"+tagLower, key, score, scf.PageShowNum)
+	topicPageInfo := model.GetTopicListArchives(db, cmd, "tag:"+tagLower, key, scf.PageShowNum)
 
 	evn := &ybs.TagPage{}
 	evn.SiteCf = scf

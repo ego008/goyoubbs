@@ -11,10 +11,10 @@ import (
 	"image"
 	"image/color"
 	"image/png"
-	"io/ioutil"
 	"log"
 	"math"
 	"math/big"
+	"os"
 	"regexp"
 	"strings"
 )
@@ -130,7 +130,7 @@ func GenAvatar(db *sdb.DB, uid uint64, text string) error {
 // 获取字符集，仅调用一次
 func getFontFamily() (*truetype.Font, error) {
 	// 这里需要读取中文字体，否则中文文字会变成方格
-	fontBytes, err := ioutil.ReadFile(fontFile)
+	fontBytes, err := os.ReadFile(fontFile)
 	if err != nil {
 		log.Println("read file error:", err)
 		return &truetype.Font{}, err

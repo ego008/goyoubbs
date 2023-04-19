@@ -412,7 +412,7 @@ func GetTopicList(db *sdb.DB, cmd, tb, key, score string, limit int) TopicPageIn
 
 // GetTopicListArchives 分页获取归档页：分类页、tag 的帖子
 // 兼容接口，score 忽略
-func GetTopicListArchives(db *sdb.DB, cmd, tb, key, score string, limit int) TopicPageInfo {
+func GetTopicListArchives(db *sdb.DB, cmd, tb, key string, limit int) TopicPageInfo {
 	var items []TopicLstLi
 	var keys [][]byte
 	var hasPrev, hasNext bool
