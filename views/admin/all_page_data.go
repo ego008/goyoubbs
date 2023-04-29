@@ -41,12 +41,7 @@ type (
 		Msg  string
 	}
 
-	//AdminBasePage admin
-	AdminBasePage struct {
-		BasePage
-	}
-
-	AdminCommentEdit struct {
+	CommentEdit struct {
 		BasePage
 		DefaultTopic   model.Topic // 编辑/添加
 		DefaultUser    model.User  // 默认作者
@@ -54,31 +49,31 @@ type (
 		GoBack         bool // 返回到编辑前页面
 	}
 
-	AdminLink struct {
+	Link struct {
 		BasePage
 		Act  string // 行为名称，添加/编辑
 		Link model.Link
 	}
 
-	AdminNode struct {
+	Node struct {
 		BasePage
 		Act  string     // 行为名称，添加/编辑
 		Node model.Node // 分区
 	}
 
-	AdminSiteConfig struct {
+	SiteConfig struct {
 		BasePage
 		SiteConf model.SiteConf
 	}
 
-	AdminSiteRouter struct {
+	SiteRouter struct {
 		BasePage
 		TypeLst []string
 		ObjLst  []model.CustomRouter
 		Obj     model.CustomRouter
 	}
 
-	AdminTopicAdd struct {
+	TopicAdd struct {
 		BasePage
 		DefaultTopic model.Topic  // 编辑/添加
 		DefaultUser  model.User   // 默认作者
@@ -86,7 +81,7 @@ type (
 		GoBack       bool         // 返回到编辑前页面
 	}
 
-	AdminUser struct {
+	User struct {
 		BasePage
 		Act     string // 行为名称，添加/编辑
 		User    model.User

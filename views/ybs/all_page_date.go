@@ -59,10 +59,7 @@ type (
 		CommentLst []model.CommentFmt  // 评论列表
 	}
 
-	//AdminBasePage admin
-	AdminBasePage struct {
-		BasePage
-	}
+	//admin
 
 	AdminCommentEdit struct {
 		BasePage
