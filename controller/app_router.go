@@ -5,7 +5,6 @@ import (
 	"github.com/ego008/sdb"
 	"github.com/fasthttp/router"
 	"github.com/valyala/fasthttp"
-	"goyoubbs/middleware"
 	"goyoubbs/model"
 	"log"
 	"os"
@@ -108,9 +107,9 @@ func MainRouter(ap *model.Application, sm *router.Router) {
 	sm.POST("/get/link/count", h.GetLinkCount)
 	sm.POST("/api/post/content", h.ApiAdminRemotePost) // 管理员发帖、评论接口
 
-	sm.GET("/login", mdw.RspTime(h.UserLoginPage))
+	sm.GET("/login", h.UserLoginPage)
 	sm.POST("/login", h.UserLoginPost)
-	sm.GET("/register", mdw.RspTime(h.UserLoginPage))
+	sm.GET("/register", h.UserLoginPage)
 	sm.POST("/register", h.UserLoginPost)
 	sm.GET("/logout", h.UserLogout)
 
@@ -154,19 +153,19 @@ func MainRouter(ap *model.Application, sm *router.Router) {
 	admin.POST("/comment/edit", h.AdminCommentReviewPost)
 
 	sm.GET("/name/{uname}", h.MemberNamePage)
-	sm.GET("/member/{uid}", mdw.RspTime(h.MemberPage))
-	sm.GET("/t/{tid}", mdw.RspTime(h.TopicDetailPage))
+	sm.GET("/member/{uid}", h.MemberPage)
+	sm.GET("/t/{tid}", h.TopicDetailPage)
 	sm.POST("/t/{tid}", h.TopicDetailPost)
 
-	sm.GET("/n/{nid}", mdw.RspTime(h.NodePage))
-	sm.GET("/tag/{tag}", mdw.RspTime(h.TagPage))
-	sm.GET("/q", mdw.RspTime(h.SearchPage))
+	sm.GET("/n/{nid}", h.NodePage)
+	sm.GET("/tag/{tag}", h.TagPage)
+	sm.GET("/q", h.SearchPage)
 
 	// login
-	sm.GET("/my/msg", mdw.RspTime(h.MyMsgPage))
-	sm.GET("/topic/add", mdw.RspTime(h.TopicAddPage))
+	sm.GET("/my/msg", h.MyMsgPage)
+	sm.GET("/topic/add", h.TopicAddPage)
 	sm.POST("/topic/add", h.TopicAddPost)
-	sm.GET("/setting", mdw.RspTime(h.UserSettingPage))
+	sm.GET("/setting", h.UserSettingPage)
 	sm.POST("/setting", h.UserSettingPost)
 
 	// old
@@ -178,5 +177,5 @@ func MainRouter(ap *model.Application, sm *router.Router) {
 	})
 
 	sm.GET("/{filepath}", h.StaticFile)
-	sm.GET("/", mdw.RspTime(h.HomePage))
+	sm.GET("/", h.HomePage)
 }
