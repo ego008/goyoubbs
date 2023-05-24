@@ -2,6 +2,7 @@ package model
 
 import (
 	"github.com/VictoriaMetrics/fastcache"
+	"github.com/ego008/goutils/ratelimit"
 	"github.com/ego008/sdb"
 	"github.com/fasthttp/router"
 	"github.com/gorilla/securecookie"
@@ -10,6 +11,10 @@ import (
 	"log"
 	"os"
 	"strings"
+)
+
+var (
+	Limiter *ratelimit.Cache
 )
 
 type MyAppConf struct {
