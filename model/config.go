@@ -46,6 +46,8 @@ type SiteConf struct {
 	UploadMaxSize      int    // 上传文件最大 m
 	UploadMaxSizeByte  int64  // 上传文件最大 b
 	CachedSize         int    // 缓存大小 x MB
+	RateLimitDay       int    // 120 日访问限制
+	RateLimitHour      int    // 60 小时访问限制
 	SaveTopicIcon      bool   // 帖子九宫格图片保存到数据库（以空间换CPU）
 	SaveImg2db         bool   // 上传的图片保存到数据库
 	RemotePostPw       string // 供管理员远程发布帖子、评论密码

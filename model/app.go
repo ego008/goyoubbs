@@ -73,10 +73,23 @@ func (app *Application) Init(addr, sdbDir string) {
 
 	app.Sc = securecookie.New(hashKey, blockKey)
 	app.Mc = fastcache.New(scf.CachedSize * 1024 * 1024)
+
+	// rateLimit
+	Limiter = ratelimit.NewCache(1000, scf.RateLimitDay, scf.RateLimitHour)
+	// if Limiter in mc, load them
+	if mcValue := app.Mc.GetBig(nil, []byte("mc_Limiter")); len(mcValue) > 0 {
+		Limiter.Load(mcValue)
+	}
 }
 
 func (app *Application) Close() {
 	_ = app.Db.Close()
+
+	// set limiter data to mc
+	if jb := Limiter.Dump(); len(jb) > 0 {
+		app.Mc.SetBig([]byte("mc_Limiter"), jb)
+	}
+
 	log.Println("db closed")
 	app.Mc.Reset()
 	log.Println("mc Reset")
