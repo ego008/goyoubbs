@@ -4,6 +4,7 @@ import (
 	"github.com/ego008/goutils/json"
 	"github.com/ego008/sdb"
 	"github.com/fasthttp/router"
+	"github.com/mileusna/useragent"
 	"github.com/valyala/fasthttp"
 	"goyoubbs/model"
 	"log"
@@ -152,14 +153,14 @@ func MainRouter(ap *model.Application, sm *router.Router) {
 	admin.GET("/comment/edit", h.AdminCommentEditPage)
 	admin.POST("/comment/edit", h.AdminCommentReviewPost)
 
-	sm.GET("/name/{uname}", h.MemberNamePage)
-	sm.GET("/member/{uid}", h.MemberPage)
-	sm.GET("/t/{tid}", h.TopicDetailPage)
+	sm.GET("/name/{uname}", mdwRateLimit(h.MemberNamePage))
+	sm.GET("/member/{uid}", mdwRateLimit(h.MemberPage))
+	sm.GET("/t/{tid}", mdwRateLimit(h.TopicDetailPage))
 	sm.POST("/t/{tid}", h.TopicDetailPost)
 
-	sm.GET("/n/{nid}", h.NodePage)
-	sm.GET("/tag/{tag}", h.TagPage)
-	sm.GET("/q", h.SearchPage)
+	sm.GET("/n/{nid}", mdwRateLimit(h.NodePage))
+	sm.GET("/tag/{tag}", mdwRateLimit(h.TagPage))
+	sm.GET("/q", mdwRateLimit(h.SearchPage))
 
 	// login
 	sm.GET("/my/msg", h.MyMsgPage)
@@ -178,4 +179,20 @@ func MainRouter(ap *model.Application, sm *router.Router) {
 
 	sm.GET("/{filepath}", h.StaticFile)
 	sm.GET("/", h.HomePage)
+}
+
+// mdwRateLimit simple mdw for RateLimit
+func mdwRateLimit(next fasthttp.RequestHandler) fasthttp.RequestHandler {
+	return func(ctx *fasthttp.RequestCtx) {
+		// ua
+		ua := useragent.Parse(string(ctx.Request.Header.Peek("User-Agent")))
+		if len(ua.String) == 0 {
+			ctx.Error("403", fasthttp.StatusForbidden)
+			_, _ = ctx.Write(nil)
+			return
+		}
+
+		// ok, go next
+		next(ctx)
+	}
 }

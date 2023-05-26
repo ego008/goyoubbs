@@ -15,6 +15,7 @@ require (
 	github.com/google/go-github v17.0.0+incompatible
 	github.com/gorilla/securecookie v1.1.1
 	github.com/klauspost/compress v1.15.15
+	github.com/mileusna/useragent v1.3.2
 	github.com/mssola/user_agent v0.5.3
 	github.com/nfnt/resize v0.0.0-20180221191011-83c6a9932646
 	github.com/rs/xid v1.4.0
