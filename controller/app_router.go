@@ -10,6 +10,7 @@ import (
 	"log"
 	"os"
 	"strings"
+	"time"
 )
 
 func RouterReload(ap *model.Application) {
@@ -184,12 +185,69 @@ func MainRouter(ap *model.Application, sm *router.Router) {
 // mdwRateLimit simple mdw for RateLimit
 func mdwRateLimit(next fasthttp.RequestHandler) fasthttp.RequestHandler {
 	return func(ctx *fasthttp.RequestCtx) {
+		if model.RateLimitDay == 0 || model.RateLimitHour == 0 {
+			// ok, go next
+			next(ctx)
+			return
+		}
+
 		// ua
 		ua := useragent.Parse(string(ctx.Request.Header.Peek("User-Agent")))
 		if len(ua.String) == 0 {
 			ctx.Error("403", fasthttp.StatusForbidden)
 			_, _ = ctx.Write(nil)
 			return
+		}
+
+		m := model.BadBotNameMap.Load().(model.Map)
+		if _, ok := m[ua.Name]; ok {
+			ctx.Error("403", fasthttp.StatusForbidden)
+			_, _ = ctx.Write(nil)
+			return
+		}
+
+		// user ip
+		uip := ReadUserIP(ctx)
+		if len(uip) == 0 {
+			ctx.Error("403", fasthttp.StatusForbidden)
+			_, _ = ctx.Write(nil)
+			return
+		}
+
+		// BadIpPrefix
+		if model.BadIpPrefixLst.ItemInPrefix(uip) {
+			ctx.Error("403", fasthttp.StatusForbidden)
+			_, _ = ctx.Write(nil)
+			return
+		}
+
+		t1 := time.Now()
+
+		// RateLimit if not a bot
+		// the maximum number of items I want from this user in one hour
+		// check ip white ip prefix
+		if !model.AllowIpPrefixLst.ItemInPrefix(uip) {
+			// log.Println(uip, "not in white list")
+			// if not in white list
+			// hour
+			// _, cntH, underRateLimit
+			_, _, underRateLimit := model.Limiter.Incr(uint64(t1.UTC().Unix()), uip)
+			// log.Println(cntD, cntH, underRateLimit)
+			if !underRateLimit {
+				ctx.Error("429", fasthttp.StatusForbidden)
+				_, _ = ctx.Write(nil)
+				return
+			}
+
+			// todo
+			//if ua.Bot {
+			//	model.IpQue.Enqueue(uip)
+			//} else {
+			//	// check ip dns, some time ua.Bot is false but are welcome
+			//	if cntH%10 == 0 {
+			//		model.IpQue.Enqueue(uip)
+			//	}
+			//}
 		}
 
 		// ok, go next
