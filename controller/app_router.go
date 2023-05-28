@@ -230,8 +230,7 @@ func mdwRateLimit(next fasthttp.RequestHandler) fasthttp.RequestHandler {
 			// log.Println(uip, "not in white list")
 			// if not in white list
 			// hour
-			// _, cntH, underRateLimit
-			_, _, underRateLimit := model.Limiter.Incr(uint64(t1.UTC().Unix()), uip)
+			_, cntH, underRateLimit := model.Limiter.Incr(uint64(t1.UTC().Unix()), uip)
 			// log.Println(cntD, cntH, underRateLimit)
 			if !underRateLimit {
 				ctx.Error("429", fasthttp.StatusForbidden)
@@ -239,15 +238,14 @@ func mdwRateLimit(next fasthttp.RequestHandler) fasthttp.RequestHandler {
 				return
 			}
 
-			// todo
-			//if ua.Bot {
-			//	model.IpQue.Enqueue(uip)
-			//} else {
-			//	// check ip dns, some time ua.Bot is false but are welcome
-			//	if cntH%10 == 0 {
-			//		model.IpQue.Enqueue(uip)
-			//	}
-			//}
+			if ua.Bot {
+				model.IpQue.Enqueue(uip)
+			} else {
+				// check ip dns, some time ua.Bot is false but are welcome
+				if cntH%10 == 0 {
+					model.IpQue.Enqueue(uip)
+				}
+			}
 		}
 
 		// ok, go next

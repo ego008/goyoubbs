@@ -2,6 +2,7 @@ package model
 
 import (
 	"github.com/VictoriaMetrics/fastcache"
+	"github.com/ego008/goutils/lfqueue"
 	"github.com/ego008/goutils/ratelimit"
 	"github.com/ego008/sdb"
 	"github.com/fasthttp/router"
@@ -15,6 +16,7 @@ import (
 
 var (
 	Limiter *ratelimit.Cache
+	IpQue   = lfqueue.NewLKQueue() // ip wait to lookup
 )
 
 type MyAppConf struct {
