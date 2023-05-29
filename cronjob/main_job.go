@@ -20,6 +20,7 @@ func (h *BaseHandler) MainCronJob() {
 	tick3 := time.Tick(30 * time.Minute)  // 数据库备份
 	tick6 := time.Tick(9 * time.Second)   // 从 title 提取 tag
 	tick7 := time.Tick(29 * time.Second)  // 设置 topic tag
+	tick8 := time.Tick(2 * time.Second)   // check bot ip
 	tick10 := time.Tick(21 * time.Second) // avatar
 	tick11 := time.Tick(39 * time.Second) // send mail
 
@@ -71,6 +72,13 @@ func (h *BaseHandler) MainCronJob() {
 			if !lk.IsLocked() {
 				lk.Lock()
 				setArticleTag(h.App.Mc, db)
+				lk.UnLock()
+			}
+		case <-tick8:
+			lk := spl.Init("tk8")
+			if !lk.IsLocked() {
+				lk.Lock()
+				spiderIpCheck(db)
 				lk.UnLock()
 			}
 		case <-tick10:
