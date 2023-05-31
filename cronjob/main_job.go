@@ -15,6 +15,9 @@ func (h *BaseHandler) MainCronJob() {
 
 	db := h.App.Db
 
+	// do prepare
+	loadDb2Mc(db)
+
 	spl := splock.SimpleLock{}
 	tick1 := time.Tick(3 * time.Minute)   // 清理过期一些 keys
 	tick3 := time.Tick(30 * time.Minute)  // 数据库备份
