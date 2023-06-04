@@ -61,14 +61,6 @@ type (
 
 	//admin
 
-	AdminCommentEdit struct {
-		BasePage
-		DefaultTopic   model.Topic // 编辑/添加
-		DefaultUser    model.User  // 默认作者
-		DefaultComment model.CommentFmt
-		GoBack         bool // 返回到编辑前页面
-	}
-
 	AdminLink struct {
 		BasePage
 		Act  string // 行为名称，添加/编辑
