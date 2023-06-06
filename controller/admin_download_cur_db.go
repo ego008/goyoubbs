@@ -10,7 +10,6 @@ import (
 	"github.com/valyala/fasthttp"
 	"goyoubbs/util"
 	"io"
-	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
@@ -25,7 +24,7 @@ func (h *BaseHandler) AdminCurDbPage(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
-	dir, err := ioutil.TempDir("", "sdb")
+	dir, err := os.MkdirTemp("", "sdb")
 	if err != nil {
 		log.Println(err)
 		return

@@ -61,12 +61,6 @@ type (
 
 	//admin
 
-	AdminLink struct {
-		BasePage
-		Act  string // 行为名称，添加/编辑
-		Link model.Link
-	}
-
 	AdminNode struct {
 		BasePage
 		Act  string     // 行为名称，添加/编辑
