@@ -61,12 +61,6 @@ type (
 
 	//admin
 
-	AdminNode struct {
-		BasePage
-		Act  string     // 行为名称，添加/编辑
-		Node model.Node // 分区
-	}
-
 	AdminSiteConfig struct {
 		BasePage
 		SiteConf model.SiteConf
