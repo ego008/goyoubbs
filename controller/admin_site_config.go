@@ -6,7 +6,7 @@ import (
 	"github.com/gorilla/securecookie"
 	"github.com/valyala/fasthttp"
 	"goyoubbs/model"
-	"goyoubbs/views/ybs"
+	"goyoubbs/views/admin"
 	"strconv"
 	"strings"
 	"time"
@@ -21,7 +21,7 @@ func (h *BaseHandler) AdminSiteConfigPage(ctx *fasthttp.RequestCtx) {
 
 	scf := h.App.Cf.Site
 
-	evn := &ybs.AdminSiteConfig{}
+	evn := &admin.SiteConfig{}
 	evn.CurrentUser = curUser
 	evn.SiteCf = scf
 	evn.Title = "网站设置"
@@ -39,7 +39,7 @@ func (h *BaseHandler) AdminSiteConfigPage(ctx *fasthttp.RequestCtx) {
 	evn.HasReplyReview = model.CheckHasComment2Review(h.App.Db)
 
 	ctx.SetContentType("text/html; charset=utf-8")
-	ybs.WritePageTemplate(ctx, evn)
+	admin.WritePageTemplate(ctx, evn)
 }
 
 func b2int(b []byte, df int) int {

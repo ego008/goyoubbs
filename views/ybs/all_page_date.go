@@ -61,11 +61,6 @@ type (
 
 	//admin
 
-	AdminSiteConfig struct {
-		BasePage
-		SiteConf model.SiteConf
-	}
-
 	AdminSiteRouter struct {
 		BasePage
 		TypeLst []string
