@@ -61,13 +61,6 @@ type (
 
 	//admin
 
-	AdminSiteRouter struct {
-		BasePage
-		TypeLst []string
-		ObjLst  []model.CustomRouter
-		Obj     model.CustomRouter
-	}
-
 	AdminTopicAdd struct {
 		BasePage
 		DefaultTopic model.Topic  // 编辑/添加

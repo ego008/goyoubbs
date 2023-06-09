@@ -5,7 +5,7 @@ import (
 	"github.com/ego008/sdb"
 	"github.com/valyala/fasthttp"
 	"goyoubbs/model"
-	"goyoubbs/views/ybs"
+	"goyoubbs/views/admin"
 	"log"
 	"strings"
 )
@@ -19,7 +19,7 @@ func (h *BaseHandler) AdminSiteRouterPage(ctx *fasthttp.RequestCtx) {
 
 	scf := h.App.Cf.Site
 
-	evn := &ybs.AdminSiteRouter{}
+	evn := &admin.SiteRouter{}
 	evn.CurrentUser = curUser
 	evn.SiteCf = scf
 	evn.Title = "自定义路由"
@@ -64,7 +64,7 @@ func (h *BaseHandler) AdminSiteRouterPage(ctx *fasthttp.RequestCtx) {
 	evn.HasReplyReview = model.CheckHasComment2Review(h.App.Db)
 
 	ctx.SetContentType("text/html; charset=utf-8")
-	ybs.WritePageTemplate(ctx, evn)
+	admin.WritePageTemplate(ctx, evn)
 }
 
 func (h *BaseHandler) AdminSiteRouterPost(ctx *fasthttp.RequestCtx) {
