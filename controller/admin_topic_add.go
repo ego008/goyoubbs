@@ -8,7 +8,7 @@ import (
 	"github.com/valyala/fasthttp"
 	"goyoubbs/model"
 	"goyoubbs/util"
-	"goyoubbs/views/ybs"
+	"goyoubbs/views/admin"
 	"log"
 	"strconv"
 	"strings"
@@ -24,7 +24,7 @@ func (h *BaseHandler) AdminTopicAddPage(ctx *fasthttp.RequestCtx) {
 	db := h.App.Db
 	scf := h.App.Cf.Site
 
-	evn := &ybs.AdminTopicAdd{}
+	evn := &admin.TopicAdd{}
 	evn.CurrentUser = curUser
 	evn.SiteCf = scf
 	evn.Title = "发表文章"
@@ -47,7 +47,7 @@ func (h *BaseHandler) AdminTopicAddPage(ctx *fasthttp.RequestCtx) {
 	}
 
 	ctx.SetContentType("text/html; charset=utf-8")
-	ybs.WritePageTemplate(ctx, evn)
+	admin.WritePageTemplate(ctx, evn)
 }
 
 // AdminTopicAddPost 发表、审核、编辑 公用

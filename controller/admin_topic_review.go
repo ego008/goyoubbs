@@ -5,7 +5,7 @@ import (
 	"github.com/ego008/sdb"
 	"github.com/valyala/fasthttp"
 	"goyoubbs/model"
-	"goyoubbs/views/ybs"
+	"goyoubbs/views/admin"
 	"strconv"
 )
 
@@ -18,7 +18,7 @@ func (h *BaseHandler) AdminTopicReviewPage(ctx *fasthttp.RequestCtx) {
 
 	scf := h.App.Cf.Site
 
-	evn := &ybs.AdminTopicAdd{}
+	evn := &admin.TopicAdd{}
 	evn.CurrentUser = curUser
 	evn.SiteCf = scf
 	evn.Title = "待审核帖子"
@@ -80,5 +80,5 @@ func (h *BaseHandler) AdminTopicReviewPage(ctx *fasthttp.RequestCtx) {
 	evn.HasReplyReview = model.CheckHasComment2Review(h.App.Db)
 
 	ctx.SetContentType("text/html; charset=utf-8")
-	ybs.WritePageTemplate(ctx, evn)
+	admin.WritePageTemplate(ctx, evn)
 }

@@ -61,14 +61,6 @@ type (
 
 	//admin
 
-	AdminTopicAdd struct {
-		BasePage
-		DefaultTopic model.Topic  // 编辑/添加
-		DefaultUser  model.User   // 默认作者
-		UserLst      []model.User // 可选发表用户列表，管理员
-		GoBack       bool         // 返回到编辑前页面
-	}
-
 	AdminUser struct {
 		BasePage
 		Act     string // 行为名称，添加/编辑
