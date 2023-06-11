@@ -6,7 +6,7 @@ Demo online https://youbbs.org/
 
 ## Usage
 
-Require go 1.16+
+Require go 1.19+
 
 Download source code and build.
 
