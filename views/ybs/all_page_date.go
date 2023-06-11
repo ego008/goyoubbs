@@ -59,16 +59,6 @@ type (
 		CommentLst []model.CommentFmt  // 评论列表
 	}
 
-	//admin
-
-	AdminUser struct {
-		BasePage
-		Act     string // 行为名称，添加/编辑
-		User    model.User
-		UserLst []model.User
-		FlagLst []model.Flag
-	}
-
 	HomePage struct {
 		TopicLstPage
 	}

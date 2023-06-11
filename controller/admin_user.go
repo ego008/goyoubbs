@@ -5,7 +5,7 @@ import (
 	"github.com/valyala/fasthttp"
 	"goyoubbs/model"
 	"goyoubbs/util"
-	"goyoubbs/views/ybs"
+	"goyoubbs/views/admin"
 	"strconv"
 	"strings"
 )
@@ -19,7 +19,7 @@ func (h *BaseHandler) AdminUserPage(ctx *fasthttp.RequestCtx) {
 
 	scf := h.App.Cf.Site
 
-	evn := &ybs.AdminUser{}
+	evn := &admin.User{}
 	evn.CurrentUser = curUser
 	evn.SiteCf = scf
 	evn.Title = "用户管理"
@@ -73,7 +73,7 @@ func (h *BaseHandler) AdminUserPage(ctx *fasthttp.RequestCtx) {
 	evn.HasReplyReview = model.CheckHasComment2Review(h.App.Db)
 
 	ctx.SetContentType("text/html; charset=utf-8")
-	ybs.WritePageTemplate(ctx, evn)
+	admin.WritePageTemplate(ctx, evn)
 }
 
 func (h *BaseHandler) AdminUserPost(ctx *fasthttp.RequestCtx) {
