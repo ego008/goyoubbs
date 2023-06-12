@@ -124,6 +124,14 @@
                     <span class="pure-form-message-inline">M</span>
                 </div>
                 <div class="pure-control-group">
+                    <label for="CachedSize">日访问限制数</label>
+                    <input type="number" id="RateLimitDay" name="RateLimitDay" value="{%d p.SiteConf.RateLimitDay %}" />
+                </div>
+                <div class="pure-control-group">
+                    <label for="CachedSize">小时访问限制数</label>
+                    <input type="number" id="RateLimitHour" name="RateLimitHour" value="{%d p.SiteConf.RateLimitHour %}" />
+                </div>
+                <div class="pure-control-group">
                     <label for="SaveTopicIcon">保存九宫格图片</label>
                     <input type="checkbox" id="SaveTopicIcon" name="SaveTopicIcon" value="true" {% if p.SiteConf.SaveTopicIcon %}checked{% endif %} /> 帖子九宫格图片保存到数据库（以空间换CPU）
                 </div>

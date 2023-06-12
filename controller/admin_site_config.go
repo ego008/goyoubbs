@@ -135,6 +135,11 @@ func (h *BaseHandler) AdminSiteConfigPost(ctx *fasthttp.RequestCtx) {
 		obj.CachedSize = 1
 	}
 
+	obj.RateLimitDay = b2int(ctx.FormValue("RateLimitDay"), 0)
+	model.RateLimitDay = obj.RateLimitDay
+	obj.RateLimitHour = b2int(ctx.FormValue("RateLimitHour"), 0)
+	model.RateLimitHour = obj.RateLimitHour
+
 	oldSaveTopicIcon := obj.SaveTopicIcon
 	obj.SaveTopicIcon = b2bool(ctx.FormValue("SaveTopicIcon"), false)
 

@@ -105,3 +105,14 @@ func SiteConfLoad(scf *SiteConf, db *sdb.DB) {
 		TimeOffSet = time.Duration(scf.TimeZone) * time.Hour
 	}
 }
+
+func ConfLoad2MC(db *sdb.DB) {
+	obj := SiteConf{}
+	rs := db.Hget(KeyValueTb, []byte("site_config"))
+	if !rs.OK() {
+		return
+	}
+	_ = json.Unmarshal(rs.Bytes(), &obj)
+	RateLimitDay = obj.RateLimitDay
+	RateLimitHour = obj.RateLimitHour
+}
