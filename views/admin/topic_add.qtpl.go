@@ -18,7 +18,7 @@ var (
 )
 
 //line views/admin/topic_add.qtpl:1
-func (p *AdminTopicAdd) StreamMainBody(qw422016 *qt422016.Writer) {
+func (p *TopicAdd) StreamMainBody(qw422016 *qt422016.Writer) {
 //line views/admin/topic_add.qtpl:1
 	qw422016.N().S(`
 
@@ -384,7 +384,7 @@ func (p *AdminTopicAdd) StreamMainBody(qw422016 *qt422016.Writer) {
 }
 
 //line views/admin/topic_add.qtpl:196
-func (p *AdminTopicAdd) WriteMainBody(qq422016 qtio422016.Writer) {
+func (p *TopicAdd) WriteMainBody(qq422016 qtio422016.Writer) {
 //line views/admin/topic_add.qtpl:196
 	qw422016 := qt422016.AcquireWriter(qq422016)
 //line views/admin/topic_add.qtpl:196
@@ -395,7 +395,7 @@ func (p *AdminTopicAdd) WriteMainBody(qq422016 qtio422016.Writer) {
 }
 
 //line views/admin/topic_add.qtpl:196
-func (p *AdminTopicAdd) MainBody() string {
+func (p *TopicAdd) MainBody() string {
 //line views/admin/topic_add.qtpl:196
 	qb422016 := qt422016.AcquireByteBuffer()
 //line views/admin/topic_add.qtpl:196

@@ -1,4 +1,4 @@
-{% func (p *AdminSiteRouter) MainBody() %}
+{% func (p *SiteRouter) MainBody() %}
 <div class="index">
     <div class="markdown-body entry-content">
     <h1>{%s p.Title %}</h1>

@@ -18,7 +18,7 @@ var (
 )
 
 //line views/admin/node.qtpl:1
-func (p *AdminNode) StreamMainBody(qw422016 *qt422016.Writer) {
+func (p *Node) StreamMainBody(qw422016 *qt422016.Writer) {
 //line views/admin/node.qtpl:1
 	qw422016.N().S(`
 <div class="index">
@@ -125,7 +125,7 @@ func (p *AdminNode) StreamMainBody(qw422016 *qt422016.Writer) {
 }
 
 //line views/admin/node.qtpl:53
-func (p *AdminNode) WriteMainBody(qq422016 qtio422016.Writer) {
+func (p *Node) WriteMainBody(qq422016 qtio422016.Writer) {
 //line views/admin/node.qtpl:53
 	qw422016 := qt422016.AcquireWriter(qq422016)
 //line views/admin/node.qtpl:53
@@ -136,7 +136,7 @@ func (p *AdminNode) WriteMainBody(qq422016 qtio422016.Writer) {
 }
 
 //line views/admin/node.qtpl:53
-func (p *AdminNode) MainBody() string {
+func (p *Node) MainBody() string {
 //line views/admin/node.qtpl:53
 	qb422016 := qt422016.AcquireByteBuffer()
 //line views/admin/node.qtpl:53

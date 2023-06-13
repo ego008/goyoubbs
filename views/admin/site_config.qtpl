@@ -1,4 +1,4 @@
-{% func (p *AdminSiteConfig) MainBody() %}
+{% func (p *SiteConfig) MainBody() %}
 <div class="index">
     <div class="markdown-body entry-content">
         <h1>{%s p.Title %}</h1>

@@ -1,4 +1,4 @@
-{% func (p *AdminCommentEdit) MainBody() %}
+{% func (p *CommentEdit) MainBody() %}
 
 <div class="index">
     {% if p.PageName == "admin_comment_review" && len(p.DefaultComment.Content)==0 %}

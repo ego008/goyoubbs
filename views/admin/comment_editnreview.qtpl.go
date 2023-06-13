@@ -18,7 +18,7 @@ var (
 )
 
 //line views/admin/comment_editnreview.qtpl:1
-func (p *AdminCommentEdit) StreamMainBody(qw422016 *qt422016.Writer) {
+func (p *CommentEdit) StreamMainBody(qw422016 *qt422016.Writer) {
 //line views/admin/comment_editnreview.qtpl:1
 	qw422016.N().S(`
 
@@ -270,7 +270,7 @@ func (p *AdminCommentEdit) StreamMainBody(qw422016 *qt422016.Writer) {
 }
 
 //line views/admin/comment_editnreview.qtpl:146
-func (p *AdminCommentEdit) WriteMainBody(qq422016 qtio422016.Writer) {
+func (p *CommentEdit) WriteMainBody(qq422016 qtio422016.Writer) {
 //line views/admin/comment_editnreview.qtpl:146
 	qw422016 := qt422016.AcquireWriter(qq422016)
 //line views/admin/comment_editnreview.qtpl:146
@@ -281,7 +281,7 @@ func (p *AdminCommentEdit) WriteMainBody(qq422016 qtio422016.Writer) {
 }
 
 //line views/admin/comment_editnreview.qtpl:146
-func (p *AdminCommentEdit) MainBody() string {
+func (p *CommentEdit) MainBody() string {
 //line views/admin/comment_editnreview.qtpl:146
 	qb422016 := qt422016.AcquireByteBuffer()
 //line views/admin/comment_editnreview.qtpl:146

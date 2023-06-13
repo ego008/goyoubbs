@@ -18,7 +18,7 @@ var (
 )
 
 //line views/admin/site_config.qtpl:1
-func (p *AdminSiteConfig) StreamMainBody(qw422016 *qt422016.Writer) {
+func (p *SiteConfig) StreamMainBody(qw422016 *qt422016.Writer) {
 //line views/admin/site_config.qtpl:1
 	qw422016.N().S(`
 <div class="index">
@@ -455,7 +455,7 @@ func (p *AdminSiteConfig) StreamMainBody(qw422016 *qt422016.Writer) {
 }
 
 //line views/admin/site_config.qtpl:203
-func (p *AdminSiteConfig) WriteMainBody(qq422016 qtio422016.Writer) {
+func (p *SiteConfig) WriteMainBody(qq422016 qtio422016.Writer) {
 //line views/admin/site_config.qtpl:203
 	qw422016 := qt422016.AcquireWriter(qq422016)
 //line views/admin/site_config.qtpl:203
@@ -466,7 +466,7 @@ func (p *AdminSiteConfig) WriteMainBody(qq422016 qtio422016.Writer) {
 }
 
 //line views/admin/site_config.qtpl:203
-func (p *AdminSiteConfig) MainBody() string {
+func (p *SiteConfig) MainBody() string {
 //line views/admin/site_config.qtpl:203
 	qb422016 := qt422016.AcquireByteBuffer()
 //line views/admin/site_config.qtpl:203

@@ -1,4 +1,4 @@
-{% func (p *AdminTopicAdd) MainBody() %}
+{% func (p *TopicAdd) MainBody() %}
 
 <div class="index">
     {% if p.PageName == "admin_topic_review" && len(p.DefaultTopic.Title)==0 %}
