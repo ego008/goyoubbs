@@ -7,6 +7,8 @@
             <a href="/admin/site/router" class="pure-button">自定义路由</a>
             <a href="/admin/site/download/cur/db" class="pure-button">打包下载当前数据</a>
             <a href="/admin/site/download/cur/img" class="pure-button">打包下载图片</a>
+            <a href="/admin/ratelimit/iplookup" class="pure-button">Ip lookup</a>
+            <a href="/admin/ratelimit/setting" class="pure-button">Rate Limit</a>
         </div>
 
         <form action="" method="post" class="pure-form pure-form-aligned">

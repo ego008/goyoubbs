@@ -88,4 +88,18 @@ type (
 		UserLst []model.User
 		FlagLst []model.Flag
 	}
+
+	IpLookup struct {
+		BasePage
+		Limit    int
+		KeyStart string
+		ShowNext bool
+		Items    []model.KvStr
+	}
+
+	RateLimitSetting struct {
+		BasePage
+		MyIp       string
+		SettingLst []model.SettingKv
+	}
 )
