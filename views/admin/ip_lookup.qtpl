@@ -1,0 +1,29 @@
+{% func (p *IpLookup) MainBody() %}
+<div class="index">
+    <div class="markdown-body entry-content">
+        <h1>{%s p.Title %}</h1>
+
+        <table>
+          <tr>
+            <th style="width: 40px">No.</th>
+            <th>Ip</th>
+            <th>DNS Host</th>
+          </tr>
+          {% for i, item := range p.Items %}
+          <tr>
+            <td>{%d i+1 %}</td>
+            <td>{%s= item.Key %}</td>
+            <td>{%s item.Value %}</td>
+          </tr>
+          {% endfor %}
+        </table>
+        <ul class="paginate">
+            {% if p.ShowNext %}
+            <li><a href="?key={%s p.KeyStart %}" class="next">Next Page </a></li>
+            {% endif %}
+        </ul>
+
+    </div>
+</div>
+
+{% endfunc %}

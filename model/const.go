@@ -16,4 +16,7 @@ const (
 	SettingKeyAllowIp = "AllowIpPrefix"
 )
 
-var TimeOffSet = time.Duration(8) * time.Hour // 时差， 图个方便
+var (
+	TimeOffSet  = time.Duration(8) * time.Hour // 时差， 图个方便
+	SettingKeys = []string{SettingKeyBadBot, SettingKeyBadIp, SettingKeyAllowIp}
+)

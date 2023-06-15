@@ -153,6 +153,7 @@ func MainRouter(ap *model.Application, sm *router.Router) {
 	admin.POST("/comment/review", h.AdminCommentReviewPost)
 	admin.GET("/comment/edit", h.AdminCommentEditPage)
 	admin.POST("/comment/edit", h.AdminCommentReviewPost)
+	admin.GET("/ratelimit/iplookup", h.AdminRateLimitIpLookup)
 
 	sm.GET("/name/{uname}", mdwRateLimit(h.MemberNamePage))
 	sm.GET("/member/{uid}", mdwRateLimit(h.MemberPage))
