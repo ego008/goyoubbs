@@ -4,6 +4,8 @@ import (
 	"crypto/md5"
 	"encoding/hex"
 	"github.com/cespare/xxhash/v2"
+	"sort"
+	"strconv"
 	"strings"
 )
 
@@ -32,4 +34,49 @@ func GetDomainFromURL(fullURL string) (bsURL, host string) {
 	bsURL = strings.Join(urls[:3], "/")
 
 	return
+}
+
+func SliceUniqStr(s, sep string) string {
+	if len(sep) == 0 {
+		sep = ","
+	}
+	ss := strings.Split(s, sep)
+	seen := make(map[string]struct{}, len(ss))
+	j := 0
+	for _, v := range ss {
+		v = strings.TrimSpace(v)
+		if len(v) == 0 {
+			continue
+		}
+		if _, ok := seen[v]; ok {
+			continue
+		}
+		seen[v] = struct{}{}
+		ss[j] = v
+		j++
+	}
+	sort.Strings(ss[:j])
+	return strings.Join(ss[:j], sep)
+}
+
+// IpTrimRightDot trim right dot
+// ex: 127.66. -> 127.66
+// 127.17. -> 127.17.
+// 127.17 -> 127.17
+func IpTrimRightDot(s string) string {
+	if len(s) == 0 {
+		return ""
+	}
+	hasDotSuffix := s[len(s)-1] == 46 // '.' == 46
+	if !hasDotSuffix {
+		return s
+	}
+	s = s[:len(s)-1]
+
+	ss := strings.Split(s, ".")
+	lastPn, _ := strconv.Atoi(ss[len(ss)-1])
+	if lastPn > 25 {
+		return s
+	}
+	return s + "."
 }

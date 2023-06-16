@@ -1,0 +1,24 @@
+{% func (p *RateLimitSetting) MainBody() %}
+<div class="index">
+    <div class="markdown-body entry-content">
+        <h1>{%s p.Title %}</h1>
+
+        <form action="" method="post" class="pure-form pure-form-stacked">
+            <fieldset>
+
+                <p>item split with <code>,</code> [my Ip] {%s p.MyIp %}</p>
+
+                {% for _, item := range p.SettingLst %}
+                <p>
+                    <label>{%s item.Key %}</label><textarea name="{%s item.Key %}">{%s item.Value %}</textarea>
+                </p>
+                {% endfor %}
+
+                <button type="submit" class="pure-button pure-button-primary">提交</button>
+            </fieldset>
+        </form>
+
+    </div>
+</div>
+
+{% endfunc %}
