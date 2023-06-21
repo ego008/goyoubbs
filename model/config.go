@@ -90,7 +90,7 @@ func SiteConfLoad(scf *SiteConf, db *sdb.DB) {
 		scf.AutoDataBackup = false
 		scf.DataBackupDir = "data_backup"
 		scf.ResetCookieKey = false
-		scf.GetTagApi = "https://youbbs.org/api/fenci"
+		scf.GetTagApi = ""
 		scf.UploadLimit = true
 		scf.UploadDir = "upload"
 		scf.UploadMaxSize = 20
