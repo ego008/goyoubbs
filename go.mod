@@ -25,7 +25,7 @@ require (
 	github.com/valyala/fasthttp v1.44.0
 	github.com/valyala/quicktemplate v1.7.0
 	github.com/yuin/goldmark v1.5.4
-	golang.org/x/crypto v0.5.0
+	golang.org/x/crypto v0.14.0
 	golang.org/x/image v0.3.0
 	golang.org/x/oauth2 v0.4.0
 )
@@ -46,9 +46,9 @@ require (
 	github.com/tidwall/match v1.1.1 // indirect
 	github.com/tidwall/pretty v1.2.1 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
-	golang.org/x/net v0.7.0 // indirect
-	golang.org/x/sys v0.5.0 // indirect
-	golang.org/x/text v0.7.0 // indirect
+	golang.org/x/net v0.17.0 // indirect
+	golang.org/x/sys v0.13.0 // indirect
+	golang.org/x/text v0.13.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/protobuf v1.28.1 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
