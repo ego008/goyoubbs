@@ -10,7 +10,7 @@
 
                 {% for _, item := range p.SettingLst %}
                 <p>
-                    <label>{%s item.Key %}</label><textarea name="{%s item.Key %}">{%s item.Value %}</textarea>
+                    <label>{%s item.Key %}</label><textarea name="{%s item.Key %}" class="pure-input-1">{%s item.Value %}</textarea>
                 </p>
                 {% endfor %}
 

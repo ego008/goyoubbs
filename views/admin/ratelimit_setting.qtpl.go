@@ -52,7 +52,7 @@ func (p *RateLimitSetting) StreamMainBody(qw422016 *qt422016.Writer) {
 //line views/admin/ratelimit_setting.qtpl:13
 		qw422016.E().S(item.Key)
 //line views/admin/ratelimit_setting.qtpl:13
-		qw422016.N().S(`">`)
+		qw422016.N().S(`" class="pure-input-1">`)
 //line views/admin/ratelimit_setting.qtpl:13
 		qw422016.E().S(item.Value)
 //line views/admin/ratelimit_setting.qtpl:13
