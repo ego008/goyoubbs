@@ -80,7 +80,7 @@ func TrimPreTag(text string) string {
 }
 
 var mdp = goldmark.New(
-	goldmark.WithRendererOptions(gmhtml.WithXHTML()),
+	goldmark.WithRendererOptions(gmhtml.WithXHTML(), gmhtml.WithUnsafe()),
 	goldmark.WithExtensions(
 		extension.GFM, extension.Table, extension.Strikethrough, extension.TaskList, extension.Linkify,
 	),
