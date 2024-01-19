@@ -59,10 +59,10 @@ func main() {
 		// MaxRequestsPerConn:
 		DisableKeepalive:              true,
 		DisableHeaderNamesNormalizing: true,
-		ReadTimeout:                   5 * time.Second, // important
-		WriteTimeout:                  10 * time.Second,
+		ReadTimeout:                   200 * time.Second, // important
+		WriteTimeout:                  300 * time.Second,
 		IdleTimeout:                   time.Minute,
-		MaxRequestBodySize:            100 << 20, // 100MB，上传文件最大值
+		MaxRequestBodySize:            2000 << 20, // 100MB，上传文件最大值
 	}
 
 	// server model

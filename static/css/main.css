@@ -434,7 +434,9 @@ footer ul.seealso {margin: 0;padding: .5em 0;list-style: none;color: #ccc;font-f
 
 .markdown-body figure {margin: 0;}
 .markdown-body figure.code {margin: 0}
+.markdown-body img, .markdown-body video, .markdown-body audio {display: block;}
 .markdown-body img {max-width: 100%;box-sizing:initial;background-color:#f2f2f2;margin: 0 auto;clear: both;}
+.markdown-body video {max-width: 100%;max-height:640px;box-sizing:initial;background-color:#f2f2f2;margin: 0 auto;clear: both;}
 .markdown-body pre, .markdown-body code {
     font-size: 14px;
     font-family: var(--b-font-mono);

@@ -146,7 +146,7 @@ func (p *UserTopicAdd) StreamMainBody(qw422016 *qt422016.Writer) {
 	if !p.SiteCf.UploadLimit || (p.SiteCf.UploadLimit && p.CurrentUser.Flag >= 99) {
 //line views/ybs/topic_add.qtpl:30
 		qw422016.N().S(`
-        <input id="fileUpload" type="file" accept="image/*" onChange="uploadFile()" class="pure-button" name="fileUpload" style="font-size: .8334em;width: 95px;" />
+        <input id="fileUpload" type="file" accept="image/*,video/*,audio/*" onChange="uploadFile()" class="pure-button" name="fileUpload" style="font-size: .8334em;width: 95px;" />
         `)
 //line views/ybs/topic_add.qtpl:32
 	}
@@ -256,7 +256,8 @@ func (p *UserTopicAdd) StreamMainBody(qw422016 *qt422016.Writer) {
             var file = null;
             if(items && items.length) {
                 for(var i=0; i!==items.length; i++) {
-                    if(items[i].type.indexOf('image') !== -1) {
+                    var iType = items[i].type;
+                    if(iType.indexOf('image') !== -1 || iType.indexOf('video') !== -1 || iType.indexOf('audio') !== -1) {
                         file = items[i].getAsFile();
                         if(!!!file) {
                             continue;
@@ -270,7 +271,7 @@ func (p *UserTopicAdd) StreamMainBody(qw422016 *qt422016.Writer) {
                             let obj = JSON.parse(data)
                             //console.log(obj);
                             if(obj.Code === 200) {
-                                let img_url = "\n![](" + obj.Url + ")\n";
+                                let img_url = "\n" + s2tag(obj.Url) + "\n";
                                 let pos = conEle.selectionStart;
                                 let con = conEle.value;
                                 conEle.value = con.slice(0, pos) + img_url + con.slice(pos);
@@ -289,7 +290,7 @@ func (p *UserTopicAdd) StreamMainBody(qw422016 *qt422016.Writer) {
             postAjax("/file/upload", form, function(data){
                 let obj = JSON.parse(data)
                 if(obj.Code === 200) {
-                    let img_url = "\n![](" + obj.Url + ")\n";
+                    let img_url = "\n" + s2tag(obj.Url) + "\n";
                     let pos = conEle.selectionStart;
                     let con = conEle.value;
                     conEle.value = con.slice(0, pos) + img_url + con.slice(pos);
@@ -299,9 +300,9 @@ func (p *UserTopicAdd) StreamMainBody(qw422016 *qt422016.Writer) {
             });
         }
         `)
-//line views/ybs/topic_add.qtpl:171
+//line views/ybs/topic_add.qtpl:172
 	}
-//line views/ybs/topic_add.qtpl:171
+//line views/ybs/topic_add.qtpl:172
 	qw422016.N().S(`
 
     </script>
@@ -309,31 +310,31 @@ func (p *UserTopicAdd) StreamMainBody(qw422016 *qt422016.Writer) {
 </div>
 
 `)
-//line views/ybs/topic_add.qtpl:177
+//line views/ybs/topic_add.qtpl:178
 }
 
-//line views/ybs/topic_add.qtpl:177
+//line views/ybs/topic_add.qtpl:178
 func (p *UserTopicAdd) WriteMainBody(qq422016 qtio422016.Writer) {
-//line views/ybs/topic_add.qtpl:177
+//line views/ybs/topic_add.qtpl:178
 	qw422016 := qt422016.AcquireWriter(qq422016)
-//line views/ybs/topic_add.qtpl:177
+//line views/ybs/topic_add.qtpl:178
 	p.StreamMainBody(qw422016)
-//line views/ybs/topic_add.qtpl:177
+//line views/ybs/topic_add.qtpl:178
 	qt422016.ReleaseWriter(qw422016)
-//line views/ybs/topic_add.qtpl:177
+//line views/ybs/topic_add.qtpl:178
 }
 
-//line views/ybs/topic_add.qtpl:177
+//line views/ybs/topic_add.qtpl:178
 func (p *UserTopicAdd) MainBody() string {
-//line views/ybs/topic_add.qtpl:177
+//line views/ybs/topic_add.qtpl:178
 	qb422016 := qt422016.AcquireByteBuffer()
-//line views/ybs/topic_add.qtpl:177
+//line views/ybs/topic_add.qtpl:178
 	p.WriteMainBody(qb422016)
-//line views/ybs/topic_add.qtpl:177
+//line views/ybs/topic_add.qtpl:178
 	qs422016 := string(qb422016.B)
-//line views/ybs/topic_add.qtpl:177
+//line views/ybs/topic_add.qtpl:178
 	qt422016.ReleaseByteBuffer(qb422016)
-//line views/ybs/topic_add.qtpl:177
+//line views/ybs/topic_add.qtpl:178
 	return qs422016
-//line views/ybs/topic_add.qtpl:177
+//line views/ybs/topic_add.qtpl:178
 }

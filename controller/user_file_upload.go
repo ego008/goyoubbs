@@ -11,11 +11,12 @@ import (
 	"image/jpeg"
 	"io"
 	"os"
+	"path"
 	"strconv"
 )
 
 const (
-	fileMaxSize = 10 << 20 // 10 MB
+	fileMaxSize = 2000 << 20 // 200 MB
 	imgMaxWidth = 1920
 )
 
@@ -41,7 +42,7 @@ func (h *BaseHandler) FileUpload(ctx *fasthttp.RequestCtx) {
 	}
 	fileHandler, err := file.Open()
 	if err != nil {
-		_, _ = ctx.WriteString(`{"code":400,"msg":"` + err.Error() + `"}`)
+		_, _ = ctx.WriteString(`{"Code":400,"Msg":"` + err.Error() + `"}`)
 		return
 	}
 	defer func() {
@@ -50,23 +51,24 @@ func (h *BaseHandler) FileUpload(ctx *fasthttp.RequestCtx) {
 
 	var imgData bytes.Buffer
 	if fileSize, err := io.Copy(&imgData, fileHandler); err != nil {
-		_, _ = ctx.WriteString(`{"code":400,"msg":"` + err.Error() + `"}`)
+		_, _ = ctx.WriteString(`{"Code":400,"Msg":"` + err.Error() + `"}`)
 		return
 	} else {
 		if fileSize > fileMaxSize {
-			_, _ = ctx.WriteString(`{"code":400,"msg":"image size too much"}`)
+			_, _ = ctx.WriteString(`{"Code":400,"Msg":"image size too much"}`)
 			return
 		}
 	}
 
+	// check image
 	buff := make([]byte, 512)
 	if len(imgData.Bytes()) > 512 {
 		buff = imgData.Bytes()[:512]
 	}
+	var fileIsImage bool
 	imgType := util.CheckImageType(buff)
-	if len(imgType) == 0 {
-		_, _ = ctx.WriteString(`{"Code":400,"Msg":"unknown image format"}`)
-		return
+	if len(imgType) > 0 {
+		fileIsImage = true
 	}
 
 	imgHashValue := util.Xxhash(imgData.Bytes())
@@ -74,14 +76,21 @@ func (h *BaseHandler) FileUpload(ctx *fasthttp.RequestCtx) {
 	imgKeyB := sdb.I2b(imgHashValue)
 
 	var saveName, showPath string
-	if imgType == "gif" {
-		saveName = imgKeyS + ".gif"
+
+	if fileIsImage {
+		if imgType == "gif" {
+			saveName = imgKeyS + ".gif"
+		} else {
+			saveName = imgKeyS + ".jpg"
+		}
+		if h.App.Cf.Site.SaveImg2db {
+			showPath = "/dbi/" + saveName
+		} else {
+			showPath = "/static/upload/" + saveName
+		}
 	} else {
-		saveName = imgKeyS + ".jpg"
-	}
-	if h.App.Cf.Site.SaveImg2db {
-		showPath = "/dbi/" + saveName
-	} else {
+		fileSuffix := path.Ext(file.Filename) // source file suffix
+		saveName = imgKeyS + fileSuffix
 		showPath = "/static/upload/" + saveName
 	}
 
@@ -127,34 +136,44 @@ func (h *BaseHandler) FileUpload(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
-	var img image.Image
-	img, err = util.GetImageObj(&imgData)
-	imgData.Reset()
-	if err != nil {
-		_, _ = ctx.WriteString(`{"Code":400,"Msg":"` + err.Error() + `"}`)
-		return
-	}
-
-	dstImg := util.ImageResize(img, imgMaxWidth, 0) // 1024
-
-	buf := new(bytes.Buffer)
-	if err = jpeg.Encode(buf, dstImg, &jpeg.Options{Quality: 95}); err != nil {
-		_, _ = ctx.WriteString(`{"Code":400,"Msg":"` + err.Error() + `"}`)
-		return
-	}
-
-	if h.App.Cf.Site.SaveImg2db {
-		// db
-		if err = db.Hset(model.TbnDbImg, imgKeyB, buf.Bytes()); err != nil {
+	if fileIsImage {
+		var img image.Image
+		img, err = util.GetImageObj(&imgData)
+		imgData.Reset()
+		if err != nil {
 			_, _ = ctx.WriteString(`{"Code":400,"Msg":"` + err.Error() + `"}`)
 			return
+		}
+
+		dstImg := util.ImageResize(img, imgMaxWidth, 0) // 1024
+
+		buf := new(bytes.Buffer)
+		if err = jpeg.Encode(buf, dstImg, &jpeg.Options{Quality: 95}); err != nil {
+			_, _ = ctx.WriteString(`{"Code":400,"Msg":"` + err.Error() + `"}`)
+			return
+		}
+
+		if h.App.Cf.Site.SaveImg2db {
+			// db
+			if err = db.Hset(model.TbnDbImg, imgKeyB, buf.Bytes()); err != nil {
+				_, _ = ctx.WriteString(`{"Code":400,"Msg":"` + err.Error() + `"}`)
+				return
+			}
+		} else {
+			// local
+			if err = os.WriteFile(saveFullPath, buf.Bytes(), 0644); err != nil {
+				_, _ = ctx.WriteString(`{"Code":400,"Msg":"` + err.Error() + `"}`)
+				return
+			}
 		}
 	} else {
 		// local
-		if err = os.WriteFile(saveFullPath, buf.Bytes(), 0644); err != nil {
+		if err = os.WriteFile(saveFullPath, imgData.Bytes(), 0644); err != nil {
 			_, _ = ctx.WriteString(`{"Code":400,"Msg":"` + err.Error() + `"}`)
+			imgData.Reset()
 			return
 		}
+		imgData.Reset()
 	}
 
 	rsp.Code = 200

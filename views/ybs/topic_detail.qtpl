@@ -104,7 +104,7 @@
                     <input id="btn-preview" type="button" value="预览" name="submit" onclick="previewComment(); return false;" class="pure-button button-success" />
                     <input id="btn-submit" type="button" value="发表" name="submit" onclick="submitComment(); return false;" class="pure-button pure-button-primary" />
                     {% if !p.SiteCf.UploadLimit || (p.SiteCf.UploadLimit && p.CurrentUser.Flag >= 99) %}
-                    <input id="fileUpload" type="file" accept="image/*" onChange="uploadFile()" class="pure-button" name="fileUpload" style="font-size: .8334em;width: 95px;" />
+                    <input id="fileUpload" type="file" accept="image/*,video/*,audio/*" onChange="uploadFile()" class="pure-button" name="fileUpload" style="font-size: .8334em;width: 95px;" />
                     {% endif %}
                 {% endif %}
                 </div>
@@ -175,7 +175,8 @@
                     var file = null;
                     if(items && items.length) {
                         for(var i=0; i!==items.length; i++) {
-                            if(items[i].type.indexOf('image') !== -1) {
+                            var iType = items[i].type;
+                            if(iType.indexOf('image') !== -1 || iType.indexOf('video') !== -1 || iType.indexOf('audio') !== -1) {
                                 file = items[i].getAsFile();
                                 if(!!!file) {
                                     continue;
@@ -189,7 +190,7 @@
                                     let obj = JSON.parse(data)
                                     //console.log(obj);
                                     if(obj.Code === 200) {
-                                        let img_url = "\n![](" + obj.Url + ")\n";
+                                        let img_url = "\n" + s2tag(obj.Url) + "\n";
                                         let pos = conEle.selectionStart;
                                         let con = conEle.value;
                                         conEle.value = con.slice(0, pos) + img_url + con.slice(pos);
@@ -207,7 +208,7 @@
                     postAjax("/file/upload", form, function(data){
                         let obj = JSON.parse(data)
                         if(obj.Code === 200) {
-                            let img_url = "\n![](" + obj.Url + ")\n";
+                            let img_url = "\n" + s2tag(obj.Url) + "\n";
                             let pos = conEle.selectionStart;
                             let con = conEle.value;
                             conEle.value = con.slice(0, pos) + img_url + con.slice(pos);

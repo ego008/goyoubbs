@@ -12,6 +12,23 @@ function docReady(callbackFunc) {
     }
 }
 
+function s2tag(s) {
+    let re = /(?:\.([^.]+))?$/;
+    let ext = re.exec(s)[1];
+    switch(ext) {
+        case "mp4":
+            return '<video controls src="'+s+'"></video>';
+        case "mp3":
+            return '<audio controls loop src="'+s+'"></audio>';
+        case "gif":
+            return "![](" + s + ")";
+        case "jpg":
+            return "![](" + s + ")";
+        default:
+            return s;
+    }
+}
+
 function postAjax(url, data, success) {
     let xhr = window.XMLHttpRequest ? new XMLHttpRequest() : new ActiveXObject("Microsoft.XMLHTTP");
     xhr.open('POST', url);

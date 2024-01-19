@@ -178,7 +178,7 @@ func (p *TopicAdd) StreamMainBody(qw422016 *qt422016.Writer) {
         <div class="fleft pure-button-group">
             <input id="btn-preview" type="button" value="预览" name="submit" class="pure-button button-success" />
             <input id="btn-submit" type="submit" value="发表" name="submit" class="pure-button pure-button-primary" />
-            <input id="fileUpload" type="file" accept="image/*" onChange="uploadFile()" class="pure-button" name="fileUpload" style="font-size: .8334em;width: 95px;" />
+            <input id="fileUpload" type="file" accept="image/*,video/*,audio/*" onChange="uploadFile()" class="pure-button" name="fileUpload" style="font-size: .8334em;width: 95px;" />
             `)
 //line views/admin/topic_add.qtpl:40
 		if p.PageName == "admin_topic_review" {
@@ -328,7 +328,8 @@ func (p *TopicAdd) StreamMainBody(qw422016 *qt422016.Writer) {
             var file = null;
             if(items && items.length) {
                 for(var i=0; i!==items.length; i++) {
-                    if(items[i].type.indexOf('image') !== -1) {
+                    var iType = items[i].type;
+                    if(iType.indexOf('image') !== -1 || iType.indexOf('video') !== -1 || iType.indexOf('audio') !== -1) {
                         file = items[i].getAsFile();
                         if(!!!file) {
                             continue;
@@ -342,7 +343,7 @@ func (p *TopicAdd) StreamMainBody(qw422016 *qt422016.Writer) {
                             let obj = JSON.parse(data)
                             //console.log(obj);
                             if(obj.Code === 200) {
-                                let img_url = "\n![](" + obj.Url + ")\n";
+                                let img_url = "\n" + s2tag(obj.Url) + "\n";
                                 let pos = conEle.selectionStart;
                                 let con = conEle.value;
                                 conEle.value = con.slice(0, pos) + img_url + con.slice(pos);
@@ -360,7 +361,7 @@ func (p *TopicAdd) StreamMainBody(qw422016 *qt422016.Writer) {
             postAjax("/file/upload", form, function(data){
                 let obj = JSON.parse(data)
                 if(obj.Code === 200) {
-                    let img_url = "\n![](" + obj.Url + ")\n";
+                    let img_url = "\n" + s2tag(obj.Url) + "\n";
                     let pos = conEle.selectionStart;
                     let con = conEle.value;
                     conEle.value = con.slice(0, pos) + img_url + con.slice(pos);
@@ -372,39 +373,39 @@ func (p *TopicAdd) StreamMainBody(qw422016 *qt422016.Writer) {
     </script>
 
     `)
-//line views/admin/topic_add.qtpl:192
+//line views/admin/topic_add.qtpl:193
 	}
-//line views/admin/topic_add.qtpl:192
+//line views/admin/topic_add.qtpl:193
 	qw422016.N().S(`
 
 </div>
 
 `)
-//line views/admin/topic_add.qtpl:196
+//line views/admin/topic_add.qtpl:197
 }
 
-//line views/admin/topic_add.qtpl:196
+//line views/admin/topic_add.qtpl:197
 func (p *TopicAdd) WriteMainBody(qq422016 qtio422016.Writer) {
-//line views/admin/topic_add.qtpl:196
+//line views/admin/topic_add.qtpl:197
 	qw422016 := qt422016.AcquireWriter(qq422016)
-//line views/admin/topic_add.qtpl:196
+//line views/admin/topic_add.qtpl:197
 	p.StreamMainBody(qw422016)
-//line views/admin/topic_add.qtpl:196
+//line views/admin/topic_add.qtpl:197
 	qt422016.ReleaseWriter(qw422016)
-//line views/admin/topic_add.qtpl:196
+//line views/admin/topic_add.qtpl:197
 }
 
-//line views/admin/topic_add.qtpl:196
+//line views/admin/topic_add.qtpl:197
 func (p *TopicAdd) MainBody() string {
-//line views/admin/topic_add.qtpl:196
+//line views/admin/topic_add.qtpl:197
 	qb422016 := qt422016.AcquireByteBuffer()
-//line views/admin/topic_add.qtpl:196
+//line views/admin/topic_add.qtpl:197
 	p.WriteMainBody(qb422016)
-//line views/admin/topic_add.qtpl:196
+//line views/admin/topic_add.qtpl:197
 	qs422016 := string(qb422016.B)
-//line views/admin/topic_add.qtpl:196
+//line views/admin/topic_add.qtpl:197
 	qt422016.ReleaseByteBuffer(qb422016)
-//line views/admin/topic_add.qtpl:196
+//line views/admin/topic_add.qtpl:197
 	return qs422016
-//line views/admin/topic_add.qtpl:196
+//line views/admin/topic_add.qtpl:197
 }
