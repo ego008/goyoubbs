@@ -17,7 +17,8 @@ function s2tag(s) {
     let ext = re.exec(s)[1];
     switch(ext) {
         case "mp4":
-            return '<video controls src="'+s+'"></video>';
+            let s2 = s.replace(".mp4", ".webm");
+            return '<video controls><source src="'+s2+'" type="video/webm" /><source src="'+s+'" type="video/mp4" /></video>';
         case "mp3":
             return '<audio controls loop src="'+s+'"></audio>';
         case "gif":

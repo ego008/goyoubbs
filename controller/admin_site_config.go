@@ -6,6 +6,7 @@ import (
 	"github.com/gorilla/securecookie"
 	"github.com/valyala/fasthttp"
 	"goyoubbs/model"
+	"goyoubbs/util"
 	"goyoubbs/views/admin"
 	"strconv"
 	"strings"
@@ -107,6 +108,12 @@ func (h *BaseHandler) AdminSiteConfigPost(ctx *fasthttp.RequestCtx) {
 		blockKey := securecookie.GenerateRandomKey(32)
 		_ = h.App.Db.Hmset(model.KeyValueTb, []byte("hashKey"), hashKey, []byte("blockKey"), blockKey)
 		h.App.Sc = securecookie.New(hashKey, blockKey)
+	}
+
+	obj.AutoDecodeMp4 = b2bool(ctx.FormValue("AutoDecodeMp4"), false)
+	// check ffmpeg exist
+	if obj.AutoDecodeMp4 {
+		obj.AutoDecodeMp4 = util.CmdExists("ffmpeg")
 	}
 
 	obj.GetTagApi = string(ctx.FormValue("GetTagApi"))

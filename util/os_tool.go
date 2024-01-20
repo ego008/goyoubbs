@@ -23,7 +23,7 @@ func CmdExists(cmd string) bool {
 
 // FindInPs find bin name in processes
 // ex: FindInPs("ffmpeg", "ffmpeg -i")
-func FindInPs(cmd, s string) bool {
+func FindInPs(cmd, s string) (bool, string) {
 	first := exec.Command("ps", "-ef")
 	second := exec.Command("grep", cmd)
 
@@ -41,5 +41,21 @@ func FindInPs(cmd, s string) bool {
 	second.Wait()
 
 	out := buff.String() // convert output to string
-	return strings.Contains(out, s)
+	return strings.Contains(out, s), out
+}
+
+func HashFile(filePath string) (hashStr string) {
+	file, err := os.Open(filePath)
+	if err != nil {
+		return
+	}
+	defer file.Close()
+
+	var fileData bytes.Buffer
+	if _, err = io.Copy(&fileData, file); err != nil {
+		return
+	}
+	hashValue := Xxhash(fileData.Bytes())
+	fileData.Reset()
+	return TenTo62(hashValue)
 }

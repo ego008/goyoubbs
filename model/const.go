@@ -10,6 +10,7 @@ const (
 	TbnDbImg        = "dbi"          // 上传图片 key: sdb.I2b(imgHashValue), value: img data
 	TbnIpInfo       = "ip"           // user ip info
 	TbnSetting      = "setting"      // key: settingKey, value: setting value
+	TbnV2DecMp4     = "v2dec_mp4"    // key: saveFullPath, value: nil
 
 	SettingKeyBadBot  = "BadBotName"
 	SettingKeyBadIp   = "BadIpPrefix"

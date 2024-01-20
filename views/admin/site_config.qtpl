@@ -104,6 +104,10 @@
                     <input type="checkbox" id="ResetCookieKey" name="ResetCookieKey" value="true" {% if p.SiteConf.ResetCookieKey %}checked{% endif %} /> 立刻/每次重启 让用户重新登录
                 </div>
                 <div class="pure-control-group">
+                    <label for="AutoDecodeMp4">AutoDecodeMp4</label>
+                    <input type="checkbox" id="AutoDecodeMp4" name="AutoDecodeMp4" value="true" {% if p.SiteConf.AutoDecodeMp4 %}checked{% endif %} /> 自动转码 mp4 -> webm，需要调用 ffmpeg，改变需重启网站进程
+                </div>
+                <div class="pure-control-group">
                     <label for="GetTagApi">分词URL</label>
                     <input type="text" class="pure-input-2-3" id="GetTagApi" name="GetTagApi" value="{%s p.SiteConf.GetTagApi %}" placeholder="分词URL 对帖子标题提取标签的接口URL" />
                 </div>

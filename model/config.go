@@ -40,6 +40,7 @@ type SiteConf struct {
 	CloseReply         bool   // 关闭评论
 	PostReview         bool   // 发帖、回复审核
 	ResetCookieKey     bool   // 重设cookie key （强迫重新登录）
+	AutoDecodeMp4      bool   // 自动转码 mp4 -> webm，需要调用 ffmpeg
 	GetTagApi          string // 远程取 tag 网址
 	UploadLimit        bool   // 上传图片限制，只允许管理员上传
 	UploadDir          string // 存放用户上传图片目录
@@ -52,6 +53,7 @@ type SiteConf struct {
 	SaveImg2db         bool   // 上传的图片保存到数据库
 	RemotePostPw       string // 供管理员远程发布帖子、评论密码
 	IsDevMod           bool   // 开发模式
+	SelfHash           string // 自身hash
 	Socks5Proxy        string // 122.33.44.55:123
 	QQClientID         string
 	QQClientSecret     string

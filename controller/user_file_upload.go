@@ -75,7 +75,7 @@ func (h *BaseHandler) FileUpload(ctx *fasthttp.RequestCtx) {
 	imgKeyS := strconv.FormatUint(imgHashValue, 10)
 	imgKeyB := sdb.I2b(imgHashValue)
 
-	var saveName, showPath string
+	var fileSuffix, saveName, showPath string
 
 	if fileIsImage {
 		if imgType == "gif" {
@@ -89,7 +89,7 @@ func (h *BaseHandler) FileUpload(ctx *fasthttp.RequestCtx) {
 			showPath = "/static/upload/" + saveName
 		}
 	} else {
-		fileSuffix := path.Ext(file.Filename) // source file suffix
+		fileSuffix = path.Ext(file.Filename) // source file suffix
 		saveName = imgKeyS + fileSuffix
 		showPath = "/static/upload/" + saveName
 	}
@@ -105,6 +105,12 @@ func (h *BaseHandler) FileUpload(ctx *fasthttp.RequestCtx) {
 		rsp.Url = showPath
 		rsp.Msg = "上传成功"
 		_ = json.NewEncoder(ctx).Encode(rsp)
+
+		// fix
+		if fileSuffix == ".mp4" {
+			_ = db.Hset(model.TbnV2DecMp4, []byte(saveFullPath), nil)
+		}
+
 		return
 	}
 
@@ -174,6 +180,9 @@ func (h *BaseHandler) FileUpload(ctx *fasthttp.RequestCtx) {
 			return
 		}
 		imgData.Reset()
+		if fileSuffix == ".mp4" {
+			_ = db.Hset(model.TbnV2DecMp4, []byte(saveFullPath), nil)
+		}
 	}
 
 	rsp.Code = 200

@@ -9,6 +9,7 @@ import (
 	"github.com/gorilla/securecookie"
 	"github.com/syndtr/goleveldb/leveldb/filter"
 	"github.com/syndtr/goleveldb/leveldb/opt"
+	"goyoubbs/util"
 	"log"
 	"os"
 	"strings"
@@ -32,7 +33,7 @@ type Application struct {
 	Mux *router.Router
 }
 
-func (app *Application) Init(addr, sdbDir string) {
+func (app *Application) Init(addr, sdbDir, filePath string) {
 
 	mcf := &MainConf{
 		Addr:   addr,
@@ -54,6 +55,9 @@ func (app *Application) Init(addr, sdbDir string) {
 	// 简单识别本地开发 go run main.go
 	// /var/folders/bw/8bnjyv6j4k73h6j2qwh9s7xr0000gn/T/go-build1539771127/b001/exe/main
 	scf.IsDevMod = strings.HasSuffix(os.Args[0], "exe/main")
+
+	scf.SelfHash = util.HashFile(filePath)
+	log.Println("SelfHash:", scf.SelfHash)
 
 	app.Cf = &MyAppConf{mcf, &scf}
 

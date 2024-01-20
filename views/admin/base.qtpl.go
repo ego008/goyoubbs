@@ -83,8 +83,6 @@ func StreamPageTemplate(qw422016 *qt422016.Writer, p Page) {
     <meta name="format-detection" content="telephone=no" />
     <link rel="shortcut icon" href="/static/favicon.png" type="image/x-icon" />
     <link rel="top" title="Back to Top" href="#" />
-    <link rel="stylesheet" href="/static/css/main_admin.css" type="text/css">
-    <script src="/static/js/main_admin.js"></script>
     <!--[if lte IE 8]>
     <link rel="stylesheet" href="/static/css/grids-responsive-old-ie-min.css">
     <![endif]-->
@@ -98,9 +96,9 @@ func StreamPageTemplate(qw422016 *qt422016.Writer, p Page) {
 <header role="banner" class="header-wrap">
     <div class="home-menu pure-menu pure-menu-horizontal">
         `)
-//line views/admin/base.qtpl:42
+//line views/admin/base.qtpl:40
 	p.StreamBanner(qw422016)
-//line views/admin/base.qtpl:42
+//line views/admin/base.qtpl:40
 	qw422016.N().S(`
     </div>
 </header>
@@ -111,15 +109,15 @@ func StreamPageTemplate(qw422016 *qt422016.Writer, p Page) {
             <div class="main-left-body">
 
                 `)
-//line views/admin/base.qtpl:51
+//line views/admin/base.qtpl:49
 	p.StreamMainBodyNav(qw422016)
-//line views/admin/base.qtpl:51
+//line views/admin/base.qtpl:49
 	qw422016.N().S(`
 
                 `)
-//line views/admin/base.qtpl:53
+//line views/admin/base.qtpl:51
 	p.StreamMainBody(qw422016)
-//line views/admin/base.qtpl:53
+//line views/admin/base.qtpl:51
 	qw422016.N().S(`
 
             </div>
@@ -127,9 +125,9 @@ func StreamPageTemplate(qw422016 *qt422016.Writer, p Page) {
         <div class="pure-u-1 pure-u-sm-7-24">
             <div class="main-right-body">
                 `)
-//line views/admin/base.qtpl:59
+//line views/admin/base.qtpl:57
 	p.StreamAside(qw422016)
-//line views/admin/base.qtpl:59
+//line views/admin/base.qtpl:57
 	qw422016.N().S(`
             </div>
         </div>
@@ -138,9 +136,9 @@ func StreamPageTemplate(qw422016 *qt422016.Writer, p Page) {
 
 <footer role="contentinfo">
     `)
-//line views/admin/base.qtpl:66
+//line views/admin/base.qtpl:64
 	p.StreamFooter(qw422016)
-//line views/admin/base.qtpl:66
+//line views/admin/base.qtpl:64
 	qw422016.N().S(`
 </footer>
 <a style="display: none; " rel="nofollow" href="#top" id="go-to-top">▲</a>
@@ -160,66 +158,76 @@ function handleScroll() {
 </body>
 </html>
 `)
-//line views/admin/base.qtpl:84
+//line views/admin/base.qtpl:82
 }
 
-//line views/admin/base.qtpl:84
+//line views/admin/base.qtpl:82
 func WritePageTemplate(qq422016 qtio422016.Writer, p Page) {
-//line views/admin/base.qtpl:84
+//line views/admin/base.qtpl:82
 	qw422016 := qt422016.AcquireWriter(qq422016)
-//line views/admin/base.qtpl:84
+//line views/admin/base.qtpl:82
 	StreamPageTemplate(qw422016, p)
-//line views/admin/base.qtpl:84
+//line views/admin/base.qtpl:82
 	qt422016.ReleaseWriter(qw422016)
-//line views/admin/base.qtpl:84
+//line views/admin/base.qtpl:82
 }
 
-//line views/admin/base.qtpl:84
+//line views/admin/base.qtpl:82
 func PageTemplate(p Page) string {
-//line views/admin/base.qtpl:84
+//line views/admin/base.qtpl:82
 	qb422016 := qt422016.AcquireByteBuffer()
-//line views/admin/base.qtpl:84
+//line views/admin/base.qtpl:82
 	WritePageTemplate(qb422016, p)
-//line views/admin/base.qtpl:84
+//line views/admin/base.qtpl:82
 	qs422016 := string(qb422016.B)
-//line views/admin/base.qtpl:84
+//line views/admin/base.qtpl:82
 	qt422016.ReleaseByteBuffer(qb422016)
-//line views/admin/base.qtpl:84
+//line views/admin/base.qtpl:82
 	return qs422016
-//line views/admin/base.qtpl:84
+//line views/admin/base.qtpl:82
 }
 
 // Header bg
 
-//line views/admin/base.qtpl:88
+//line views/admin/base.qtpl:86
 func (p *BasePage) StreamHeader(qw422016 *qt422016.Writer) {
-//line views/admin/base.qtpl:88
+//line views/admin/base.qtpl:86
 	qw422016.N().S(`
 <title>`)
-//line views/admin/base.qtpl:89
+//line views/admin/base.qtpl:87
 	qw422016.E().S(p.Title)
-//line views/admin/base.qtpl:89
+//line views/admin/base.qtpl:87
 	qw422016.N().S(`</title>
 <meta name="description" content="`)
-//line views/admin/base.qtpl:90
+//line views/admin/base.qtpl:88
 	qw422016.E().S(p.Description)
-//line views/admin/base.qtpl:90
+//line views/admin/base.qtpl:88
 	qw422016.N().S(`">
 <meta name="keywords" content="`)
-//line views/admin/base.qtpl:91
+//line views/admin/base.qtpl:89
 	qw422016.E().S(p.Keywords)
-//line views/admin/base.qtpl:91
+//line views/admin/base.qtpl:89
 	qw422016.N().S(`">
 <link rel="canonical" href="`)
-//line views/admin/base.qtpl:92
+//line views/admin/base.qtpl:90
 	qw422016.E().S(p.Canonical)
-//line views/admin/base.qtpl:92
+//line views/admin/base.qtpl:90
 	qw422016.N().S(`">
 <link href="/feed" rel="alternate" title="`)
-//line views/admin/base.qtpl:93
+//line views/admin/base.qtpl:91
 	qw422016.E().S(p.SiteCf.Name)
-//line views/admin/base.qtpl:93
+//line views/admin/base.qtpl:91
 	qw422016.N().S(`" type="application/atom+xml">
+<link rel="stylesheet" href="/static/css/main_admin.css?v=`)
+//line views/admin/base.qtpl:92
+	qw422016.E().S(p.SiteCf.SelfHash)
+//line views/admin/base.qtpl:92
+	qw422016.N().S(`" type="text/css">
+<script src="/static/js/main_admin.js?v=`)
+//line views/admin/base.qtpl:93
+	qw422016.E().S(p.SiteCf.SelfHash)
+//line views/admin/base.qtpl:93
+	qw422016.N().S(`"></script>
 
 `)
 //line views/admin/base.qtpl:95

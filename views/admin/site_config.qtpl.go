@@ -250,197 +250,209 @@ func (p *SiteConfig) StreamMainBody(qw422016 *qt422016.Writer) {
 	qw422016.N().S(` /> 立刻/每次重启 让用户重新登录
                 </div>
                 <div class="pure-control-group">
+                    <label for="AutoDecodeMp4">AutoDecodeMp4</label>
+                    <input type="checkbox" id="AutoDecodeMp4" name="AutoDecodeMp4" value="true" `)
+//line views/admin/site_config.qtpl:108
+	if p.SiteConf.AutoDecodeMp4 {
+//line views/admin/site_config.qtpl:108
+		qw422016.N().S(`checked`)
+//line views/admin/site_config.qtpl:108
+	}
+//line views/admin/site_config.qtpl:108
+	qw422016.N().S(` /> 自动转码 mp4 -> webm，需要调用 ffmpeg，改变需重启网站进程
+                </div>
+                <div class="pure-control-group">
                     <label for="GetTagApi">分词URL</label>
                     <input type="text" class="pure-input-2-3" id="GetTagApi" name="GetTagApi" value="`)
-//line views/admin/site_config.qtpl:108
+//line views/admin/site_config.qtpl:112
 	qw422016.E().S(p.SiteConf.GetTagApi)
-//line views/admin/site_config.qtpl:108
+//line views/admin/site_config.qtpl:112
 	qw422016.N().S(`" placeholder="分词URL 对帖子标题提取标签的接口URL" />
                 </div>
                 <div class="pure-control-group">
                     <label for="UploadLimit">只允许管理员上传图片</label>
                     <input type="checkbox" id="UploadLimit" name="UploadLimit" value="true" `)
-//line views/admin/site_config.qtpl:112
+//line views/admin/site_config.qtpl:116
 	if p.SiteConf.UploadLimit {
-//line views/admin/site_config.qtpl:112
+//line views/admin/site_config.qtpl:116
 		qw422016.N().S(`checked`)
-//line views/admin/site_config.qtpl:112
+//line views/admin/site_config.qtpl:116
 	}
-//line views/admin/site_config.qtpl:112
+//line views/admin/site_config.qtpl:116
 	qw422016.N().S(` /> 若勾选则只允许管理员上传
                 </div>
                 <div class="pure-control-group">
                     <label for="UploadDir">存放用户上传图片目录</label>
                     <input type="text" class="pure-input-1-3" id="UploadDir" name="UploadDir" value="`)
-//line views/admin/site_config.qtpl:116
+//line views/admin/site_config.qtpl:120
 	qw422016.E().S(p.SiteConf.UploadDir)
-//line views/admin/site_config.qtpl:116
+//line views/admin/site_config.qtpl:120
 	qw422016.N().S(`" placeholder="存放用户上传图片目录" /> 一般填写后不需修改，否则以前上传的文件不可访问
                 </div>
                 <div class="pure-control-group">
                     <label for="UploadMaxSize">上传图片大小限制</label>
                     <input type="number" id="UploadMaxSize" name="UploadMaxSize" value="`)
-//line views/admin/site_config.qtpl:120
+//line views/admin/site_config.qtpl:124
 	qw422016.N().D(p.SiteConf.UploadMaxSize)
-//line views/admin/site_config.qtpl:120
+//line views/admin/site_config.qtpl:124
 	qw422016.N().S(`" placeholder="上传图片大小限制" />
                     <span class="pure-form-message-inline">M</span>
                 </div>
                 <div class="pure-control-group">
                     <label for="CachedSize">缓存大小</label>
                     <input type="number" id="CachedSize" name="CachedSize" value="`)
-//line views/admin/site_config.qtpl:125
+//line views/admin/site_config.qtpl:129
 	qw422016.N().D(p.SiteConf.CachedSize)
-//line views/admin/site_config.qtpl:125
+//line views/admin/site_config.qtpl:129
 	qw422016.N().S(`" placeholder="缓存大小" />
                     <span class="pure-form-message-inline">M</span>
                 </div>
                 <div class="pure-control-group">
                     <label for="CachedSize">日访问限制数</label>
                     <input type="number" id="RateLimitDay" name="RateLimitDay" value="`)
-//line views/admin/site_config.qtpl:130
+//line views/admin/site_config.qtpl:134
 	qw422016.N().D(p.SiteConf.RateLimitDay)
-//line views/admin/site_config.qtpl:130
+//line views/admin/site_config.qtpl:134
 	qw422016.N().S(`" />
                 </div>
                 <div class="pure-control-group">
                     <label for="CachedSize">小时访问限制数</label>
                     <input type="number" id="RateLimitHour" name="RateLimitHour" value="`)
-//line views/admin/site_config.qtpl:134
+//line views/admin/site_config.qtpl:138
 	qw422016.N().D(p.SiteConf.RateLimitHour)
-//line views/admin/site_config.qtpl:134
+//line views/admin/site_config.qtpl:138
 	qw422016.N().S(`" />
                 </div>
                 <div class="pure-control-group">
                     <label for="SaveTopicIcon">保存九宫格图片</label>
                     <input type="checkbox" id="SaveTopicIcon" name="SaveTopicIcon" value="true" `)
-//line views/admin/site_config.qtpl:138
+//line views/admin/site_config.qtpl:142
 	if p.SiteConf.SaveTopicIcon {
-//line views/admin/site_config.qtpl:138
+//line views/admin/site_config.qtpl:142
 		qw422016.N().S(`checked`)
-//line views/admin/site_config.qtpl:138
+//line views/admin/site_config.qtpl:142
 	}
-//line views/admin/site_config.qtpl:138
+//line views/admin/site_config.qtpl:142
 	qw422016.N().S(` /> 帖子九宫格图片保存到数据库（以空间换CPU）
                 </div>
                 <div class="pure-control-group">
                     <label for="SaveImg2db">上传图片到数据库</label>
                     <input type="checkbox" id="SaveImg2db" name="SaveImg2db" value="true" `)
-//line views/admin/site_config.qtpl:142
+//line views/admin/site_config.qtpl:146
 	if p.SiteConf.SaveImg2db {
-//line views/admin/site_config.qtpl:142
+//line views/admin/site_config.qtpl:146
 		qw422016.N().S(`checked`)
-//line views/admin/site_config.qtpl:142
+//line views/admin/site_config.qtpl:146
 	}
-//line views/admin/site_config.qtpl:142
+//line views/admin/site_config.qtpl:146
 	qw422016.N().S(` /> 用户上传的图片保存到数据库
                 </div>
                 <div class="pure-control-group">
                     <label for="RemotePostPw">管理员远程发布密码</label>
                     <input type="text" class="pure-input-1-3" id="RemotePostPw" name="RemotePostPw" value="`)
-//line views/admin/site_config.qtpl:146
+//line views/admin/site_config.qtpl:150
 	qw422016.E().S(p.SiteConf.RemotePostPw)
-//line views/admin/site_config.qtpl:146
+//line views/admin/site_config.qtpl:150
 	qw422016.N().S(`" placeholder="请填写强类型密码" /> 管理员远程发布帖子、评论密码
                 </div>
                 <div class="pure-control-group">
                     <label for="QQClientID">QQClientID</label>
                     <input type="text" id="QQClientID" name="QQClientID" value="`)
-//line views/admin/site_config.qtpl:150
+//line views/admin/site_config.qtpl:154
 	qw422016.E().S(p.SiteConf.QQClientID)
-//line views/admin/site_config.qtpl:150
+//line views/admin/site_config.qtpl:154
 	qw422016.N().S(`" placeholder="QQClientID" />
                 </div>
                 <div class="pure-control-group">
                     <label for="QQClientSecret">QQClientSecret</label>
                     <input type="text" id="QQClientSecret" name="QQClientSecret" value="`)
-//line views/admin/site_config.qtpl:154
+//line views/admin/site_config.qtpl:158
 	qw422016.E().S(p.SiteConf.QQClientSecret)
-//line views/admin/site_config.qtpl:154
+//line views/admin/site_config.qtpl:158
 	qw422016.N().S(`" placeholder="QQClientSecret" />
                 </div>
                 <div class="pure-control-group">
                     <label for="WeiboClientID">WeiboClientID</label>
                     <input type="text" id="WeiboClientID" name="WeiboClientID" value="`)
-//line views/admin/site_config.qtpl:158
+//line views/admin/site_config.qtpl:162
 	qw422016.E().S(p.SiteConf.WeiboClientID)
-//line views/admin/site_config.qtpl:158
+//line views/admin/site_config.qtpl:162
 	qw422016.N().S(`" placeholder="WeiboClientID" />
                 </div>
                 <div class="pure-control-group">
                     <label for="WeiboClientSecret">WeiboClientSecret</label>
                     <input type="text" id="WeiboClientSecret" name="WeiboClientSecret" value="`)
-//line views/admin/site_config.qtpl:162
+//line views/admin/site_config.qtpl:166
 	qw422016.E().S(p.SiteConf.WeiboClientSecret)
-//line views/admin/site_config.qtpl:162
+//line views/admin/site_config.qtpl:166
 	qw422016.N().S(`" placeholder="WeiboClientSecret" />
                 </div>
                 <div class="pure-control-group">
                     <label for="GithubClientID">GithubClientID</label>
                     <input type="text" id="GithubClientID" name="GithubClientID" value="`)
-//line views/admin/site_config.qtpl:166
+//line views/admin/site_config.qtpl:170
 	qw422016.E().S(p.SiteConf.GithubClientID)
-//line views/admin/site_config.qtpl:166
+//line views/admin/site_config.qtpl:170
 	qw422016.N().S(`" placeholder="GithubClientID" />
                 </div>
                 <div class="pure-control-group">
                     <label for="GithubClientSecret">GithubClientSecret</label>
                     <input type="text" id="GithubClientSecret" name="GithubClientSecret" value="`)
-//line views/admin/site_config.qtpl:170
+//line views/admin/site_config.qtpl:174
 	qw422016.E().S(p.SiteConf.GithubClientSecret)
-//line views/admin/site_config.qtpl:170
+//line views/admin/site_config.qtpl:174
 	qw422016.N().S(`" placeholder="GithubClientSecret" />
                 </div>
                 <div class="pure-control-group">
                     <label for="SendEmail">发送Email通知</label>
                     <input type="checkbox" id="SendEmail" name="SendEmail" value="true" `)
-//line views/admin/site_config.qtpl:174
+//line views/admin/site_config.qtpl:178
 	if p.SiteConf.SendEmail {
-//line views/admin/site_config.qtpl:174
+//line views/admin/site_config.qtpl:178
 		qw422016.N().S(`checked`)
-//line views/admin/site_config.qtpl:174
+//line views/admin/site_config.qtpl:178
 	}
-//line views/admin/site_config.qtpl:174
+//line views/admin/site_config.qtpl:178
 	qw422016.N().S(` /> 有待验证帖子、回复是否发邮件，若需要则需正确填写下面 5 个信息 ↓
                 </div>
                 <div class="pure-control-group">
                     <label for="SmtpHost">SmtpHost</label>
                     <input type="text" id="SmtpHost" name="SmtpHost" value="`)
-//line views/admin/site_config.qtpl:178
+//line views/admin/site_config.qtpl:182
 	qw422016.E().S(p.SiteConf.SmtpHost)
-//line views/admin/site_config.qtpl:178
+//line views/admin/site_config.qtpl:182
 	qw422016.N().S(`" placeholder="smtp.126.com" />
                 </div>
                 <div class="pure-control-group">
                     <label for="SmtpPort">SmtpPort</label>
                     <input type="text" id="SmtpPort" name="SmtpPort" value="`)
-//line views/admin/site_config.qtpl:182
+//line views/admin/site_config.qtpl:186
 	qw422016.N().D(p.SiteConf.SmtpPort)
-//line views/admin/site_config.qtpl:182
+//line views/admin/site_config.qtpl:186
 	qw422016.N().S(`" placeholder="465" />
                 </div>
                 <div class="pure-control-group">
                     <label for="SmtpEmail">SmtpEmail</label>
                     <input type="text" id="SmtpEmail" name="SmtpEmail" value="`)
-//line views/admin/site_config.qtpl:186
+//line views/admin/site_config.qtpl:190
 	qw422016.E().S(p.SiteConf.SmtpEmail)
-//line views/admin/site_config.qtpl:186
+//line views/admin/site_config.qtpl:190
 	qw422016.N().S(`" placeholder="发件人邮箱 abc@126.com" />
                 </div>
                 <div class="pure-control-group">
                     <label for="SmtpPassword">SmtpPassword</label>
                     <input type="text" id="SmtpPassword" name="SmtpPassword" value="`)
-//line views/admin/site_config.qtpl:190
+//line views/admin/site_config.qtpl:194
 	qw422016.E().S(p.SiteConf.SmtpPassword)
-//line views/admin/site_config.qtpl:190
+//line views/admin/site_config.qtpl:194
 	qw422016.N().S(`" placeholder="发件人邮箱密码 xxxx" />
                 </div>
                 <div class="pure-control-group">
                     <label for="SendToEmail">SendToEmail</label>
                     <input type="text" id="SendToEmail" name="SendToEmail" value="`)
-//line views/admin/site_config.qtpl:194
+//line views/admin/site_config.qtpl:198
 	qw422016.E().S(p.SiteConf.SendToEmail)
-//line views/admin/site_config.qtpl:194
+//line views/admin/site_config.qtpl:198
 	qw422016.N().S(`" placeholder="收件人邮箱 123@qq.com" />
                 </div>
                 <div class="pure-controls">
@@ -453,31 +465,31 @@ func (p *SiteConfig) StreamMainBody(qw422016 *qt422016.Writer) {
 </div>
 
 `)
-//line views/admin/site_config.qtpl:205
+//line views/admin/site_config.qtpl:209
 }
 
-//line views/admin/site_config.qtpl:205
+//line views/admin/site_config.qtpl:209
 func (p *SiteConfig) WriteMainBody(qq422016 qtio422016.Writer) {
-//line views/admin/site_config.qtpl:205
+//line views/admin/site_config.qtpl:209
 	qw422016 := qt422016.AcquireWriter(qq422016)
-//line views/admin/site_config.qtpl:205
+//line views/admin/site_config.qtpl:209
 	p.StreamMainBody(qw422016)
-//line views/admin/site_config.qtpl:205
+//line views/admin/site_config.qtpl:209
 	qt422016.ReleaseWriter(qw422016)
-//line views/admin/site_config.qtpl:205
+//line views/admin/site_config.qtpl:209
 }
 
-//line views/admin/site_config.qtpl:205
+//line views/admin/site_config.qtpl:209
 func (p *SiteConfig) MainBody() string {
-//line views/admin/site_config.qtpl:205
+//line views/admin/site_config.qtpl:209
 	qb422016 := qt422016.AcquireByteBuffer()
-//line views/admin/site_config.qtpl:205
+//line views/admin/site_config.qtpl:209
 	p.WriteMainBody(qb422016)
-//line views/admin/site_config.qtpl:205
+//line views/admin/site_config.qtpl:209
 	qs422016 := string(qb422016.B)
-//line views/admin/site_config.qtpl:205
+//line views/admin/site_config.qtpl:209
 	qt422016.ReleaseByteBuffer(qb422016)
-//line views/admin/site_config.qtpl:205
+//line views/admin/site_config.qtpl:209
 	return qs422016
-//line views/admin/site_config.qtpl:205
+//line views/admin/site_config.qtpl:209
 }

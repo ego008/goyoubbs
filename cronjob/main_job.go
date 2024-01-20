@@ -4,6 +4,7 @@ import (
 	"github.com/ego008/goutils/splock"
 	"github.com/ego008/sdb"
 	"goyoubbs/model"
+	"goyoubbs/util"
 	"time"
 )
 
@@ -17,6 +18,20 @@ func (h *BaseHandler) MainCronJob() {
 
 	// do prepare
 	loadDb2Mc(db)
+
+	if h.App.Cf.Site.AutoDecodeMp4 && util.CmdExists("ffmpeg") {
+		go func(db *sdb.DB) {
+			tickA := time.Tick(3 * time.Minute)
+			for {
+				select {
+				case <-tickA:
+					decodeMp4(db)
+				default:
+					time.Sleep(time.Second)
+				}
+			}
+		}(db)
+	}
 
 	spl := splock.SimpleLock{}
 	tick1 := time.Tick(3 * time.Minute)   // 清理过期一些 keys

@@ -31,7 +31,7 @@ func main() {
 	flag.Parse()
 
 	myApp := &model.Application{}
-	myApp.Init(*addr, *sdbDir)
+	myApp.Init(*addr, *sdbDir, os.Args[0])
 
 	// cron job
 	cr := cronjob.BaseHandler{App: myApp}

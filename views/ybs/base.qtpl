@@ -25,8 +25,6 @@ Page prints a page implementing Page interface.
     <meta name="format-detection" content="telephone=no" />
     <link rel="shortcut icon" href="/static/favicon.png" type="image/x-icon" />
     <link rel="top" title="Back to Top" href="#" />
-    <link rel="stylesheet" href="/static/css/main.css" type="text/css">
-    <script src="/static/js/main.js"></script>
     <!--[if lte IE 8]>
     <link rel="stylesheet" href="/static/css/grids-responsive-old-ie-min.css">
     <![endif]-->
@@ -91,6 +89,8 @@ function handleScroll() {
 <meta name="keywords" content="{%s p.Keywords %}">
 <link rel="canonical" href="{%s p.Canonical %}">
 <link href="/feed" rel="alternate" title="{%s p.SiteCf.Name %}" type="application/atom+xml">
+<link rel="stylesheet" href="/static/css/main.css?v={%s p.SiteCf.SelfHash %}" type="text/css">
+<script src="/static/js/main.js?v={%s p.SiteCf.SelfHash %}"></script>
 
 {% if len(p.JsonLd)>0 %}
 <script type="application/ld+json">
