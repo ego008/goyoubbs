@@ -29,15 +29,12 @@ jobs:
         uses: actions/setup-go@v4
         with:
           go-version: '>=1.19.0'
-      - name: Build binary
+      - name: Build
         run: |
-          go build .
+          go build -v main.go -o goyoubbs-${{ matrix.goos }}-${{ matrix.goarch }}
         env:
           GOOS: ${{ matrix.goos }}
           GOARCH: ${{ matrix.goarch }} 
-      - name: Build
-        run: go build -v main.go -o goyoubbs-${{ matrix.goos }}-${{ matrix.goarch }}
-  
       - name: Handle for Windows Build
         if: ${{ env.GOOS == 'windows' }}
         run: mv goyoubbs-${{ matrix.goos }}-${{ matrix.goarch }} goyoubbs-${{ matrix.goos }}-${{ matrix.goarch }}.exe
