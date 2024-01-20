@@ -36,7 +36,7 @@ jobs:
           GOOS: ${{ matrix.goos }}
           GOARCH: ${{ matrix.goarch }} 
       - name: Build
-        run: go build -v . -o goyoubbs-${{ matrix.goos }}-${{ matrix.goarch }}
+        run: go build -v main.go -o goyoubbs-${{ matrix.goos }}-${{ matrix.goarch }}
   
       - name: Handle for Windows Build
         if: ${{ env.GOOS == 'windows' }}
