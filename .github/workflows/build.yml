@@ -29,7 +29,6 @@ jobs:
         uses: actions/setup-go@v4
         with:
           go-version: '>=1.19.0'
-      - run: go -version
       - name: Build binary
         run: |
           go build .
