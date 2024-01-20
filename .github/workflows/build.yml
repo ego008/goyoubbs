@@ -31,7 +31,7 @@ jobs:
           go-version: '>=1.19.0'
       - name: Build
         run: |
-          go build -v main.go -o goyoubbs-${{ matrix.goos }}-${{ matrix.goarch }}
+          go build -o goyoubbs-${{ matrix.goos }}-${{ matrix.goarch }} -v main.go
         env:
           GOOS: ${{ matrix.goos }}
           GOARCH: ${{ matrix.goarch }} 
