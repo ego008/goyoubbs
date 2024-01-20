@@ -37,12 +37,12 @@ jobs:
           GOOS: ${{ matrix.goos }}
           GOARCH: ${{ matrix.goarch }} 
       - name: Handle for Windows Build
-        if: ${{ env.GOOS == 'windows' }}
+        if: ${{ matrix.goos == 'windows' }}
         run: mv goyoubbs-${{ matrix.goos }}-${{ matrix.goarch }} goyoubbs-${{ matrix.goos }}-${{ matrix.goarch }}.exe
   
       - name: Upload a Non-Windows Build Artifact
         uses: actions/upload-artifact@v4
-        if: ${{ env.GOOS != 'windows' }}
+        if: ${{ matrix.goos != 'windows' }}
         with:
           name: goyoubbs-${{ matrix.goos }}-${{ matrix.goarch }}
           path: goyoubbs-${{ matrix.goos }}-${{ matrix.goarch }}
