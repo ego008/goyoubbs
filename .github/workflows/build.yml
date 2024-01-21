@@ -34,6 +34,7 @@ jobs:
           go mod tidy
           go build -o goyoubbs-${{ matrix.goos }}-${{ matrix.goarch }} -v .
         env:
+          CGO_ENABLED: 0
           GOOS: ${{ matrix.goos }}
           GOARCH: ${{ matrix.goarch }} 
       - name: Handle for Windows Build
