@@ -32,7 +32,7 @@ jobs:
       - name: Build
         run: |
           go mod tidy
-          go build -o goyoubbs-${{ matrix.goos }}-${{ matrix.goarch }} -v .
+          go build -tags=go_json -o goyoubbs-${{ matrix.goos }}-${{ matrix.goarch }} -v .
         env:
           CGO_ENABLED: 0
           GOOS: ${{ matrix.goos }}
