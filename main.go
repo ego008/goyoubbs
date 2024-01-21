@@ -2,6 +2,7 @@ package main
 
 import (
 	"crypto/tls"
+	"embed"
 	"flag"
 	"github.com/valyala/fasthttp"
 	"golang.org/x/crypto/acme"
@@ -18,6 +19,9 @@ import (
 	"time"
 )
 
+//go:embed static
+var staticFs embed.FS
+
 var (
 	addr     = flag.String("addr", ":8080", "TCP address to listen to")
 	sdbDir   = flag.String("sdbDir", "localdb", "Directory to serve sdb from")
@@ -31,7 +35,7 @@ func main() {
 	flag.Parse()
 
 	myApp := &model.Application{}
-	myApp.Init(*addr, *sdbDir, os.Args[0])
+	myApp.Init(*addr, *sdbDir, os.Args[0], &staticFs)
 
 	// cron job
 	cr := cronjob.BaseHandler{App: myApp}

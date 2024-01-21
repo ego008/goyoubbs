@@ -512,7 +512,11 @@ func (p *TopicDetailPage) StreamMainBody(qw422016 *qt422016.Writer) {
                                     let obj = JSON.parse(data)
                                     //console.log(obj);
                                     if(obj.Code === 200) {
-                                        let img_url = "\n" + s2tag(obj.Url) + "\n";
+                                        let img_url = "\n" + s2tag(obj.Url, `)
+//line views/ybs/topic_detail.qtpl:193
+			qw422016.E().V(p.SiteCf.AutoDecodeMp4)
+//line views/ybs/topic_detail.qtpl:193
+			qw422016.N().S(`) + "\n";
                                         let pos = conEle.selectionStart;
                                         let con = conEle.value;
                                         conEle.value = con.slice(0, pos) + img_url + con.slice(pos);
@@ -530,7 +534,11 @@ func (p *TopicDetailPage) StreamMainBody(qw422016 *qt422016.Writer) {
                     postAjax("/file/upload", form, function(data){
                         let obj = JSON.parse(data)
                         if(obj.Code === 200) {
-                            let img_url = "\n" + s2tag(obj.Url) + "\n";
+                            let img_url = "\n" + s2tag(obj.Url, `)
+//line views/ybs/topic_detail.qtpl:211
+			qw422016.E().V(p.SiteCf.AutoDecodeMp4)
+//line views/ybs/topic_detail.qtpl:211
+			qw422016.N().S(`) + "\n";
                             let pos = conEle.selectionStart;
                             let con = conEle.value;
                             conEle.value = con.slice(0, pos) + img_url + con.slice(pos);

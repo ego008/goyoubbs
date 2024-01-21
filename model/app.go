@@ -1,6 +1,7 @@
 package model
 
 import (
+	"embed"
 	"github.com/VictoriaMetrics/fastcache"
 	"github.com/ego008/goutils/lfqueue"
 	"github.com/ego008/goutils/ratelimit"
@@ -21,8 +22,9 @@ var (
 )
 
 type MyAppConf struct {
-	Main *MainConf
-	Site *SiteConf
+	Main   *MainConf
+	Site   *SiteConf
+	Assets *embed.FS
 }
 
 type Application struct {
@@ -33,7 +35,7 @@ type Application struct {
 	Mux *router.Router
 }
 
-func (app *Application) Init(addr, sdbDir, filePath string) {
+func (app *Application) Init(addr, sdbDir, filePath string, assetFs *embed.FS) {
 
 	mcf := &MainConf{
 		Addr:   addr,
@@ -59,7 +61,11 @@ func (app *Application) Init(addr, sdbDir, filePath string) {
 	scf.SelfHash = util.HashFile(filePath)
 	log.Println("SelfHash:", scf.SelfHash)
 
-	app.Cf = &MyAppConf{mcf, &scf}
+	app.Cf = &MyAppConf{
+		Main:   mcf,
+		Site:   &scf,
+		Assets: assetFs,
+	}
 
 	var hashKey []byte
 	var blockKey []byte

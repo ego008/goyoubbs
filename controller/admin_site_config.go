@@ -168,6 +168,10 @@ func (h *BaseHandler) AdminSiteConfigPost(ctx *fasthttp.RequestCtx) {
 	jb, _ := json.Marshal(obj)
 	_ = h.App.Db.Hset(model.KeyValueTb, []byte("site_config"), jb)
 
+	// in old conf
+	obj.IsDevMod = h.App.Cf.Site.IsDevMod
+	obj.SelfHash = h.App.Cf.Site.SelfHash
+
 	h.App.Cf.Site = &obj
 
 	if reloadRouter {

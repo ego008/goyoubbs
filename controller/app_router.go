@@ -7,6 +7,7 @@ import (
 	"github.com/mileusna/useragent"
 	"github.com/valyala/fasthttp"
 	"goyoubbs/model"
+	"io/fs"
 	"log"
 	"os"
 	"strings"
@@ -91,10 +92,18 @@ func MainRouter(ap *model.Application, sm *router.Router) {
 
 	// static file server
 	//mux.ServeFiles("/static/{filepath:*}", staticPath)
+	//sm.ServeFilesCustom("/static/{filepath:*}", &fasthttp.FS{
+	//	Root:               "static",
+	//	GenerateIndexPages: false,
+	//	AcceptByteRange:    true,
+	//})
+
+	// use embed.FS for static file
+	sub, _ := fs.Sub(ap.Cf.Assets, "static")
 	sm.ServeFilesCustom("/static/{filepath:*}", &fasthttp.FS{
-		Root:               "static",
-		GenerateIndexPages: false,
-		AcceptByteRange:    true,
+		FS:              sub,
+		Root:            "",
+		AcceptByteRange: true,
 	})
 
 	sm.GET("/captcha/{filepath:*}", h.CaptchaHandle)

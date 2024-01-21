@@ -12,13 +12,17 @@ function docReady(callbackFunc) {
     }
 }
 
-function s2tag(s) {
+function s2tag(s, isDec) {
     let re = /(?:\.([^.]+))?$/;
     let ext = re.exec(s)[1];
     switch(ext) {
         case "mp4":
-            let s2 = s.replace(".mp4", ".webm");
-            return '<video controls><source src="'+s2+'" type="video/webm" /><source src="'+s+'" type="video/mp4" /></video>';
+            if(isDec) {
+                let s2 = s.replace(".mp4", ".webm");
+                return '<video controls><source src="' + s2 + '" type="video/webm" /><source src="' + s + '" type="video/mp4" /></video>';
+            }else{
+                return '<video controls src="'+s+'"></video>';
+            }
         case "mp3":
             return '<audio controls loop src="'+s+'"></audio>';
         case "gif":
