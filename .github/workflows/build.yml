@@ -1,0 +1,56 @@
+name: Auto Build
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  Compile:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - goarch: amd64
+            goos: linux
+          - goarch: amd64
+            goos: darwin
+          - goarch: amd64
+            goos: windows 
+          - goarch: arm64
+            goos: linux
+          - goarch: arm64
+            goos: darwin
+          - goarch: arm64
+            goos: windows 
+    steps:
+      - name: Checkout
+        uses: actions/checkout@master
+      - name: Setting up Golang
+        uses: actions/setup-go@v4
+        with:
+          go-version: '>=1.19.0'
+      - name: Build
+        run: |
+          go mod tidy
+          go build -o goyoubbs-${{ matrix.goos }}-${{ matrix.goarch }} -v .
+        env:
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }} 
+      - name: Handle for Windows Build
+        if: ${{ matrix.goos == 'windows' }}
+        run: mv goyoubbs-${{ matrix.goos }}-${{ matrix.goarch }} goyoubbs-${{ matrix.goos }}-${{ matrix.goarch }}.exe
+  
+      - name: Upload a Non-Windows Build Artifact
+        uses: actions/upload-artifact@v4
+        if: ${{ matrix.goos != 'windows' }}
+        with:
+          name: goyoubbs-${{ matrix.goos }}-${{ matrix.goarch }}
+          path: goyoubbs-${{ matrix.goos }}-${{ matrix.goarch }}
+  
+      - name: Upload a Windows Build Artifact
+        uses: actions/upload-artifact@v4
+        if: ${{ matrix.goos == 'windows' }}
+        with:
+          name: goyoubbs-${{ matrix.goos }}-${{ matrix.goarch }}.exe
+          path: goyoubbs-${{ matrix.goos }}-${{ matrix.goarch }}.exe
+        
