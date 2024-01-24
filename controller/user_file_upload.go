@@ -109,6 +109,8 @@ func (h *BaseHandler) FileUpload(ctx *fasthttp.RequestCtx) {
 		// fix
 		if fileSuffix == ".mp4" {
 			_ = db.Hset(model.TbnV2DecMp4, []byte(saveFullPath), nil)
+		} else if fileSuffix == ".mp3" {
+			model.Mp3InfoSet(db, saveFullPath)
 		}
 
 		return
@@ -182,6 +184,8 @@ func (h *BaseHandler) FileUpload(ctx *fasthttp.RequestCtx) {
 		imgData.Reset()
 		if fileSuffix == ".mp4" {
 			_ = db.Hset(model.TbnV2DecMp4, []byte(saveFullPath), nil)
+		} else if fileSuffix == ".mp3" {
+			model.Mp3InfoSet(db, saveFullPath)
 		}
 	}
 

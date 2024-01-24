@@ -11,6 +11,7 @@ const (
 	TbnIpInfo       = "ip"           // user ip info
 	TbnSetting      = "setting"      // key: settingKey, value: setting value
 	TbnV2DecMp4     = "v2dec_mp4"    // key: saveFullPath, value: nil
+	TbnMp3Info      = "mp3_info"     // mp3 info, key: saveFullPath, value: info json
 
 	SettingKeyBadBot  = "BadBotName"
 	SettingKeyBadIp   = "BadIpPrefix"
