@@ -99,7 +99,7 @@ func MainRouter(ap *model.Application, sm *router.Router) {
 	//})
 
 	// use embed.FS for static file
-	sub, _ := fs.Sub(ap.Cf.Assets, "static")
+	sub, _ := fs.Sub(ap.Assets, "static")
 	sm.ServeFilesCustom("/static/{filepath:*}", &fasthttp.FS{
 		FS:              sub,
 		Root:            "",

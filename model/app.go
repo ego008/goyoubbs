@@ -22,17 +22,17 @@ var (
 )
 
 type MyAppConf struct {
-	Main   *MainConf
-	Site   *SiteConf
-	Assets *embed.FS
+	Main *MainConf
+	Site *SiteConf
 }
 
 type Application struct {
-	Cf  *MyAppConf
-	Db  *sdb.DB
-	Sc  *securecookie.SecureCookie
-	Mc  *fastcache.Cache // 数量不固定的缓存，或者是不需要序列化的内容
-	Mux *router.Router
+	Cf     *MyAppConf
+	Db     *sdb.DB
+	Sc     *securecookie.SecureCookie
+	Mc     *fastcache.Cache // 数量不固定的缓存，或者是不需要序列化的内容
+	Mux    *router.Router
+	Assets *embed.FS
 }
 
 func (app *Application) Init(addr, sdbDir, filePath string, assetFs *embed.FS) {
@@ -62,9 +62,8 @@ func (app *Application) Init(addr, sdbDir, filePath string, assetFs *embed.FS) {
 	log.Println("SelfHash:", scf.SelfHash)
 
 	app.Cf = &MyAppConf{
-		Main:   mcf,
-		Site:   &scf,
-		Assets: assetFs,
+		Main: mcf,
+		Site: &scf,
 	}
 
 	var hashKey []byte
@@ -92,6 +91,8 @@ func (app *Application) Init(addr, sdbDir, filePath string, assetFs *embed.FS) {
 	if mcValue := app.Mc.GetBig(nil, []byte("mc_Limiter")); len(mcValue) > 0 {
 		Limiter.Load(mcValue)
 	}
+
+	app.Assets = assetFs
 }
 
 func (app *Application) Close() {
