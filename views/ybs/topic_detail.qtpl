@@ -293,6 +293,28 @@
                 }
             }
 
+let audioLst = Array.from(document.querySelectorAll(".markdown-body audio"), audio =>audio.src);
+if(audioLst.length>1){
+    let curIndex = 0;
+    const audio = document.createElement('audio');
+    audio.controls = true;
+    audio.src = audioLst[curIndex];
+
+    let mainEle = document.querySelector(".markdown-body");
+    mainEle.insertAdjacentElement('afterbegin', audio);
+
+    audio.addEventListener("ended", (event) => {
+        if(curIndex<audioLst.length-1){
+            curIndex++;
+        }else{
+            curIndex = 0;
+        }
+        audio.src = audioLst[curIndex];
+        console.log(audio.src);
+        audio.play();
+    });
+}
+
             docReady(function() {
                 getContentLinkCount();
             });

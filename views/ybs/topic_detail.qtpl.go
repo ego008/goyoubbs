@@ -631,6 +631,28 @@ func (p *TopicDetailPage) StreamMainBody(qw422016 *qt422016.Writer) {
                 }
             }
 
+let audioLst = Array.from(document.querySelectorAll(".markdown-body audio"), audio =>audio.src);
+if(audioLst.length>1){
+    let curIndex = 0;
+    const audio = document.createElement('audio');
+    audio.controls = true;
+    audio.src = audioLst[curIndex];
+
+    let mainEle = document.querySelector(".markdown-body");
+    mainEle.insertAdjacentElement('afterbegin', audio);
+
+    audio.addEventListener("ended", (event) => {
+        if(curIndex<audioLst.length-1){
+            curIndex++;
+        }else{
+            curIndex = 0;
+        }
+        audio.src = audioLst[curIndex];
+        console.log(audio.src);
+        audio.play();
+    });
+}
+
             docReady(function() {
                 getContentLinkCount();
             });
@@ -642,31 +664,31 @@ func (p *TopicDetailPage) StreamMainBody(qw422016 *qt422016.Writer) {
 </div>
 
 `)
-//line views/ybs/topic_detail.qtpl:306
+//line views/ybs/topic_detail.qtpl:328
 }
 
-//line views/ybs/topic_detail.qtpl:306
+//line views/ybs/topic_detail.qtpl:328
 func (p *TopicDetailPage) WriteMainBody(qq422016 qtio422016.Writer) {
-//line views/ybs/topic_detail.qtpl:306
+//line views/ybs/topic_detail.qtpl:328
 	qw422016 := qt422016.AcquireWriter(qq422016)
-//line views/ybs/topic_detail.qtpl:306
+//line views/ybs/topic_detail.qtpl:328
 	p.StreamMainBody(qw422016)
-//line views/ybs/topic_detail.qtpl:306
+//line views/ybs/topic_detail.qtpl:328
 	qt422016.ReleaseWriter(qw422016)
-//line views/ybs/topic_detail.qtpl:306
+//line views/ybs/topic_detail.qtpl:328
 }
 
-//line views/ybs/topic_detail.qtpl:306
+//line views/ybs/topic_detail.qtpl:328
 func (p *TopicDetailPage) MainBody() string {
-//line views/ybs/topic_detail.qtpl:306
+//line views/ybs/topic_detail.qtpl:328
 	qb422016 := qt422016.AcquireByteBuffer()
-//line views/ybs/topic_detail.qtpl:306
+//line views/ybs/topic_detail.qtpl:328
 	p.WriteMainBody(qb422016)
-//line views/ybs/topic_detail.qtpl:306
+//line views/ybs/topic_detail.qtpl:328
 	qs422016 := string(qb422016.B)
-//line views/ybs/topic_detail.qtpl:306
+//line views/ybs/topic_detail.qtpl:328
 	qt422016.ReleaseByteBuffer(qb422016)
-//line views/ybs/topic_detail.qtpl:306
+//line views/ybs/topic_detail.qtpl:328
 	return qs422016
-//line views/ybs/topic_detail.qtpl:306
+//line views/ybs/topic_detail.qtpl:328
 }
