@@ -5,6 +5,7 @@ import (
 	"github.com/VictoriaMetrics/fastcache"
 	"github.com/ego008/goutils/lfqueue"
 	"github.com/ego008/goutils/ratelimit"
+	"github.com/ego008/goutils/splock"
 	"github.com/ego008/sdb"
 	"github.com/fasthttp/router"
 	"github.com/gorilla/securecookie"
@@ -14,6 +15,8 @@ import (
 	"log"
 	"os"
 	"strings"
+	"sync/atomic"
+	"time"
 )
 
 var (
@@ -33,6 +36,7 @@ type Application struct {
 	Mc     *fastcache.Cache // 数量不固定的缓存，或者是不需要序列化的内容
 	Mux    *router.Router
 	Assets *embed.FS
+	Spl    *splock.SimpleLock
 }
 
 func (app *Application) Init(addr, sdbDir string, assetFs *embed.FS) {
@@ -93,9 +97,22 @@ func (app *Application) Init(addr, sdbDir string, assetFs *embed.FS) {
 	}
 
 	app.Assets = assetFs
+	app.Spl = &splock.SimpleLock{}
 }
 
 func (app *Application) Close() {
+	// 改变中断状态
+	atomic.StoreUint32(&AppStop, 1)
+	// 检测是否还存在后台运行的函数
+	for {
+		if hasLock, _ := app.Spl.HasLocked(); hasLock {
+			time.Sleep(time.Millisecond * 10)
+			continue
+		}
+		log.Println("break!")
+		break
+	}
+
 	_ = app.Db.Close()
 
 	// set limiter data to mc

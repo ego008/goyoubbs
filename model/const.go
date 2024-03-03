@@ -19,6 +19,7 @@ const (
 )
 
 var (
-	TimeOffSet  = time.Duration(8) * time.Hour // 时差， 图个方便
-	SettingKeys = []string{SettingKeyBadBot, SettingKeyBadIp, SettingKeyAllowIp}
+	AppStop     uint32 = 0                            // 主程序中断标志
+	TimeOffSet         = time.Duration(8) * time.Hour // 时差， 图个方便
+	SettingKeys        = []string{SettingKeyBadBot, SettingKeyBadIp, SettingKeyAllowIp}
 )

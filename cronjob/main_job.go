@@ -1,10 +1,10 @@
 package cronjob
 
 import (
-	"github.com/ego008/goutils/splock"
 	"github.com/ego008/sdb"
 	"goyoubbs/model"
 	"goyoubbs/util"
+	"sync/atomic"
 	"time"
 )
 
@@ -33,7 +33,7 @@ func (h *BaseHandler) MainCronJob() {
 		}(db)
 	}
 
-	spl := splock.SimpleLock{}
+	spl := h.App.Spl
 	tick1 := time.Tick(3 * time.Minute)   // 清理过期一些 keys
 	tick3 := time.Tick(30 * time.Minute)  // 数据库备份
 	tick6 := time.Tick(9 * time.Second)   // 从 title 提取 tag
@@ -45,6 +45,11 @@ func (h *BaseHandler) MainCronJob() {
 	daySecond := int64(3600 * 24)
 
 	for {
+		if atomic.LoadUint32(&model.AppStop) > 0 {
+			time.Sleep(time.Second * 3)
+			continue
+		}
+
 		select {
 		case <-tick1:
 			lk := spl.Init("tk1")

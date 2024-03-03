@@ -138,7 +138,7 @@ func MainRouter(ap *model.Application, sm *router.Router) {
 	sm.POST("/file/upload", h.FileUpload)
 
 	admin := sm.Group("/admin")
-	admin.GET("/", h.AdminHomePage) // 后面没有斜杠
+	admin.GET("/", h.AdminHomePage)
 	//
 	admin.GET("/node", h.AdminNodePage)
 	admin.POST("/node", h.AdminNodePost)
