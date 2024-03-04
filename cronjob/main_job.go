@@ -112,11 +112,13 @@ func (h *BaseHandler) MainCronJob() {
 				lk.UnLock()
 			}
 		case <-tick11:
-			lk := spl.Init("tk11")
-			if !lk.IsLocked() {
-				lk.Lock()
-				sendMail(db, h.App.Cf.Site)
-				lk.UnLock()
+			if h.App.Cf.Site.SendEmail {
+				lk := spl.Init("tk11")
+				if !lk.IsLocked() {
+					lk.Lock()
+					sendMail(db, h.App.Cf.Site)
+					lk.UnLock()
+				}
 			}
 		default:
 			time.Sleep(time.Second)
