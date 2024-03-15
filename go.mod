@@ -1,6 +1,6 @@
 module goyoubbs
 
-go 1.19
+go 1.20
 
 require (
 	github.com/VictoriaMetrics/fastcache v1.12.2
@@ -10,7 +10,7 @@ require (
 	github.com/ego008/captcha v0.0.0-20210207145536-b16672dce081
 	github.com/ego008/goutils v0.0.0-20240302091331-d7e01b773179
 	github.com/ego008/sdb v0.0.0-20220425030734-1f07301d26a5
-	github.com/fasthttp/router v1.4.22
+	github.com/fasthttp/router v1.5.0
 	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0
 	github.com/google/go-github v17.0.0+incompatible
 	github.com/gorilla/securecookie v1.1.2
@@ -25,9 +25,9 @@ require (
 	github.com/valyala/fasthttp v1.52.0
 	github.com/valyala/quicktemplate v1.7.0
 	github.com/yuin/goldmark v1.7.0
-	golang.org/x/crypto v0.20.0
+	golang.org/x/crypto v0.21.0
 	golang.org/x/image v0.15.0
-	golang.org/x/oauth2 v0.17.0
+	golang.org/x/oauth2 v0.18.0
 )
 
 require (
@@ -41,15 +41,15 @@ require (
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
-	github.com/savsgio/gotils v0.0.0-20230208104028-c358bd845dee // indirect
+	github.com/savsgio/gotils v0.0.0-20240303185622-093b76447511 // indirect
 	github.com/stretchr/testify v1.9.0 // indirect
 	github.com/tidwall/match v1.1.1 // indirect
 	github.com/tidwall/pretty v1.2.1 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
-	golang.org/x/net v0.21.0 // indirect
-	golang.org/x/sys v0.17.0 // indirect
+	golang.org/x/net v0.22.0 // indirect
+	golang.org/x/sys v0.18.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
 	google.golang.org/appengine v1.6.8 // indirect
-	google.golang.org/protobuf v1.32.0 // indirect
+	google.golang.org/protobuf v1.33.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 )
