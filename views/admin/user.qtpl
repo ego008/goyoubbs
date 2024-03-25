@@ -1,3 +1,4 @@
+{% import "goyoubbs/util" %}
 {% func (p *User) MainBody() %}
 <div class="index">
     <div class="markdown-body entry-content">
@@ -84,11 +85,11 @@
     <h2>列表</h2>
     <ul>
         <li class="bot-line">
-            ID - Name - Flag - Url - About
+            ID - Name - Flag - Url - About - addTime
         </li>
         {% for _, v := range p.UserLst %}
         <li class="bot-line">
-            {%dul v.ID %} - <a href="/admin/user?id={%dul v.ID %}">{%s v.Name %}</a> - {%d v.Flag %} - {%s v.Url %} - {%s v.About %}
+            {%dul v.ID %} - <a href="/admin/user?id={%dul v.ID %}">{%s v.Name %}</a> - {%d v.Flag %} - {%s v.Url %} - {%s v.About %} - {%s util.TimeFmt(int64(v.RegTime), "") %}
         </li>
         {% endfor %}
     </ul>

@@ -5,28 +5,31 @@
 package admin
 
 //line views/admin/user.qtpl:1
+import "goyoubbs/util"
+
+//line views/admin/user.qtpl:2
 import (
 	qtio422016 "io"
 
 	qt422016 "github.com/valyala/quicktemplate"
 )
 
-//line views/admin/user.qtpl:1
+//line views/admin/user.qtpl:2
 var (
 	_ = qtio422016.Copy
 	_ = qt422016.AcquireByteBuffer
 )
 
-//line views/admin/user.qtpl:1
+//line views/admin/user.qtpl:2
 func (p *User) StreamMainBody(qw422016 *qt422016.Writer) {
-//line views/admin/user.qtpl:1
+//line views/admin/user.qtpl:2
 	qw422016.N().S(`
 <div class="index">
     <div class="markdown-body entry-content">
     <h1>`)
-//line views/admin/user.qtpl:4
+//line views/admin/user.qtpl:5
 	qw422016.E().S(p.Title)
-//line views/admin/user.qtpl:4
+//line views/admin/user.qtpl:5
 	qw422016.N().S(`</h1>
     <form action="" method="get" class="pure-form">
         <fieldset>
@@ -36,23 +39,23 @@ func (p *User) StreamMainBody(qw422016 *qt422016.Writer) {
     <form action="" method="post" class="pure-form pure-form-stacked">
         <fieldset>
             <legend>`)
-//line views/admin/user.qtpl:12
+//line views/admin/user.qtpl:13
 	qw422016.E().S(p.Act)
-//line views/admin/user.qtpl:12
+//line views/admin/user.qtpl:13
 	qw422016.N().S(` 用户</legend>
             `)
-//line views/admin/user.qtpl:13
+//line views/admin/user.qtpl:14
 	if p.User.ID > 0 {
-//line views/admin/user.qtpl:13
+//line views/admin/user.qtpl:14
 		qw422016.N().S(`
             <img id="img" src="/static/avatar/`)
-//line views/admin/user.qtpl:14
+//line views/admin/user.qtpl:15
 		qw422016.N().DUL(p.User.ID)
-//line views/admin/user.qtpl:14
+//line views/admin/user.qtpl:15
 		qw422016.N().S(`.jpg" alt="`)
-//line views/admin/user.qtpl:14
+//line views/admin/user.qtpl:15
 		qw422016.E().S(p.User.Name)
-//line views/admin/user.qtpl:14
+//line views/admin/user.qtpl:15
 		qw422016.N().S(` avatar" onclick="document.getElementById('file-input').click();" title="点击更换头像" style="cursor: pointer;height: 119px;width: 119px;">
             <input id="file-input" type="file" name="file" accept="image/*" style="display: none;" />
             <script>
@@ -70,9 +73,9 @@ func (p *User) StreamMainBody(qw422016 *qt422016.Writer) {
 
                     let formData = new FormData();
                     formData.append("UserId", "`)
-//line views/admin/user.qtpl:30
+//line views/admin/user.qtpl:31
 		qw422016.N().DUL(p.User.ID)
-//line views/admin/user.qtpl:30
+//line views/admin/user.qtpl:31
 		qw422016.N().S(`");
                     formData.append("file", f);
 
@@ -86,30 +89,30 @@ func (p *User) StreamMainBody(qw422016 *qt422016.Writer) {
                 })
             </script>
             `)
-//line views/admin/user.qtpl:42
+//line views/admin/user.qtpl:43
 	}
-//line views/admin/user.qtpl:42
+//line views/admin/user.qtpl:43
 	qw422016.N().S(`
 
             <p>Flag:
             `)
-//line views/admin/user.qtpl:45
+//line views/admin/user.qtpl:46
 	for _, item := range p.FlagLst {
-//line views/admin/user.qtpl:45
+//line views/admin/user.qtpl:46
 		qw422016.N().S(`
             <a href="?flag=`)
-//line views/admin/user.qtpl:46
+//line views/admin/user.qtpl:47
 		qw422016.N().D(item.Flag)
-//line views/admin/user.qtpl:46
+//line views/admin/user.qtpl:47
 		qw422016.N().S(`">`)
-//line views/admin/user.qtpl:46
+//line views/admin/user.qtpl:47
 		qw422016.E().S(item.Name)
-//line views/admin/user.qtpl:46
+//line views/admin/user.qtpl:47
 		qw422016.N().S(`</a>,
             `)
-//line views/admin/user.qtpl:47
+//line views/admin/user.qtpl:48
 	}
-//line views/admin/user.qtpl:47
+//line views/admin/user.qtpl:48
 	qw422016.N().S(`
             </p>
 
@@ -117,9 +120,9 @@ func (p *User) StreamMainBody(qw422016 *qt422016.Writer) {
                 <div class="pure-u-1 pure-u-sm-1-6">
                     <label for="Name">登录名： </label>
                     <input id="Name" name="Name" class="pure-u-23-24" type="text" value="`)
-//line views/admin/user.qtpl:53
+//line views/admin/user.qtpl:54
 	qw422016.E().S(p.User.Name)
-//line views/admin/user.qtpl:53
+//line views/admin/user.qtpl:54
 	qw422016.N().S(`" required>
                 </div>
 
@@ -132,31 +135,31 @@ func (p *User) StreamMainBody(qw422016 *qt422016.Writer) {
                     <label for="select-nid">权　限： </label>
                     <select id="select-nid" name="Flag">
                         `)
-//line views/admin/user.qtpl:64
+//line views/admin/user.qtpl:65
 	for _, item := range p.FlagLst {
-//line views/admin/user.qtpl:64
+//line views/admin/user.qtpl:65
 		qw422016.N().S(`
                         <option value="`)
-//line views/admin/user.qtpl:65
+//line views/admin/user.qtpl:66
 		qw422016.N().D(item.Flag)
-//line views/admin/user.qtpl:65
+//line views/admin/user.qtpl:66
 		qw422016.N().S(`" `)
-//line views/admin/user.qtpl:65
+//line views/admin/user.qtpl:66
 		if item.Flag == p.User.Flag {
-//line views/admin/user.qtpl:65
+//line views/admin/user.qtpl:66
 			qw422016.N().S(`selected="selected"`)
-//line views/admin/user.qtpl:65
+//line views/admin/user.qtpl:66
 		}
-//line views/admin/user.qtpl:65
+//line views/admin/user.qtpl:66
 		qw422016.N().S(`>`)
-//line views/admin/user.qtpl:65
+//line views/admin/user.qtpl:66
 		qw422016.E().S(item.Name)
-//line views/admin/user.qtpl:65
+//line views/admin/user.qtpl:66
 		qw422016.N().S(`</option>
                         `)
-//line views/admin/user.qtpl:66
+//line views/admin/user.qtpl:67
 	}
-//line views/admin/user.qtpl:66
+//line views/admin/user.qtpl:67
 	qw422016.N().S(`
                     </select>
                 </div>
@@ -166,14 +169,14 @@ func (p *User) StreamMainBody(qw422016 *qt422016.Writer) {
             <div class="pure-g">
                 <div class="pure-u-1 pure-u-sm-1-1">
                     <input name="Url" type="text" value="`)
-//line views/admin/user.qtpl:74
+//line views/admin/user.qtpl:75
 	qw422016.E().S(p.User.Url)
-//line views/admin/user.qtpl:74
+//line views/admin/user.qtpl:75
 	qw422016.N().S(`" class="pure-input-1" placeholder="URL http(s)://example.com" />
                     <textarea name="About" class="pure-input-1" placeholder="About...">`)
-//line views/admin/user.qtpl:75
+//line views/admin/user.qtpl:76
 	qw422016.N().S(p.User.About)
-//line views/admin/user.qtpl:75
+//line views/admin/user.qtpl:76
 	qw422016.N().S(`</textarea>
                 </div>
             </div>
@@ -186,75 +189,79 @@ func (p *User) StreamMainBody(qw422016 *qt422016.Writer) {
     <h2>列表</h2>
     <ul>
         <li class="bot-line">
-            ID - Name - Flag - Url - About
+            ID - Name - Flag - Url - About - addTime
         </li>
         `)
-//line views/admin/user.qtpl:89
+//line views/admin/user.qtpl:90
 	for _, v := range p.UserLst {
-//line views/admin/user.qtpl:89
+//line views/admin/user.qtpl:90
 		qw422016.N().S(`
         <li class="bot-line">
             `)
-//line views/admin/user.qtpl:91
+//line views/admin/user.qtpl:92
 		qw422016.N().DUL(v.ID)
-//line views/admin/user.qtpl:91
+//line views/admin/user.qtpl:92
 		qw422016.N().S(` - <a href="/admin/user?id=`)
-//line views/admin/user.qtpl:91
+//line views/admin/user.qtpl:92
 		qw422016.N().DUL(v.ID)
-//line views/admin/user.qtpl:91
+//line views/admin/user.qtpl:92
 		qw422016.N().S(`">`)
-//line views/admin/user.qtpl:91
+//line views/admin/user.qtpl:92
 		qw422016.E().S(v.Name)
-//line views/admin/user.qtpl:91
+//line views/admin/user.qtpl:92
 		qw422016.N().S(`</a> - `)
-//line views/admin/user.qtpl:91
+//line views/admin/user.qtpl:92
 		qw422016.N().D(v.Flag)
-//line views/admin/user.qtpl:91
+//line views/admin/user.qtpl:92
 		qw422016.N().S(` - `)
-//line views/admin/user.qtpl:91
+//line views/admin/user.qtpl:92
 		qw422016.E().S(v.Url)
-//line views/admin/user.qtpl:91
+//line views/admin/user.qtpl:92
 		qw422016.N().S(` - `)
-//line views/admin/user.qtpl:91
+//line views/admin/user.qtpl:92
 		qw422016.E().S(v.About)
-//line views/admin/user.qtpl:91
+//line views/admin/user.qtpl:92
+		qw422016.N().S(` - `)
+//line views/admin/user.qtpl:92
+		qw422016.E().S(util.TimeFmt(int64(v.RegTime), ""))
+//line views/admin/user.qtpl:92
 		qw422016.N().S(`
         </li>
         `)
-//line views/admin/user.qtpl:93
+//line views/admin/user.qtpl:94
 	}
-//line views/admin/user.qtpl:93
+//line views/admin/user.qtpl:94
 	qw422016.N().S(`
     </ul>
 </div>
 </div>
 
 `)
-//line views/admin/user.qtpl:98
+//line views/admin/user.qtpl:99
 }
 
-//line views/admin/user.qtpl:98
+//line views/admin/user.qtpl:99
 func (p *User) WriteMainBody(qq422016 qtio422016.Writer) {
-//line views/admin/user.qtpl:98
+//line views/admin/user.qtpl:99
 	qw422016 := qt422016.AcquireWriter(qq422016)
-//line views/admin/user.qtpl:98
+//line views/admin/user.qtpl:99
 	p.StreamMainBody(qw422016)
-//line views/admin/user.qtpl:98
+//line views/admin/user.qtpl:99
 	qt422016.ReleaseWriter(qw422016)
-//line views/admin/user.qtpl:98
+//line views/admin/user.qtpl:99
 }
 
-//line views/admin/user.qtpl:98
+//line views/admin/user.qtpl:99
 func (p *User) MainBody() string {
-//line views/admin/user.qtpl:98
+//line views/admin/user.qtpl:99
 	qb422016 := qt422016.AcquireByteBuffer()
-//line views/admin/user.qtpl:98
+//line views/admin/user.qtpl:99
 	p.WriteMainBody(qb422016)
-//line views/admin/user.qtpl:98
+//line views/admin/user.qtpl:99
 	qs422016 := string(qb422016.B)
-//line views/admin/user.qtpl:98
+//line views/admin/user.qtpl:99
 	qt422016.ReleaseByteBuffer(qb422016)
-//line views/admin/user.qtpl:98
+//line views/admin/user.qtpl:99
 	return qs422016
-//line views/admin/user.qtpl:98
+//line views/admin/user.qtpl:99
 }
