@@ -247,14 +247,14 @@ func (p *TopicAdd) StreamMainBody(qw422016 *qt422016.Writer) {
         let readReplyEle = document.getElementById("ReadReply");
 
         document.getElementById("insert-break").addEventListener('click', function (event) {
-            let img_url = "\n`)
+            let break_line = "\n`)
 //line views/admin/topic_add.qtpl:76
 		qw422016.N().S(p.ReadMoreBreak)
 //line views/admin/topic_add.qtpl:76
 		qw422016.N().S(`\n";
             let pos = conEle.selectionStart;
             let con = conEle.value;
-            conEle.value = con.slice(0, pos) + img_url + con.slice(pos);
+            conEle.value = con.slice(0, pos) + break_line + con.slice(pos);
         }, false);
 
         btnReviewEle.addEventListener("click", function(){

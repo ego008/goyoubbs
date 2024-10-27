@@ -52,11 +52,12 @@ type (
 	//TopicDetailPage 文章详情页
 	TopicDetailPage struct {
 		BasePage
-		TopicFmt   model.TopicFmt
-		NewTopic   model.TopicLi       // 新一篇文章
-		OldTopic   model.TopicLi       // 旧一篇文章
-		TagLst     []model.TagFontSize // tags
-		CommentLst []model.CommentFmt  // 评论列表
+		ReadMoreBreak string
+		TopicFmt      model.TopicFmt
+		NewTopic      model.TopicLi       // 新一篇文章
+		OldTopic      model.TopicLi       // 旧一篇文章
+		TagLst        []model.TagFontSize // tags
+		CommentLst    []model.CommentFmt  // 评论列表
 	}
 
 	HomePage struct {

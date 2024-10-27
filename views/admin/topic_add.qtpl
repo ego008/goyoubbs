@@ -73,10 +73,10 @@
         let readReplyEle = document.getElementById("ReadReply");
 
         document.getElementById("insert-break").addEventListener('click', function (event) {
-            let img_url = "\n{%s= p.ReadMoreBreak %}\n";
+            let break_line = "\n{%s= p.ReadMoreBreak %}\n";
             let pos = conEle.selectionStart;
             let con = conEle.value;
-            conEle.value = con.slice(0, pos) + img_url + con.slice(pos);
+            conEle.value = con.slice(0, pos) + break_line + con.slice(pos);
         }, false);
 
         btnReviewEle.addEventListener("click", function(){

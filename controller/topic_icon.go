@@ -93,7 +93,7 @@ func (h *BaseHandler) TopicIconHandle(ctx *fasthttp.RequestCtx) {
 		}
 	}
 
-	commentLst = model.GetAllTopicComment(h.App.Mc, db, topic)
+	commentLst = model.GetAllTopicComment(h.App.Mc, db, topic, false, false)
 
 	// 图片9宫格
 	// user uIds

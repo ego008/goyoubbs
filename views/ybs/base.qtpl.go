@@ -78,7 +78,7 @@ func StreamPageTemplate(qw422016 *qt422016.Writer, p Page) {
 	qw422016.N().S(`
     <meta name="HandheldFriendly" content="True">
     <meta name="viewport" content="width=device-width,minimum-scale=1,initial-scale=1" />
-    <meta content="yes" name="apple-mobile-web-app-capable" />
+    <meta name="mobile-web-app-capable" content="yes">
     <meta content="black" name="apple-mobile-web-app-status-bar-style" />
     <meta name="format-detection" content="telephone=no" />
     <link rel="shortcut icon" href="/static/favicon.png" type="image/x-icon" />

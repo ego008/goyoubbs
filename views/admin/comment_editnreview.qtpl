@@ -17,6 +17,7 @@
                 <input id="btn-preview" type="button" value="预览" name="submit" onclick="previewComment(); return false;" class="pure-button button-success" />
                 <input id="btn-submit" type="submit" value="发表" name="submit" onclick="submitComment(); return false;" class="pure-button pure-button-primary" />
                 <input id="fileUpload" type="file" accept="image/*,video/*,audio/*" onChange="uploadFile()" class="pure-button" name="fileUpload" style="font-size: .8334em;width: 95px;" />
+                <button id="insert-break" type="button" class="pure-button">插入分割线</button>
                 {% if p.PageName == "admin_comment_review" %}
                 <a href="?act=del" class="pure-button button-warning fr">直接删除</a>
                 {% endif %}
@@ -32,6 +33,13 @@
         let conEle = document.getElementById("id-content");
         var msgEle = document.getElementById("id-msg");
         var reviewEle = document.getElementById("id-preview");
+
+        document.getElementById("insert-break").addEventListener('click', function (event) {
+            let break_line = "\n{%s= p.ReadMoreBreak %}\n";
+            let pos = conEle.selectionStart;
+            let con = conEle.value;
+            conEle.value = con.slice(0, pos) + break_line + con.slice(pos);
+        }, false);
 
         function previewComment() {
             var con = conEle.value.trim();

@@ -68,6 +68,7 @@ func (h *BaseHandler) TopicDetailPage(ctx *fasthttp.RequestCtx) {
 		evn.ShowAutoAd = true
 	}
 
+	evn.ReadMoreBreak = model.ReadMoreBreak
 	evn.NodeLst = model.NodeGetAll(h.App.Mc, db)
 
 	logoUrl := scf.MainDomain + "/static/logo_112.png"
@@ -75,8 +76,9 @@ func (h *BaseHandler) TopicDetailPage(ctx *fasthttp.RequestCtx) {
 
 	var contentFmt string
 	// get from mc
+	var canRead bool
+	var isPublic bool
 	if topic.ReadAuthed || topic.ReadReply {
-		var canRead bool
 		if curUser.ID > 0 && curUser.Flag > model.FlagReview {
 			if topic.ReadAuthed || curUser.Flag == model.FlagAdmin || curUser.ID == author.ID {
 				canRead = true
@@ -98,28 +100,31 @@ func (h *BaseHandler) TopicDetailPage(ctx *fasthttp.RequestCtx) {
 			contentFmt = util.ContentFmt(publicCon)
 			contentFmt = strings.ReplaceAll(contentFmt, `" alt="">`, `" alt="`+safeTitle+`">`)
 			// read more tip
-			imgLen := util.CountAllImgInContent(privateCon)
-			actName := "登录"
-			if curUser.ID > 0 {
-				if curUser.Flag == model.FlagForbidden {
-					actName = "解禁"
-				} else if curUser.Flag == model.FlagReview {
-					actName = "等待审核"
-				} else {
-					if topic.ReadReply {
-						actName = "回复"
+			if len(privateCon) > 0 {
+				imgLen := util.CountAllImgInContent(privateCon)
+				actName := "登录"
+				if curUser.ID > 0 {
+					if curUser.Flag == model.FlagForbidden {
+						actName = "解禁"
+					} else if curUser.Flag == model.FlagReview {
+						actName = "等待审核"
+					} else {
+						if topic.ReadReply {
+							actName = "回复"
+						}
 					}
 				}
+				contentFmt += `<p>为了防止爬虫，本主题 "` + topic.Title + `" 的发布者已设置浏览权限，需要“` + actName + `”才能继续浏览，剩余的内容包含个` + strconv.Itoa(len(privateCon)) + `字`
+				if imgLen > 0 {
+					contentFmt += `，其中包含` + strconv.Itoa(imgLen) + `张图片`
+				}
+				contentFmt += `</p>`
 			}
-			contentFmt += `<p>为了防止爬虫，本主题 "` + topic.Title + `" 的发布者已设置浏览权限，需要“` + actName + `”才能继续浏览，剩余的内容包含个` + strconv.Itoa(len(privateCon)) + `字`
-			if imgLen > 0 {
-				contentFmt += `，其中包含` + strconv.Itoa(imgLen) + `张图片`
-			}
-			contentFmt += `</p>`
 			// find img
 			imgLst = util.FindAllImgInContent(publicCon)
 		}
 	} else {
+		isPublic = true
 		mcKey := []byte("ContentFmt:" + tid)
 		if mcValue, exist := util.ObjCachedGet(h.App.Mc, mcKey, nil, true); exist {
 			contentFmt = sdb.B2s(mcValue)
@@ -146,7 +151,7 @@ func (h *BaseHandler) TopicDetailPage(ctx *fasthttp.RequestCtx) {
 	// 帖子评论数
 	topic.Comments = db.HgetInt(model.CommentNumTbName, tidByte)
 	if topic.Comments > 0 {
-		evn.CommentLst = model.GetAllTopicComment(h.App.Mc, db, topic)
+		evn.CommentLst = model.GetAllTopicComment(h.App.Mc, db, topic, isPublic, canRead)
 	}
 
 	evn.TopicFmt = model.TopicFmt{

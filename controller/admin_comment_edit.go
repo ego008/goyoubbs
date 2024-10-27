@@ -45,6 +45,7 @@ func (h *BaseHandler) AdminCommentEditPage(ctx *fasthttp.RequestCtx) {
 		author = evn.CurrentUser
 	}
 
+	evn.ReadMoreBreak = model.ReadMoreBreak
 	evn.NodeLst = model.NodeGetAll(h.App.Mc, h.App.Db)
 	evn.DefaultTopic = model.TopicGetById(db, comment.TopicId)
 	evn.DefaultComment = model.CommentFmt{

@@ -405,23 +405,24 @@ func (p *TopicDetailPage) StreamMainBody(qw422016 *qt422016.Writer) {
 			}
 //line views/ybs/topic_detail.qtpl:109
 			qw422016.N().S(`
+                    <button id="insert-break" type="button" class="pure-button">插入分割线</button>
                 `)
-//line views/ybs/topic_detail.qtpl:110
+//line views/ybs/topic_detail.qtpl:111
 		}
-//line views/ybs/topic_detail.qtpl:110
+//line views/ybs/topic_detail.qtpl:111
 		qw422016.N().S(`
                 </div>
                 <span id="id-msg"></span>
                 `)
-//line views/ybs/topic_detail.qtpl:113
+//line views/ybs/topic_detail.qtpl:114
 	} else {
-//line views/ybs/topic_detail.qtpl:113
+//line views/ybs/topic_detail.qtpl:114
 		qw422016.N().S(`
                 <a href="/login" rel="nofollow" class="pure-button">登录发表评论</a>
                 `)
-//line views/ybs/topic_detail.qtpl:115
+//line views/ybs/topic_detail.qtpl:116
 	}
-//line views/ybs/topic_detail.qtpl:115
+//line views/ybs/topic_detail.qtpl:116
 	qw422016.N().S(`
             </form>
         </div>
@@ -435,10 +436,20 @@ func (p *TopicDetailPage) StreamMainBody(qw422016 *qt422016.Writer) {
             var reviewEle = document.getElementById("id-preview");
 
             `)
-//line views/ybs/topic_detail.qtpl:127
+//line views/ybs/topic_detail.qtpl:128
 	if p.CurrentUser.ID > 0 {
-//line views/ybs/topic_detail.qtpl:127
+//line views/ybs/topic_detail.qtpl:128
 		qw422016.N().S(`
+                document.getElementById("insert-break").addEventListener('click', function (event) {
+                    let break_line = "\n`)
+//line views/ybs/topic_detail.qtpl:130
+		qw422016.N().S(p.ReadMoreBreak)
+//line views/ybs/topic_detail.qtpl:130
+		qw422016.N().S(`\n";
+                    let pos = conEle.selectionStart;
+                    let con = conEle.value;
+                    conEle.value = con.slice(0, pos) + break_line + con.slice(pos);
+                }, false);
                 function previewComment() {
                     var con = conEle.value.trim();
                     if (con === "") {
@@ -466,9 +477,9 @@ func (p *TopicDetailPage) StreamMainBody(qw422016 *qt422016.Writer) {
                         return
                     }
                     postAjax("/t/`)
-//line views/ybs/topic_detail.qtpl:154
+//line views/ybs/topic_detail.qtpl:161
 		qw422016.N().DUL(p.TopicFmt.ID)
-//line views/ybs/topic_detail.qtpl:154
+//line views/ybs/topic_detail.qtpl:161
 		qw422016.N().S(`", JSON.stringify({Content: con, ReplyId: toReplyId}), function(data){
                         var obj = JSON.parse(data)
                         msgEle.innerText = obj.Msg;
@@ -477,17 +488,17 @@ func (p *TopicDetailPage) StreamMainBody(qw422016 *qt422016.Writer) {
                         toReplyId = 0;
                         if(obj.Code === 200) {
                             window.location.href = "/t/`)
-//line views/ybs/topic_detail.qtpl:161
+//line views/ybs/topic_detail.qtpl:168
 		qw422016.N().DUL(p.TopicFmt.ID)
-//line views/ybs/topic_detail.qtpl:161
+//line views/ybs/topic_detail.qtpl:168
 		qw422016.N().S(`#r"+obj.Tid;
                             window.location.reload(true);
                             return;
                         } else if (obj.Code === 201) {
                             window.location.href = "/member/`)
-//line views/ybs/topic_detail.qtpl:165
+//line views/ybs/topic_detail.qtpl:172
 		qw422016.N().DUL(p.CurrentUser.ID)
-//line views/ybs/topic_detail.qtpl:165
+//line views/ybs/topic_detail.qtpl:172
 		qw422016.N().S(`?type=comment";
                             return;
                         }
@@ -496,9 +507,9 @@ func (p *TopicDetailPage) StreamMainBody(qw422016 *qt422016.Writer) {
                     });
                 }
                 `)
-//line views/ybs/topic_detail.qtpl:172
+//line views/ybs/topic_detail.qtpl:179
 		if !p.SiteCf.UploadLimit || (p.SiteCf.UploadLimit && p.CurrentUser.Flag >= 99) {
-//line views/ybs/topic_detail.qtpl:172
+//line views/ybs/topic_detail.qtpl:179
 			qw422016.N().S(`
                 document.addEventListener('paste', function (evt) {
                     var url = "/file/upload";
@@ -522,9 +533,9 @@ func (p *TopicDetailPage) StreamMainBody(qw422016 *qt422016.Writer) {
                                     //console.log(obj);
                                     if(obj.Code === 200) {
                                         let img_url = "\n" + s2tag(obj.Url, `)
-//line views/ybs/topic_detail.qtpl:194
+//line views/ybs/topic_detail.qtpl:201
 			qw422016.E().V(p.SiteCf.AutoDecodeMp4)
-//line views/ybs/topic_detail.qtpl:194
+//line views/ybs/topic_detail.qtpl:201
 			qw422016.N().S(`) + "\n";
                                         let pos = conEle.selectionStart;
                                         let con = conEle.value;
@@ -544,9 +555,9 @@ func (p *TopicDetailPage) StreamMainBody(qw422016 *qt422016.Writer) {
                         let obj = JSON.parse(data)
                         if(obj.Code === 200) {
                             let img_url = "\n" + s2tag(obj.Url, `)
-//line views/ybs/topic_detail.qtpl:212
+//line views/ybs/topic_detail.qtpl:219
 			qw422016.E().V(p.SiteCf.AutoDecodeMp4)
-//line views/ybs/topic_detail.qtpl:212
+//line views/ybs/topic_detail.qtpl:219
 			qw422016.N().S(`) + "\n";
                             let pos = conEle.selectionStart;
                             let con = conEle.value;
@@ -557,14 +568,14 @@ func (p *TopicDetailPage) StreamMainBody(qw422016 *qt422016.Writer) {
                     });
                 }
                 `)
-//line views/ybs/topic_detail.qtpl:221
+//line views/ybs/topic_detail.qtpl:228
 		}
-//line views/ybs/topic_detail.qtpl:221
+//line views/ybs/topic_detail.qtpl:228
 		qw422016.N().S(`
             `)
-//line views/ybs/topic_detail.qtpl:222
+//line views/ybs/topic_detail.qtpl:229
 	}
-//line views/ybs/topic_detail.qtpl:222
+//line views/ybs/topic_detail.qtpl:229
 	qw422016.N().S(`
 
             function replyTo(name, cid) {
@@ -673,31 +684,31 @@ if(audioLst.length>1){
 </div>
 
 `)
-//line views/ybs/topic_detail.qtpl:329
+//line views/ybs/topic_detail.qtpl:336
 }
 
-//line views/ybs/topic_detail.qtpl:329
+//line views/ybs/topic_detail.qtpl:336
 func (p *TopicDetailPage) WriteMainBody(qq422016 qtio422016.Writer) {
-//line views/ybs/topic_detail.qtpl:329
+//line views/ybs/topic_detail.qtpl:336
 	qw422016 := qt422016.AcquireWriter(qq422016)
-//line views/ybs/topic_detail.qtpl:329
+//line views/ybs/topic_detail.qtpl:336
 	p.StreamMainBody(qw422016)
-//line views/ybs/topic_detail.qtpl:329
+//line views/ybs/topic_detail.qtpl:336
 	qt422016.ReleaseWriter(qw422016)
-//line views/ybs/topic_detail.qtpl:329
+//line views/ybs/topic_detail.qtpl:336
 }
 
-//line views/ybs/topic_detail.qtpl:329
+//line views/ybs/topic_detail.qtpl:336
 func (p *TopicDetailPage) MainBody() string {
-//line views/ybs/topic_detail.qtpl:329
+//line views/ybs/topic_detail.qtpl:336
 	qb422016 := qt422016.AcquireByteBuffer()
-//line views/ybs/topic_detail.qtpl:329
+//line views/ybs/topic_detail.qtpl:336
 	p.WriteMainBody(qb422016)
-//line views/ybs/topic_detail.qtpl:329
+//line views/ybs/topic_detail.qtpl:336
 	qs422016 := string(qb422016.B)
-//line views/ybs/topic_detail.qtpl:329
+//line views/ybs/topic_detail.qtpl:336
 	qt422016.ReleaseByteBuffer(qb422016)
-//line views/ybs/topic_detail.qtpl:329
+//line views/ybs/topic_detail.qtpl:336
 	return qs422016
-//line views/ybs/topic_detail.qtpl:329
+//line views/ybs/topic_detail.qtpl:336
 }

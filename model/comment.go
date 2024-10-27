@@ -118,11 +118,13 @@ func CommentAdd(mc *fastcache.Cache, db *sdb.DB, obj Comment) Comment {
 	return obj
 }
 
-func GetAllTopicComment(mc *fastcache.Cache, db *sdb.DB, topic Topic) (objLst []CommentFmt) {
+func GetAllTopicComment(mc *fastcache.Cache, db *sdb.DB, topic Topic, isPublic, canRead bool) (objLst []CommentFmt) {
 	tbName := CommentTbName + strconv.FormatUint(topic.ID, 10)
 	mcKey := []byte(tbName)
-	if _, exist := util.ObjCachedGetBig(mc, mcKey, &objLst, false); exist {
-		return
+	if isPublic {
+		if _, exist := util.ObjCachedGetBig(mc, mcKey, &objLst, false); exist {
+			return
+		}
 	}
 
 	userMap := map[uint64]User{}
@@ -134,7 +136,19 @@ func GetAllTopicComment(mc *fastcache.Cache, db *sdb.DB, topic Topic) (objLst []
 			return
 		}
 		obj.AddTimeFmt = util.TimeFmt(obj.AddTime, "2006-01-02 15:04")
-		obj.ContentFmt = util.ContentFmt(obj.Content)
+		if isPublic {
+			obj.ContentFmt = util.ContentFmt(obj.Content)
+		} else {
+			if canRead {
+				obj.ContentFmt = util.ContentFmt(obj.Content)
+			} else {
+				publicCon, privateCon := util.GetPublicCon(topic.Content)
+				obj.ContentFmt = util.ContentFmt(publicCon)
+				if len(privateCon) > 0 {
+					obj.ContentFmt += `<p>为了防止爬虫，本主题 "` + topic.Title + `" 的发布者已设置浏览权限，需要“登录”或“回复”才能完整浏览，剩余的内容包含个` + strconv.Itoa(len(privateCon)) + `字</p>`
+				}
+			}
+		}
 		obj.Link = "/t/" + strconv.FormatUint(obj.TopicId, 10) + "#r" + strconv.FormatUint(obj.ID, 10)
 		objLst = append(objLst, obj)
 		userMap[obj.UserId] = User{}
@@ -156,7 +170,7 @@ func GetAllTopicComment(mc *fastcache.Cache, db *sdb.DB, topic Topic) (objLst []
 		}
 	}
 
-	if len(objLst) > 0 {
+	if isPublic && len(objLst) > 0 {
 		util.ObjCachedSetBig(mc, mcKey, objLst)
 	}
 
