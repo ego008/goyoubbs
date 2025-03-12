@@ -29,10 +29,8 @@ var (
 	aTagRegexp        = regexp.MustCompile(`(?m)(<a[^<]+?>.*?</a>)`)
 	hrefRegexp        = regexp.MustCompile(`href="[^"]+?"`)                                                   // 图片地址被 auto link
 	LocalImgRegexp    = regexp.MustCompile(`(?:\s|^)(/static/upload/([a-z0-9]+)\.(jpg|jpe|jpeg|gif|png))\s?`) // 本地上传的图片
-	codeBlockRegexp   = regexp.MustCompile("(?s:(`{3} *([^\n]+)?\n(.+?)\n`{3}))")
+	codeBlockRegexp   = regexp.MustCompile("(?s)```([\\s\\S]*?)```")                                          //"(?s)```(.*?)```"
 	langCaptionRegexp = regexp.MustCompile("([^\\s`]+)\\s*(.+)?")
-	t4Re              = regexp.MustCompile(`\A( {4}|\t)`)
-	t4Re2             = regexp.MustCompile(`^( {4}|\t)`)
 	htmlRe            = regexp.MustCompile("<.*?>|&.*?;")
 	MdImgRe           = regexp.MustCompile(`(!\[.*]\(.{10,}\))|([\w./:]*/static/upload/([a-z\d-.]+)\.(jpg|jpe|jpeg|gif|png))`)
 )
@@ -103,7 +101,7 @@ func ContentFmt(input string) string {
 	codeRawMap := map[string]string{} // 代码块
 	if HasCodeBlock(input) {
 		input = codeBlockRegexp.ReplaceAllStringFunc(input, func(s string) string {
-			s = strings.TrimSpace(s) // important
+			s = s[3 : len(s)-3] // 去掉两头 ```
 			// 获取并代码头部信息及处理代码高亮 html 代码
 			lines := StringSplit(s, "\n")
 			// 至少 3 行
@@ -116,20 +114,22 @@ func ContentFmt(input string) string {
 					caption = v[2] // fmt.Sprintf(`<figcaption><span>%s</span></figcaption>`, v[2])
 				}
 				// 最后一行 ``` 舍弃
+				// 若每行都有相同的空格则去掉
+				prefixSpace, n := GetLeadingSpaces(lines[1])
+				if n > 0 {
+					for i := 1; i < len(lines)-1; i++ {
+						if len(lines[i]) >= n && lines[i][:n] == prefixSpace {
+							lines[i] = lines[i][n:]
+						}
+					}
+				}
 				// 纯代码
 				codeRaw := strings.Join(lines[1:len(lines)-1], "\n")
-				// 替换掉每行多余的空格
-				if t4Re.MatchString(codeRaw) {
-					codeRaw = t4Re2.ReplaceAllString(codeRaw, "")
-				}
 
 				source := []string{`<figure class="code">`}
 
 				langName, hlText := ColorCode(codeRaw, lang)
 
-				//if len(caption) > 0 {
-				//	source = append(source, caption)
-				//}
 				if len(langName) > 0 || len(caption) > 0 {
 					source = append(source, `<figcaption><span>`+langName+": "+caption+`</span></figcaption>`)
 				}
@@ -140,7 +140,7 @@ func ContentFmt(input string) string {
 				codeTag := codeBlockTag + strconv.Itoa(len(codeRawMap)) + "]"
 				codeRawMap[codeTag] = strings.Join(source, "\n")
 
-				return codeTag
+				return "\n\n" + codeTag + "\n\n"
 			}
 
 			return s

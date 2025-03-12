@@ -7,6 +7,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"unicode"
 )
 
 // Md5 生成32位MD5
@@ -117,4 +118,18 @@ func StringSplit(str string, sep string) []string {
 		str = str[eoc+len(sep):]
 	}
 	return words
+}
+
+func GetLeadingSpaces(s string) (string, int) {
+	count := 0
+	var bs []int32
+	for _, c := range s {
+		if unicode.IsSpace(c) {
+			bs = append(bs, c)
+			count++
+		} else {
+			break
+		}
+	}
+	return string(bs), count
 }
