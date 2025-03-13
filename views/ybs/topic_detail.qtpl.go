@@ -673,8 +673,66 @@ if(audioLst.length>1){
     });
 }
 
+function setCopyBtn(){
+    // 遍历所有pre元素
+    document.querySelectorAll('pre').forEach(pre => {
+    // 创建容器包裹pre元素
+    const container = document.createElement('div');
+    container.className = 'pre-container';
+    pre.parentNode.insertBefore(container, pre);
+    container.appendChild(pre);
+
+    // 创建复制按钮
+    const btn = document.createElement('button');
+    btn.className = 'copy-btn';
+    btn.textContent = '复制';
+
+    // 添加点击事件
+    `)
+//line views/ybs/topic_detail.qtpl:341
+	if p.CurrentUser.ID > 0 {
+//line views/ybs/topic_detail.qtpl:341
+		qw422016.N().S(`
+    btn.addEventListener('click', async () => {
+      try {
+        // 获取纯文本内容（自动去除HTML标签）
+        const text = pre.textContent;
+
+        // 现代浏览器API
+        await navigator.clipboard.writeText(text);
+
+        // 反馈效果
+        btn.textContent = '✓ 已复制';
+        btn.classList.add('copied');
+        setTimeout(() => {
+          btn.textContent = '复制';
+          btn.classList.remove('copied');
+        }, 1500);
+      } catch (err) {
+        // 兼容旧浏览器方案
+        const textarea = document.createElement('textarea');
+        textarea.value = pre.textContent;
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+        btn.textContent = '✓ 已复制';
+        setTimeout(() => btn.textContent = '复制', 1500);
+      }
+    });
+    `)
+//line views/ybs/topic_detail.qtpl:369
+	}
+//line views/ybs/topic_detail.qtpl:369
+	qw422016.N().S(`
+
+    container.appendChild(btn);
+    });
+}
+
             docReady(function() {
                 getContentLinkCount();
+                setCopyBtn();
             });
 
         </script>
@@ -684,31 +742,31 @@ if(audioLst.length>1){
 </div>
 
 `)
-//line views/ybs/topic_detail.qtpl:336
+//line views/ybs/topic_detail.qtpl:386
 }
 
-//line views/ybs/topic_detail.qtpl:336
+//line views/ybs/topic_detail.qtpl:386
 func (p *TopicDetailPage) WriteMainBody(qq422016 qtio422016.Writer) {
-//line views/ybs/topic_detail.qtpl:336
+//line views/ybs/topic_detail.qtpl:386
 	qw422016 := qt422016.AcquireWriter(qq422016)
-//line views/ybs/topic_detail.qtpl:336
+//line views/ybs/topic_detail.qtpl:386
 	p.StreamMainBody(qw422016)
-//line views/ybs/topic_detail.qtpl:336
+//line views/ybs/topic_detail.qtpl:386
 	qt422016.ReleaseWriter(qw422016)
-//line views/ybs/topic_detail.qtpl:336
+//line views/ybs/topic_detail.qtpl:386
 }
 
-//line views/ybs/topic_detail.qtpl:336
+//line views/ybs/topic_detail.qtpl:386
 func (p *TopicDetailPage) MainBody() string {
-//line views/ybs/topic_detail.qtpl:336
+//line views/ybs/topic_detail.qtpl:386
 	qb422016 := qt422016.AcquireByteBuffer()
-//line views/ybs/topic_detail.qtpl:336
+//line views/ybs/topic_detail.qtpl:386
 	p.WriteMainBody(qb422016)
-//line views/ybs/topic_detail.qtpl:336
+//line views/ybs/topic_detail.qtpl:386
 	qs422016 := string(qb422016.B)
-//line views/ybs/topic_detail.qtpl:336
+//line views/ybs/topic_detail.qtpl:386
 	qt422016.ReleaseByteBuffer(qb422016)
-//line views/ybs/topic_detail.qtpl:336
+//line views/ybs/topic_detail.qtpl:386
 	return qs422016
-//line views/ybs/topic_detail.qtpl:336
+//line views/ybs/topic_detail.qtpl:386
 }

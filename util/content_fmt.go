@@ -54,20 +54,10 @@ func HasCodeBlock(s string) (has bool) {
 
 // 代码表格
 func tableCode(text, lang string) string {
-	text = strings.TrimSpace(text)
-	var codes []string
-	var lines []string
-	for i, line := range StringSplit(text, "\n") {
-		lines = append(lines, fmt.Sprintf(`<span class="line-number">%d</span>`, i+1))
-		codes = append(codes, fmt.Sprintf(`<span class="line">%s</span>`, line))
-	}
-
 	return fmt.Sprintf(`
 <div class="highlight highlight-%s">
-<table><tbody><tr>
-<td class="gutter"><pre class="line-numbers">%s</pre></td>
-<td class="code"><pre><code class="%s">%s</code></pre></td>
-</tr></tbody></table></div>`, lang, strings.Join(lines, "\n"), lang, strings.Join(codes, "\n"))
+<pre><code class="%s">%s</code></pre>
+</div>`, lang, lang, text)
 }
 
 // TrimPreTag 去除 pre 标签
@@ -94,9 +84,6 @@ var mdp = goldmark.New(
 // 注意首行与末行，前均无空格
 
 func ContentFmt(input string) string {
-	//if strings.Contains(input, "&") {
-	//	input = htmlStd.UnescapeString(input)
-	//}
 	// 代码块处理，后端代码高亮
 	codeRawMap := map[string]string{} // 代码块
 	if HasCodeBlock(input) {

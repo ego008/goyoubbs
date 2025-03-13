@@ -323,8 +323,58 @@ if(audioLst.length>1){
     });
 }
 
+function setCopyBtn(){
+    // 遍历所有pre元素
+    document.querySelectorAll('pre').forEach(pre => {
+    // 创建容器包裹pre元素
+    const container = document.createElement('div');
+    container.className = 'pre-container';
+    pre.parentNode.insertBefore(container, pre);
+    container.appendChild(pre);
+
+    // 创建复制按钮
+    const btn = document.createElement('button');
+    btn.className = 'copy-btn';
+    btn.textContent = '复制';
+
+    // 添加点击事件
+    {% if p.CurrentUser.ID > 0 %}
+    btn.addEventListener('click', async () => {
+      try {
+        // 获取纯文本内容（自动去除HTML标签）
+        const text = pre.textContent;
+
+        // 现代浏览器API
+        await navigator.clipboard.writeText(text);
+
+        // 反馈效果
+        btn.textContent = '✓ 已复制';
+        btn.classList.add('copied');
+        setTimeout(() => {
+          btn.textContent = '复制';
+          btn.classList.remove('copied');
+        }, 1500);
+      } catch (err) {
+        // 兼容旧浏览器方案
+        const textarea = document.createElement('textarea');
+        textarea.value = pre.textContent;
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+        btn.textContent = '✓ 已复制';
+        setTimeout(() => btn.textContent = '复制', 1500);
+      }
+    });
+    {% endif %}
+
+    container.appendChild(btn);
+    });
+}
+
             docReady(function() {
                 getContentLinkCount();
+                setCopyBtn();
             });
 
         </script>
