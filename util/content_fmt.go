@@ -127,7 +127,7 @@ func ContentFmt(input string) string {
 				codeTag := codeBlockTag + strconv.Itoa(len(codeRawMap)) + "]"
 				codeRawMap[codeTag] = strings.Join(source, "\n")
 
-				return "\n\n" + codeTag + "\n\n"
+				return codeTag
 			}
 
 			return s

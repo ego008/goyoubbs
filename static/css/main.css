@@ -126,19 +126,21 @@ h1.br-nav, h2.br-nav, h3.br-nav, h4.br-nav {color:#777;font-size: 1em;font-weigh
     background: #f5f5f5;
     padding: .3em;
     border-radius: 4px;
+    opacity: 0.6;
 }
 .copy-btn {
     position: absolute;
     top: 8px;
     right: 8px;
     padding: 4px 8px;
-    background: #4CAF50;
+    background: #ccc;
     color: white;
     border: none;
     border-radius: 3px;
     cursor: pointer;
     transition: opacity 0.3s;
     font-size: .7rem;
+    opacity: 0.6;
 }
 
 .copy-btn:hover {
