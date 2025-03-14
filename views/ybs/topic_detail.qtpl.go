@@ -676,11 +676,8 @@ if(audioLst.length>1){
 function setCopyBtn(){
     // 遍历所有pre元素
     document.querySelectorAll('pre').forEach(pre => {
-    // 创建容器包裹pre元素
-    const container = document.createElement('div');
-    container.className = 'pre-container';
-    pre.parentNode.insertBefore(container, pre);
-    container.appendChild(pre);
+    const container = pre.parentNode;
+    container.classList.add('pre-container');
 
     // 创建复制按钮
     const btn = document.createElement('button');
@@ -689,9 +686,9 @@ function setCopyBtn(){
 
     // 添加点击事件
     `)
-//line views/ybs/topic_detail.qtpl:341
+//line views/ybs/topic_detail.qtpl:338
 	if p.CurrentUser.ID > 0 {
-//line views/ybs/topic_detail.qtpl:341
+//line views/ybs/topic_detail.qtpl:338
 		qw422016.N().S(`
     btn.addEventListener('click', async () => {
       try {
@@ -721,9 +718,9 @@ function setCopyBtn(){
       }
     });
     `)
-//line views/ybs/topic_detail.qtpl:369
+//line views/ybs/topic_detail.qtpl:366
 	}
-//line views/ybs/topic_detail.qtpl:369
+//line views/ybs/topic_detail.qtpl:366
 	qw422016.N().S(`
 
     container.appendChild(btn);
@@ -742,31 +739,31 @@ function setCopyBtn(){
 </div>
 
 `)
-//line views/ybs/topic_detail.qtpl:386
+//line views/ybs/topic_detail.qtpl:383
 }
 
-//line views/ybs/topic_detail.qtpl:386
+//line views/ybs/topic_detail.qtpl:383
 func (p *TopicDetailPage) WriteMainBody(qq422016 qtio422016.Writer) {
-//line views/ybs/topic_detail.qtpl:386
+//line views/ybs/topic_detail.qtpl:383
 	qw422016 := qt422016.AcquireWriter(qq422016)
-//line views/ybs/topic_detail.qtpl:386
+//line views/ybs/topic_detail.qtpl:383
 	p.StreamMainBody(qw422016)
-//line views/ybs/topic_detail.qtpl:386
+//line views/ybs/topic_detail.qtpl:383
 	qt422016.ReleaseWriter(qw422016)
-//line views/ybs/topic_detail.qtpl:386
+//line views/ybs/topic_detail.qtpl:383
 }
 
-//line views/ybs/topic_detail.qtpl:386
+//line views/ybs/topic_detail.qtpl:383
 func (p *TopicDetailPage) MainBody() string {
-//line views/ybs/topic_detail.qtpl:386
+//line views/ybs/topic_detail.qtpl:383
 	qb422016 := qt422016.AcquireByteBuffer()
-//line views/ybs/topic_detail.qtpl:386
+//line views/ybs/topic_detail.qtpl:383
 	p.WriteMainBody(qb422016)
-//line views/ybs/topic_detail.qtpl:386
+//line views/ybs/topic_detail.qtpl:383
 	qs422016 := string(qb422016.B)
-//line views/ybs/topic_detail.qtpl:386
+//line views/ybs/topic_detail.qtpl:383
 	qt422016.ReleaseByteBuffer(qb422016)
-//line views/ybs/topic_detail.qtpl:386
+//line views/ybs/topic_detail.qtpl:383
 	return qs422016
-//line views/ybs/topic_detail.qtpl:386
+//line views/ybs/topic_detail.qtpl:383
 }

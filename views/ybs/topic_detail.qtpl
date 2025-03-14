@@ -326,11 +326,8 @@ if(audioLst.length>1){
 function setCopyBtn(){
     // 遍历所有pre元素
     document.querySelectorAll('pre').forEach(pre => {
-    // 创建容器包裹pre元素
-    const container = document.createElement('div');
-    container.className = 'pre-container';
-    pre.parentNode.insertBefore(container, pre);
-    container.appendChild(pre);
+    const container = pre.parentNode;
+    container.classList.add('pre-container');
 
     // 创建复制按钮
     const btn = document.createElement('button');

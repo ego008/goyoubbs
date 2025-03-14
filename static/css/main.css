@@ -126,8 +126,9 @@ h1.br-nav, h2.br-nav, h3.br-nav, h4.br-nav {color:#777;font-size: 1em;font-weigh
     background: #f5f5f5;
     padding: .3em;
     border-radius: 4px;
-    opacity: 0.6;
+    opacity: 0.98;
 }
+.markdown-body .pre-container code {white-space: pre;}
 .copy-btn {
     position: absolute;
     top: 8px;
@@ -696,7 +697,6 @@ figure .highlight .s1 {color: #2aa198}
     padding: 0 0.3em;
     margin: -2px 4px;
 }
-
 /* md ed */
 
 .write-box {margin: 0;background-color: #FCFCFC;}
