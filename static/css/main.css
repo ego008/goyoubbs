@@ -462,7 +462,7 @@ footer ul.seealso {margin: 0;padding: .5em 0;list-style: none;color: #ccc;font-f
 .markdown-body blockquote{padding:0 1em;color:#6a737d;border-left:0.25em solid #dfe2e5}
 .markdown-body blockquote > :first-child{margin-top:0}
 .markdown-body blockquote > :last-child{margin-bottom:0}
-.markdown-body table{display:block;width:100%;overflow:auto}
+.markdown-body table{width:100%;overflow:auto}
 
 .markdown-body .line-numbers {color: #ccc;background-color: #fefefe;}
 .markdown-body figcaption {color: #ccc;font-size: .85em;}
