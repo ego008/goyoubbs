@@ -650,7 +650,7 @@ figure .highlight .s1 {color: #2aa198}
 
 .markdown-body p code, .markdown-body li code {
     display: inline-block;
-    white-space: nowrap;
+    white-space: pre;
     background: #f9f9f9;
     font-size: .95em;
     line-height: 1.5em;
