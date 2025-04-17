@@ -74,6 +74,7 @@
                 <div class="pure-u-1 pure-u-sm-1-1">
                     <input name="Url" type="text" value="{%s p.User.Url %}" class="pure-input-1" placeholder="URL http(s)://example.com" />
                     <textarea name="About" class="pure-input-1" placeholder="About...">{%s= p.User.About %}</textarea>
+                    {% if p.User.RegTime>0 %}<p>注册时间：{%s util.TimeFmt(int64(p.User.RegTime), "") %}</p>{% endif %}
                 </div>
             </div>
 

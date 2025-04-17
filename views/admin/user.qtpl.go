@@ -178,6 +178,19 @@ func (p *User) StreamMainBody(qw422016 *qt422016.Writer) {
 	qw422016.N().S(p.User.About)
 //line views/admin/user.qtpl:76
 	qw422016.N().S(`</textarea>
+                    `)
+//line views/admin/user.qtpl:77
+	if p.User.RegTime > 0 {
+//line views/admin/user.qtpl:77
+		qw422016.N().S(`<p>注册时间：`)
+//line views/admin/user.qtpl:77
+		qw422016.E().S(util.TimeFmt(int64(p.User.RegTime), ""))
+//line views/admin/user.qtpl:77
+		qw422016.N().S(`</p>`)
+//line views/admin/user.qtpl:77
+	}
+//line views/admin/user.qtpl:77
+	qw422016.N().S(`
                 </div>
             </div>
 
@@ -201,58 +214,58 @@ func (p *User) StreamMainBody(qw422016 *qt422016.Writer) {
         </thead>
         <tbody>
             `)
-//line views/admin/user.qtpl:99
+//line views/admin/user.qtpl:100
 	for i, v := range p.UserLst {
-//line views/admin/user.qtpl:99
+//line views/admin/user.qtpl:100
 		qw422016.N().S(`
             <tr `)
-//line views/admin/user.qtpl:100
+//line views/admin/user.qtpl:101
 		if i%2 == 0 {
-//line views/admin/user.qtpl:100
+//line views/admin/user.qtpl:101
 			qw422016.N().S(`class="pure-table-odd"`)
-//line views/admin/user.qtpl:100
+//line views/admin/user.qtpl:101
 		}
-//line views/admin/user.qtpl:100
+//line views/admin/user.qtpl:101
 		qw422016.N().S(`>
                 <td>`)
-//line views/admin/user.qtpl:101
+//line views/admin/user.qtpl:102
 		qw422016.N().DUL(v.ID)
-//line views/admin/user.qtpl:101
+//line views/admin/user.qtpl:102
 		qw422016.N().S(`</td>
                 <td><a href="/admin/user?id=`)
-//line views/admin/user.qtpl:102
+//line views/admin/user.qtpl:103
 		qw422016.N().DUL(v.ID)
-//line views/admin/user.qtpl:102
+//line views/admin/user.qtpl:103
 		qw422016.N().S(`">`)
-//line views/admin/user.qtpl:102
+//line views/admin/user.qtpl:103
 		qw422016.E().S(v.Name)
-//line views/admin/user.qtpl:102
+//line views/admin/user.qtpl:103
 		qw422016.N().S(`</a></td>
                 <td>`)
-//line views/admin/user.qtpl:103
+//line views/admin/user.qtpl:104
 		qw422016.N().D(v.Flag)
-//line views/admin/user.qtpl:103
+//line views/admin/user.qtpl:104
 		qw422016.N().S(`</td>
                 <td>`)
-//line views/admin/user.qtpl:104
+//line views/admin/user.qtpl:105
 		qw422016.E().S(v.Url)
-//line views/admin/user.qtpl:104
+//line views/admin/user.qtpl:105
 		qw422016.N().S(`</td>
                 <td>`)
-//line views/admin/user.qtpl:105
+//line views/admin/user.qtpl:106
 		qw422016.E().S(v.About)
-//line views/admin/user.qtpl:105
+//line views/admin/user.qtpl:106
 		qw422016.N().S(`</td>
                 <td>`)
-//line views/admin/user.qtpl:106
+//line views/admin/user.qtpl:107
 		qw422016.E().S(util.TimeFmt(int64(v.RegTime), ""))
-//line views/admin/user.qtpl:106
+//line views/admin/user.qtpl:107
 		qw422016.N().S(`</td>
             </tr>
             `)
-//line views/admin/user.qtpl:108
+//line views/admin/user.qtpl:109
 	}
-//line views/admin/user.qtpl:108
+//line views/admin/user.qtpl:109
 	qw422016.N().S(`
         </tbody>
     </table>
@@ -261,31 +274,31 @@ func (p *User) StreamMainBody(qw422016 *qt422016.Writer) {
 </div>
 
 `)
-//line views/admin/user.qtpl:115
+//line views/admin/user.qtpl:116
 }
 
-//line views/admin/user.qtpl:115
+//line views/admin/user.qtpl:116
 func (p *User) WriteMainBody(qq422016 qtio422016.Writer) {
-//line views/admin/user.qtpl:115
+//line views/admin/user.qtpl:116
 	qw422016 := qt422016.AcquireWriter(qq422016)
-//line views/admin/user.qtpl:115
+//line views/admin/user.qtpl:116
 	p.StreamMainBody(qw422016)
-//line views/admin/user.qtpl:115
+//line views/admin/user.qtpl:116
 	qt422016.ReleaseWriter(qw422016)
-//line views/admin/user.qtpl:115
+//line views/admin/user.qtpl:116
 }
 
-//line views/admin/user.qtpl:115
+//line views/admin/user.qtpl:116
 func (p *User) MainBody() string {
-//line views/admin/user.qtpl:115
+//line views/admin/user.qtpl:116
 	qb422016 := qt422016.AcquireByteBuffer()
-//line views/admin/user.qtpl:115
+//line views/admin/user.qtpl:116
 	p.WriteMainBody(qb422016)
-//line views/admin/user.qtpl:115
+//line views/admin/user.qtpl:116
 	qs422016 := string(qb422016.B)
-//line views/admin/user.qtpl:115
+//line views/admin/user.qtpl:116
 	qt422016.ReleaseByteBuffer(qb422016)
-//line views/admin/user.qtpl:115
+//line views/admin/user.qtpl:116
 	return qs422016
-//line views/admin/user.qtpl:115
+//line views/admin/user.qtpl:116
 }
