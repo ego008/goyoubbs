@@ -30,132 +30,145 @@ func (p *NodePage) StreamMainBody(qw422016 *qt422016.Writer) {
 	qw422016.E().S(p.DefaultNode.Name)
 //line views/ybs/node.qtpl:6
 	qw422016.N().S(`</h1>
+        `)
+//line views/ybs/node.qtpl:7
+	if len(p.DefaultNode.About) > 0 {
+//line views/ybs/node.qtpl:7
+		qw422016.N().S(`<div>`)
+//line views/ybs/node.qtpl:7
+		qw422016.E().S(p.DefaultNode.About)
+//line views/ybs/node.qtpl:7
+		qw422016.N().S(`</div>`)
+//line views/ybs/node.qtpl:7
+	}
+//line views/ybs/node.qtpl:7
+	qw422016.N().S(`
     </header>
 
     `)
-//line views/ybs/node.qtpl:9
+//line views/ybs/node.qtpl:10
 	for _, item := range p.TopicPageInfo.Items {
-//line views/ybs/node.qtpl:9
+//line views/ybs/node.qtpl:10
 		qw422016.N().S(`
     <article>
 
         <header>
             `)
-//line views/ybs/node.qtpl:13
+//line views/ybs/node.qtpl:14
 		if item.Comments > 0 {
-//line views/ybs/node.qtpl:13
+//line views/ybs/node.qtpl:14
 			qw422016.N().S(`
             <a href="/t/`)
-//line views/ybs/node.qtpl:14
+//line views/ybs/node.qtpl:15
 			qw422016.N().DUL(item.ID)
-//line views/ybs/node.qtpl:14
+//line views/ybs/node.qtpl:15
 			qw422016.N().S(`#r`)
-//line views/ybs/node.qtpl:14
+//line views/ybs/node.qtpl:15
 			qw422016.N().DUL(item.Comments)
-//line views/ybs/node.qtpl:14
+//line views/ybs/node.qtpl:15
 			qw422016.N().S(`"><img alt="`)
-//line views/ybs/node.qtpl:14
+//line views/ybs/node.qtpl:15
 			qw422016.E().S(item.Title)
-//line views/ybs/node.qtpl:14
+//line views/ybs/node.qtpl:15
 			qw422016.N().S(` icon" src="/icon/t/`)
-//line views/ybs/node.qtpl:14
+//line views/ybs/node.qtpl:15
 			qw422016.N().DUL(item.ID)
-//line views/ybs/node.qtpl:14
+//line views/ybs/node.qtpl:15
 			qw422016.N().S(`.jpg?r=`)
-//line views/ybs/node.qtpl:14
+//line views/ybs/node.qtpl:15
 			qw422016.N().DUL(item.Comments)
-//line views/ybs/node.qtpl:14
+//line views/ybs/node.qtpl:15
 			qw422016.N().S(`" class="avatar"></a>
             `)
-//line views/ybs/node.qtpl:15
+//line views/ybs/node.qtpl:16
 		} else {
-//line views/ybs/node.qtpl:15
+//line views/ybs/node.qtpl:16
 			qw422016.N().S(`
             <a href="/t/`)
-//line views/ybs/node.qtpl:16
+//line views/ybs/node.qtpl:17
 			qw422016.N().DUL(item.ID)
-//line views/ybs/node.qtpl:16
+//line views/ybs/node.qtpl:17
 			qw422016.N().S(`"><img alt="`)
-//line views/ybs/node.qtpl:16
+//line views/ybs/node.qtpl:17
 			qw422016.E().S(item.Title)
-//line views/ybs/node.qtpl:16
+//line views/ybs/node.qtpl:17
 			qw422016.N().S(` icon" src="/static/avatar/`)
-//line views/ybs/node.qtpl:16
+//line views/ybs/node.qtpl:17
 			qw422016.N().DUL(item.UserId)
-//line views/ybs/node.qtpl:16
+//line views/ybs/node.qtpl:17
 			qw422016.N().S(`.jpg" class="avatar"></a>
             `)
-//line views/ybs/node.qtpl:17
+//line views/ybs/node.qtpl:18
 		}
-//line views/ybs/node.qtpl:17
+//line views/ybs/node.qtpl:18
 		qw422016.N().S(`
             <h1><a href="/t/`)
-//line views/ybs/node.qtpl:18
+//line views/ybs/node.qtpl:19
 		qw422016.N().DUL(item.ID)
-//line views/ybs/node.qtpl:18
+//line views/ybs/node.qtpl:19
 		qw422016.N().S(`" rel="bookmark" title="Permanent Link to `)
-//line views/ybs/node.qtpl:18
+//line views/ybs/node.qtpl:19
 		qw422016.E().S(item.Title)
-//line views/ybs/node.qtpl:18
+//line views/ybs/node.qtpl:19
 		qw422016.N().S(`">`)
-//line views/ybs/node.qtpl:18
+//line views/ybs/node.qtpl:19
 		qw422016.E().S(item.Title)
-//line views/ybs/node.qtpl:18
+//line views/ybs/node.qtpl:19
 		qw422016.N().S(`</a></h1>
             <p class="meta">
                 <a href="/n/`)
-//line views/ybs/node.qtpl:20
+//line views/ybs/node.qtpl:21
 		qw422016.N().DUL(item.NodeId)
-//line views/ybs/node.qtpl:20
+//line views/ybs/node.qtpl:21
 		qw422016.N().S(`">`)
-//line views/ybs/node.qtpl:20
+//line views/ybs/node.qtpl:21
 		qw422016.E().S(item.NodeName)
-//line views/ybs/node.qtpl:20
+//line views/ybs/node.qtpl:21
 		qw422016.N().S(`</a>
                 <a href="/member/`)
-//line views/ybs/node.qtpl:21
+//line views/ybs/node.qtpl:22
 		qw422016.N().DUL(item.UserId)
-//line views/ybs/node.qtpl:21
+//line views/ybs/node.qtpl:22
 		qw422016.N().S(`" rel="nofollow">`)
-//line views/ybs/node.qtpl:21
+//line views/ybs/node.qtpl:22
 		qw422016.E().S(item.AuthorName)
-//line views/ybs/node.qtpl:21
+//line views/ybs/node.qtpl:22
 		qw422016.N().S(`</a>
                 <time datetime="`)
-//line views/ybs/node.qtpl:22
+//line views/ybs/node.qtpl:23
 		qw422016.E().S(item.AddTimeFmt)
-//line views/ybs/node.qtpl:22
+//line views/ybs/node.qtpl:23
 		qw422016.N().S(`" pubdate data-updated="true">`)
-//line views/ybs/node.qtpl:22
+//line views/ybs/node.qtpl:23
 		qw422016.E().S(item.EditTimeFmt)
-//line views/ybs/node.qtpl:22
+//line views/ybs/node.qtpl:23
 		qw422016.N().S(`</time>
                 `)
-//line views/ybs/node.qtpl:23
+//line views/ybs/node.qtpl:24
 		if item.Comments > 0 {
-//line views/ybs/node.qtpl:23
+//line views/ybs/node.qtpl:24
 			qw422016.N().S(`
                 <a class="right count" href="/t/`)
-//line views/ybs/node.qtpl:24
+//line views/ybs/node.qtpl:25
 			qw422016.N().DUL(item.ID)
-//line views/ybs/node.qtpl:24
+//line views/ybs/node.qtpl:25
 			qw422016.N().S(`#r`)
-//line views/ybs/node.qtpl:24
+//line views/ybs/node.qtpl:25
 			qw422016.N().DUL(item.Comments)
-//line views/ybs/node.qtpl:24
+//line views/ybs/node.qtpl:25
 			qw422016.N().S(`" title="Comment on `)
-//line views/ybs/node.qtpl:24
+//line views/ybs/node.qtpl:25
 			qw422016.E().S(item.Title)
-//line views/ybs/node.qtpl:24
+//line views/ybs/node.qtpl:25
 			qw422016.N().S(`" rel="nofollow">`)
-//line views/ybs/node.qtpl:24
+//line views/ybs/node.qtpl:25
 			qw422016.N().DUL(item.Comments)
-//line views/ybs/node.qtpl:24
+//line views/ybs/node.qtpl:25
 			qw422016.N().S(`</a>
                 `)
-//line views/ybs/node.qtpl:25
+//line views/ybs/node.qtpl:26
 		}
-//line views/ybs/node.qtpl:25
+//line views/ybs/node.qtpl:26
 		qw422016.N().S(`
             </p>
         </header>
@@ -163,88 +176,88 @@ func (p *NodePage) StreamMainBody(qw422016 *qt422016.Writer) {
     </article>
 
     `)
-//line views/ybs/node.qtpl:31
+//line views/ybs/node.qtpl:32
 	}
-//line views/ybs/node.qtpl:31
+//line views/ybs/node.qtpl:32
 	qw422016.N().S(`
 
     <div class="pagination">
         `)
-//line views/ybs/node.qtpl:34
+//line views/ybs/node.qtpl:35
 	if p.TopicPageInfo.HasPrev {
-//line views/ybs/node.qtpl:34
+//line views/ybs/node.qtpl:35
 		qw422016.N().S(`
         <a class="prev" href="/n/`)
-//line views/ybs/node.qtpl:35
+//line views/ybs/node.qtpl:36
 		qw422016.N().DUL(p.DefaultNode.ID)
-//line views/ybs/node.qtpl:35
+//line views/ybs/node.qtpl:36
 		qw422016.N().S(`?btn=prev&key=`)
-//line views/ybs/node.qtpl:35
+//line views/ybs/node.qtpl:36
 		qw422016.N().DUL(p.TopicPageInfo.FirstKey)
-//line views/ybs/node.qtpl:35
+//line views/ybs/node.qtpl:36
 		qw422016.N().S(`&score=`)
-//line views/ybs/node.qtpl:35
+//line views/ybs/node.qtpl:36
 		qw422016.N().DUL(p.TopicPageInfo.FirstScore)
-//line views/ybs/node.qtpl:35
+//line views/ybs/node.qtpl:36
 		qw422016.N().S(`">← Newer</a>
         `)
-//line views/ybs/node.qtpl:36
+//line views/ybs/node.qtpl:37
 	}
-//line views/ybs/node.qtpl:36
+//line views/ybs/node.qtpl:37
 	qw422016.N().S(`
         `)
-//line views/ybs/node.qtpl:37
+//line views/ybs/node.qtpl:38
 	if p.TopicPageInfo.HasNext {
-//line views/ybs/node.qtpl:37
+//line views/ybs/node.qtpl:38
 		qw422016.N().S(`
         <a class="next" href="/n/`)
-//line views/ybs/node.qtpl:38
+//line views/ybs/node.qtpl:39
 		qw422016.N().DUL(p.DefaultNode.ID)
-//line views/ybs/node.qtpl:38
+//line views/ybs/node.qtpl:39
 		qw422016.N().S(`?btn=next&key=`)
-//line views/ybs/node.qtpl:38
+//line views/ybs/node.qtpl:39
 		qw422016.N().DUL(p.TopicPageInfo.LastKey)
-//line views/ybs/node.qtpl:38
+//line views/ybs/node.qtpl:39
 		qw422016.N().S(`&score=`)
-//line views/ybs/node.qtpl:38
+//line views/ybs/node.qtpl:39
 		qw422016.N().DUL(p.TopicPageInfo.LastScore)
-//line views/ybs/node.qtpl:38
+//line views/ybs/node.qtpl:39
 		qw422016.N().S(`">Older →</a>
         `)
-//line views/ybs/node.qtpl:39
+//line views/ybs/node.qtpl:40
 	}
-//line views/ybs/node.qtpl:39
+//line views/ybs/node.qtpl:40
 	qw422016.N().S(`
     </div>
 
 </div>
 
 `)
-//line views/ybs/node.qtpl:44
+//line views/ybs/node.qtpl:45
 }
 
-//line views/ybs/node.qtpl:44
+//line views/ybs/node.qtpl:45
 func (p *NodePage) WriteMainBody(qq422016 qtio422016.Writer) {
-//line views/ybs/node.qtpl:44
+//line views/ybs/node.qtpl:45
 	qw422016 := qt422016.AcquireWriter(qq422016)
-//line views/ybs/node.qtpl:44
+//line views/ybs/node.qtpl:45
 	p.StreamMainBody(qw422016)
-//line views/ybs/node.qtpl:44
+//line views/ybs/node.qtpl:45
 	qt422016.ReleaseWriter(qw422016)
-//line views/ybs/node.qtpl:44
+//line views/ybs/node.qtpl:45
 }
 
-//line views/ybs/node.qtpl:44
+//line views/ybs/node.qtpl:45
 func (p *NodePage) MainBody() string {
-//line views/ybs/node.qtpl:44
+//line views/ybs/node.qtpl:45
 	qb422016 := qt422016.AcquireByteBuffer()
-//line views/ybs/node.qtpl:44
+//line views/ybs/node.qtpl:45
 	p.WriteMainBody(qb422016)
-//line views/ybs/node.qtpl:44
+//line views/ybs/node.qtpl:45
 	qs422016 := string(qb422016.B)
-//line views/ybs/node.qtpl:44
+//line views/ybs/node.qtpl:45
 	qt422016.ReleaseByteBuffer(qb422016)
-//line views/ybs/node.qtpl:44
+//line views/ybs/node.qtpl:45
 	return qs422016
-//line views/ybs/node.qtpl:44
+//line views/ybs/node.qtpl:45
 }
