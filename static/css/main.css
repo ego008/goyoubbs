@@ -191,6 +191,7 @@ h1.br-nav, h2.br-nav, h3.br-nav, h4.br-nav {color:#777;font-size: 1em;font-weigh
 .index .meta {color: #ccc;font-size: .85em;margin: 0 0 1em 0;font-family: var(--b-font-main)}
 .index .meta a {color: #999;background-color: #efefef;padding: 2px 5px;text-decoration: none;}
 .index .meta a:hover, .index .meta a:focus {color: #FCFCFC;background-color: #474747;}
+.index .desc {padding: .5em;color: gray;font-size: .9em;background-color: #fcfcfc;}
 
 .entry {background-color: var(--main-bg-color);padding: .5em;}
 .entry header img {float: right;width: 73px;height: 73px;}

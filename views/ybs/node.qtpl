@@ -4,7 +4,7 @@
 
     <header class="bot-line">
         <h1 class="entry-title">Category: {%s p.DefaultNode.Name %}</h1>
-        {% if len(p.DefaultNode.About)>0 %}<div>{%s p.DefaultNode.About %}</div>{% endif %}
+        {% if len(p.DefaultNode.About)>0 %}<div class="desc">{%s p.DefaultNode.About %}</div>{% endif %}
     </header>
 
     {% for _, item := range p.TopicPageInfo.Items %}

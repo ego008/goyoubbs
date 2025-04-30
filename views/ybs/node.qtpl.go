@@ -34,7 +34,7 @@ func (p *NodePage) StreamMainBody(qw422016 *qt422016.Writer) {
 //line views/ybs/node.qtpl:7
 	if len(p.DefaultNode.About) > 0 {
 //line views/ybs/node.qtpl:7
-		qw422016.N().S(`<div>`)
+		qw422016.N().S(`<div class="desc">`)
 //line views/ybs/node.qtpl:7
 		qw422016.E().S(p.DefaultNode.About)
 //line views/ybs/node.qtpl:7
