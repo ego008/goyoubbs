@@ -40,15 +40,11 @@ func (p *TopicDetailPage) StreamMainBody(qw422016 *qt422016.Writer) {
 //line views/ybs/topic_detail.qtpl:7
 	qw422016.N().S(`.jpg" class="avatar"></a>
             <h1 class="entry-title">
-                <a href="/t/`)
-//line views/ybs/topic_detail.qtpl:9
-	qw422016.N().DUL(p.TopicFmt.ID)
-//line views/ybs/topic_detail.qtpl:9
-	qw422016.N().S(`" rel="bookmark">`)
+                `)
 //line views/ybs/topic_detail.qtpl:9
 	qw422016.E().S(p.TopicFmt.Title)
 //line views/ybs/topic_detail.qtpl:9
-	qw422016.N().S(`</a>
+	qw422016.N().S(`
             </h1>
             <p class="meta">
                 <span class="categories">📁 <a class="category" href="/n/`)

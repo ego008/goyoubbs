@@ -6,7 +6,7 @@
         <header>
             <a href="/member/{%dul p.TopicFmt.UserId %}" rel="nofollow"><img alt="{%s p.TopicFmt.Name %} avatar" src="/static/avatar/{%dul p.TopicFmt.UserId %}.jpg" class="avatar"></a>
             <h1 class="entry-title">
-                <a href="/t/{%dul p.TopicFmt.ID %}" rel="bookmark">{%s p.TopicFmt.Title %}</a>
+                {%s p.TopicFmt.Title %}
             </h1>
             <p class="meta">
                 <span class="categories">📁 <a class="category" href="/n/{%dul p.TopicFmt.NodeId %}" rel="category tag">{%s p.DefaultNode.Name %}</a></span>
