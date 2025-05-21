@@ -7,8 +7,9 @@ import (
 	"github.com/segmentio/fasthash/fnv1a"
 	"github.com/valyala/fasthttp"
 	"goyoubbs/model"
-	"goyoubbs/util"
+	"goyoubbs/util" // Already present but good to confirm
 	"goyoubbs/views/ybs"
+	"log" // Add log import
 	"strconv"
 	"strings"
 	"time"
@@ -176,6 +177,7 @@ func (h *BaseHandler) TopicAddPost(ctx *fasthttp.RequestCtx) {
 			topic.EditTime = stamp
 		}
 		// 直接更新
+		topic.Language = "zh"
 		model.TopicSet(db, topic)
 		// 分类、title 变化
 		if oldTopic.NodeId != topic.NodeId {
@@ -248,8 +250,37 @@ func (h *BaseHandler) TopicAddPost(ctx *fasthttp.RequestCtx) {
 	}
 
 	// 直接保存
+	topic.Language = "zh"
 	topic = model.TopicAdd(h.App.Mc, db, topic)
 	rsp.Tid = topic.ID
+
+	// If the original topic is in Chinese, translate it to English and save as a new topic
+	if h.App.Cf.Site.EnableAutoTranslation && topic.ID > 0 && topic.Language == "zh" { // Check config flag
+		translatedTopic, err := util.TranslateTopic(topic, "en")
+		if err != nil {
+			log.Println("Translation error:", err)
+		} else {
+			// Ensure UserId and NodeId are correctly set (TranslateTopic copies them)
+			// translatedTopic.UserId = topic.UserId // Already handled by TranslateTopic copying
+			// translatedTopic.NodeId = topic.NodeId // Already handled by TranslateTopic copying
+			
+			// Save the translated topic
+			translatedTopic = model.TopicAdd(h.App.Mc, db, translatedTopic)
+			if translatedTopic.ID > 0 {
+				// Record title hash for the translated topic
+				translatedTitleMd5 := fnv1a.HashString64(translatedTopic.Title)
+				_ = db.Hset("title_fnv1a", sdb.I2b(translatedTitleMd5), sdb.I2b(translatedTopic.ID))
+				log.Println("Successfully translated and saved topic ID:", topic.ID, "to English as new topic ID:", translatedTopic.ID)
+
+				// Optionally, handle task_to_get_tag for translated topic if applicable
+				// if len(scf.GetTagApi) > 0 {
+				// 	_ = db.Hset("task_to_get_tag", sdb.I2b(translatedTopic.ID), sdb.S2b(translatedTopic.Title))
+				// }
+			} else {
+				log.Println("Failed to save translated topic for original topic ID:", topic.ID)
+			}
+		}
+	}
 
 	// 自动从标题里提取标签
 	if len(scf.GetTagApi) > 0 {

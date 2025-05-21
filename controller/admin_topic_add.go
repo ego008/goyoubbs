@@ -163,6 +163,7 @@ func (h *BaseHandler) AdminTopicAddPost(ctx *fasthttp.RequestCtx) {
 			topic.EditTime = util.GetCNTM(model.TimeOffSet)
 		}
 		// 直接更新
+		topic.Language = "zh"
 		model.TopicSet(db, topic)
 		// 分类、title 变化
 		if oldTopic.NodeId != topic.NodeId {
@@ -208,6 +209,7 @@ func (h *BaseHandler) AdminTopicAddPost(ctx *fasthttp.RequestCtx) {
 	}
 
 	// 直接保存
+	topic.Language = "zh"
 	topic = model.TopicAdd(h.App.Mc, db, topic)
 	rsp.Tid = topic.ID
 

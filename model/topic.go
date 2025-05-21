@@ -25,6 +25,7 @@ type Topic struct {
 	UserId     uint64
 	Title      string
 	Content    string
+	Language   string
 	ClientIp   string
 	Tags       string
 	ReadAuthed bool

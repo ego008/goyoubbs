@@ -67,6 +67,7 @@ type SiteConf struct {
 	SmtpEmail          string // 登录email
 	SmtpPassword       string
 	SendToEmail        string // 发到通知邮箱
+	EnableAutoTranslation bool   // 是否开启自动翻译
 }
 
 func SiteConfLoad(scf *SiteConf, db *sdb.DB) {
@@ -97,6 +98,7 @@ func SiteConfLoad(scf *SiteConf, db *sdb.DB) {
 		scf.UploadDir = "upload"
 		scf.UploadMaxSize = 20
 		scf.CachedSize = 5
+		scf.EnableAutoTranslation = true // Default to true
 
 		scf.UploadMaxSizeByte = int64(scf.UploadMaxSize) << 20
 
