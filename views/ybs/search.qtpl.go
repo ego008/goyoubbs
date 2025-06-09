@@ -95,11 +95,7 @@ func (p *SearchPage) StreamMainBody(qw422016 *qt422016.Writer) {
 //line views/ybs/search.qtpl:20
 		qw422016.N().DUL(item.ID)
 //line views/ybs/search.qtpl:20
-		qw422016.N().S(`" rel="bookmark" title="Permanent Link to `)
-//line views/ybs/search.qtpl:20
-		qw422016.E().S(item.Title)
-//line views/ybs/search.qtpl:20
-		qw422016.N().S(`">`)
+		qw422016.N().S(`" rel="bookmark">`)
 //line views/ybs/search.qtpl:20
 		qw422016.E().S(item.Title)
 //line views/ybs/search.qtpl:20

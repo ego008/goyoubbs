@@ -11,7 +11,7 @@
             {% else %}
             <a href="/t/{%dul item.ID %}"><img alt="{%s item.Title %} icon" src="/static/avatar/{%dul item.UserId %}.jpg" class="avatar"></a>
             {% endif %}
-            <h1><a href="/t/{%dul item.ID %}" rel="bookmark" title="Permanent Link to {%s item.Title %}">{%s item.Title %}</a></h1>
+            <h1><a href="/t/{%dul item.ID %}" rel="bookmark">{%s item.Title %}</a></h1>
             <p class="meta">
                 <a href="/n/{%dul item.NodeId %}">{%s item.NodeName %}</a>
                 <a href="/member/{%dul item.UserId %}" rel="nofollow">{%s item.AuthorName %}</a>
