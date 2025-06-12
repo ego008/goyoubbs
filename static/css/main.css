@@ -333,9 +333,9 @@ body>footer {
     font-family: var(--b-font-main)
 }
 body>footer p {margin: 0}
-body>footer a {color: #bbb}
-body>footer a:visited {color: #bbb}
-body>footer a:hover {color: #eee}
+body>footer a {color: #666}
+body>footer a:visited {color: #666}
+body>footer a:hover {color: #222}
 #recent_comments {color: #999;font-size: .9em;margin: 0;padding: .5em 1em .5em .8em;list-style: none;}
 #recent_comments img {float: left;margin: 0 .4em 0 0;width: 18px;height: 18px;}
 #recent_comments li {line-height: 1.6em;width: 100%;
