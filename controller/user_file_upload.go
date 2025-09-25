@@ -2,17 +2,17 @@ package controller
 
 import (
 	"bytes"
-	"github.com/ego008/goutils/json"
-	"github.com/ego008/sdb"
-	"github.com/valyala/fasthttp"
 	"goyoubbs/model"
 	"goyoubbs/util"
 	"image"
 	"image/jpeg"
 	"io"
 	"os"
-	"path"
 	"strconv"
+
+	"github.com/ego008/goutils/json"
+	"github.com/ego008/sdb"
+	"github.com/valyala/fasthttp"
 )
 
 const (
@@ -89,9 +89,19 @@ func (h *BaseHandler) FileUpload(ctx *fasthttp.RequestCtx) {
 			showPath = "/static/upload/" + saveName
 		}
 	} else {
-		fileSuffix = path.Ext(file.Filename) // source file suffix
-		saveName = imgKeyS + fileSuffix
-		showPath = "/static/upload/" + saveName
+		// is mp3 or mp4
+		mediaType := util.CheckMediaType(buff)
+		if len(mediaType) > 0 {
+			fileSuffix = "." + mediaType
+			saveName = imgKeyS + fileSuffix
+			showPath = "/static/upload/" + saveName
+		} else {
+			_, _ = ctx.WriteString(`{"Code":400,"Msg":"unknown image or media format"}`)
+			return
+		}
+		//fileSuffix = path.Ext(file.Filename) // source file suffix
+		//saveName = imgKeyS + fileSuffix
+		//showPath = "/static/upload/" + saveName
 	}
 
 	saveFullPath := h.App.Cf.Site.UploadDir + "/" + saveName
