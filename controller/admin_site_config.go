@@ -1,22 +1,24 @@
 package controller
 
 import (
-	"github.com/VictoriaMetrics/fastcache"
-	"github.com/ego008/goutils/json"
-	"github.com/gorilla/securecookie"
-	"github.com/valyala/fasthttp"
 	"goyoubbs/model"
 	"goyoubbs/util"
 	"goyoubbs/views/admin"
+	"net/http"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/VictoriaMetrics/fastcache"
+	"github.com/ego008/goutils/json"
+	"github.com/gin-gonic/gin"
+	"github.com/gorilla/securecookie"
 )
 
-func (h *BaseHandler) AdminSiteConfigPage(ctx *fasthttp.RequestCtx) {
-	curUser, _ := h.CurrentUser(ctx)
+func (h *BaseHandler) AdminSiteConfigPage(c *gin.Context) {
+	curUser, _ := h.CurrentUser(c)
 	if curUser.Flag < model.FlagAdmin {
-		ctx.Redirect(h.App.Cf.Site.MainDomain+"/admin", 302)
+		c.Redirect(302, "/admin")
 		return
 	}
 
@@ -39,70 +41,71 @@ func (h *BaseHandler) AdminSiteConfigPage(ctx *fasthttp.RequestCtx) {
 	evn.HasTopicReview = model.CheckHasTopic2Review(h.App.Db)
 	evn.HasReplyReview = model.CheckHasComment2Review(h.App.Db)
 
-	ctx.SetContentType("text/html; charset=utf-8")
-	admin.WritePageTemplate(ctx, evn)
+	c.Header("Content-Type", "text/html; charset=utf-8")
+	c.Status(http.StatusOK)
+	admin.WritePageTemplate(c.Writer, evn)
 }
 
-func b2int(b []byte, df int) int {
-	i, err := strconv.Atoi(string(b))
+func s2int(s string, df int) int {
+	i, err := strconv.Atoi(s)
 	if err != nil {
 		return df
 	}
 	return i
 }
 
-func b2bool(b []byte, df bool) bool {
-	i, err := strconv.ParseBool(string(b))
+func s2bool(s string, df bool) bool {
+	i, err := strconv.ParseBool(s)
 	if err != nil {
 		return df
 	}
 	return i
 }
 
-func (h *BaseHandler) AdminSiteConfigPost(ctx *fasthttp.RequestCtx) {
-	curUser, _ := h.CurrentUser(ctx)
+func (h *BaseHandler) AdminSiteConfigPost(c *gin.Context) {
+	curUser, _ := h.CurrentUser(c)
 	if curUser.Flag < model.FlagAdmin {
-		ctx.Redirect(h.App.Cf.Site.MainDomain+"/login", 302)
+		c.Redirect(302, "/login")
 		return
 	}
 
 	obj := model.SiteConf{}
 	model.SiteConfLoad(&obj, h.App.Db)
 
-	obj.Name = string(ctx.FormValue("Name"))
-	obj.Desc = string(ctx.FormValue("Desc"))
-	obj.MainDomain = strings.TrimSuffix(string(ctx.FormValue("MainDomain")), "/")
-	obj.HeaderPartCon = string(ctx.FormValue("HeaderPartCon"))
-	obj.GoogleAutoAdJs = string(ctx.FormValue("GoogleAutoAdJs"))
-	obj.FooterPartHtml = string(ctx.FormValue("FooterPartHtml"))
+	obj.Name = c.PostForm("Name")
+	obj.Desc = c.PostForm("Desc")
+	obj.MainDomain = strings.TrimSuffix(c.PostForm("MainDomain"), "/")
+	obj.HeaderPartCon = c.PostForm("HeaderPartCon")
+	obj.GoogleAutoAdJs = c.PostForm("GoogleAutoAdJs")
+	obj.FooterPartHtml = c.PostForm("FooterPartHtml")
 
-	obj.TimeZone = b2int(ctx.FormValue("TimeZone"), 8)
+	obj.TimeZone = s2int(c.PostForm("TimeZone"), 8)
 	if obj.TimeZone < -12 || obj.TimeZone > 12 {
 		obj.TimeZone = 8
 	}
 	model.TimeOffSet = time.Duration(obj.TimeZone) * time.Hour
 
-	obj.PageShowNum = b2int(ctx.FormValue("PageShowNum"), 32)
-	obj.TopRateNum = b2int(ctx.FormValue("TopRateNum"), 10)
-	obj.RecentCommentNum = b2int(ctx.FormValue("RecentCommentNum"), 10)
-	obj.TitleMaxLen = b2int(ctx.FormValue("TitleMaxLen"), 110)
-	obj.TopicConMaxLen = b2int(ctx.FormValue("TopicConMaxLen"), 12000)
-	obj.CommentConMaxLen = b2int(ctx.FormValue("CommentConMaxLen"), 5000)
+	obj.PageShowNum = s2int(c.PostForm("PageShowNum"), 32)
+	obj.TopRateNum = s2int(c.PostForm("TopRateNum"), 10)
+	obj.RecentCommentNum = s2int(c.PostForm("RecentCommentNum"), 10)
+	obj.TitleMaxLen = s2int(c.PostForm("TitleMaxLen"), 110)
+	obj.TopicConMaxLen = s2int(c.PostForm("TopicConMaxLen"), 12000)
+	obj.CommentConMaxLen = s2int(c.PostForm("CommentConMaxLen"), 5000)
 
-	obj.AutoDataBackup = b2bool(ctx.FormValue("AutoDataBackup"), false)
-	obj.DataBackupDir = strings.TrimSuffix(string(ctx.FormValue("DataBackupDir")), "/")
+	obj.AutoDataBackup = s2bool(c.PostForm("AutoDataBackup"), false)
+	obj.DataBackupDir = strings.TrimSuffix(c.PostForm("DataBackupDir"), "/")
 	if obj.UploadDir == "" {
 		obj.UploadDir = "data_backup"
 	}
 
-	obj.Authorized = b2bool(ctx.FormValue("Authorized"), false)
-	obj.AllowNameReg = b2bool(ctx.FormValue("AllowNameReg"), true)
-	obj.RegReview = b2bool(ctx.FormValue("RegReview"), false)
-	obj.CloseReg = b2bool(ctx.FormValue("CloseReg"), false)
-	obj.CloseReply = b2bool(ctx.FormValue("CloseReply"), false)
-	obj.PostReview = b2bool(ctx.FormValue("PostReview"), false)
+	obj.Authorized = s2bool(c.PostForm("Authorized"), false)
+	obj.AllowNameReg = s2bool(c.PostForm("AllowNameReg"), true)
+	obj.RegReview = s2bool(c.PostForm("RegReview"), false)
+	obj.CloseReg = s2bool(c.PostForm("CloseReg"), false)
+	obj.CloseReply = s2bool(c.PostForm("CloseReply"), false)
+	obj.PostReview = s2bool(c.PostForm("PostReview"), false)
 
-	obj.ResetCookieKey = b2bool(ctx.FormValue("ResetCookieKey"), false)
+	obj.ResetCookieKey = s2bool(c.PostForm("ResetCookieKey"), false)
 	if obj.ResetCookieKey {
 		hashKey := securecookie.GenerateRandomKey(64)
 		blockKey := securecookie.GenerateRandomKey(32)
@@ -110,19 +113,19 @@ func (h *BaseHandler) AdminSiteConfigPost(ctx *fasthttp.RequestCtx) {
 		h.App.Sc = securecookie.New(hashKey, blockKey)
 	}
 
-	obj.AutoDecodeMp4 = b2bool(ctx.FormValue("AutoDecodeMp4"), false)
+	obj.AutoDecodeMp4 = s2bool(c.PostForm("AutoDecodeMp4"), false)
 	// check ffmpeg exist
 	if obj.AutoDecodeMp4 {
 		obj.AutoDecodeMp4 = util.CmdExists("ffmpeg")
 	}
 
-	obj.GetTagApi = string(ctx.FormValue("GetTagApi"))
+	obj.GetTagApi = c.PostForm("GetTagApi")
 
-	obj.UploadLimit = b2bool(ctx.FormValue("UploadLimit"), false)
+	obj.UploadLimit = s2bool(c.PostForm("UploadLimit"), false)
 
 	var reloadRouter bool
 	oldUploadDir := obj.UploadDir
-	obj.UploadDir = strings.TrimSuffix(string(ctx.FormValue("UploadDir")), "/")
+	obj.UploadDir = strings.TrimSuffix(c.PostForm("UploadDir"), "/")
 	if obj.UploadDir == "" {
 		obj.UploadDir = "upload"
 	}
@@ -130,40 +133,40 @@ func (h *BaseHandler) AdminSiteConfigPost(ctx *fasthttp.RequestCtx) {
 		reloadRouter = true
 	}
 
-	obj.UploadMaxSize = b2int(ctx.FormValue("UploadMaxSize"), 20)
+	obj.UploadMaxSize = s2int(c.PostForm("UploadMaxSize"), 20)
 	if obj.UploadMaxSize < 1 {
 		obj.UploadMaxSize = 1
 	}
 	obj.UploadMaxSizeByte = int64(obj.UploadMaxSize) << 20
 
 	oldCachedSize := obj.CachedSize
-	obj.CachedSize = b2int(ctx.FormValue("CachedSize"), 1)
+	obj.CachedSize = s2int(c.PostForm("CachedSize"), 1)
 	if obj.CachedSize < 1 {
 		obj.CachedSize = 1
 	}
 
-	obj.RateLimitDay = b2int(ctx.FormValue("RateLimitDay"), 0)
+	obj.RateLimitDay = s2int(c.PostForm("RateLimitDay"), 0)
 	model.RateLimitDay = obj.RateLimitDay
-	obj.RateLimitHour = b2int(ctx.FormValue("RateLimitHour"), 0)
+	obj.RateLimitHour = s2int(c.PostForm("RateLimitHour"), 0)
 	model.RateLimitHour = obj.RateLimitHour
 
 	oldSaveTopicIcon := obj.SaveTopicIcon
-	obj.SaveTopicIcon = b2bool(ctx.FormValue("SaveTopicIcon"), false)
+	obj.SaveTopicIcon = s2bool(c.PostForm("SaveTopicIcon"), false)
 
-	obj.SaveImg2db = b2bool(ctx.FormValue("SaveImg2db"), false)
-	obj.RemotePostPw = string(ctx.FormValue("RemotePostPw"))
-	obj.QQClientID = string(ctx.FormValue("QQClientID"))
-	obj.QQClientSecret = string(ctx.FormValue("QQClientSecret"))
-	obj.WeiboClientID = string(ctx.FormValue("WeiboClientID"))
-	obj.WeiboClientSecret = string(ctx.FormValue("WeiboClientSecret"))
-	obj.GithubClientID = string(ctx.FormValue("GithubClientID"))
-	obj.GithubClientSecret = string(ctx.FormValue("GithubClientSecret"))
-	obj.SendEmail = b2bool(ctx.FormValue("SendEmail"), false)
-	obj.SmtpHost = string(ctx.FormValue("SmtpHost"))
-	obj.SmtpPort = b2int(ctx.FormValue("SmtpPort"), 465)
-	obj.SmtpEmail = string(ctx.FormValue("SmtpEmail"))
-	obj.SmtpPassword = string(ctx.FormValue("SmtpPassword"))
-	obj.SendToEmail = string(ctx.FormValue("SendToEmail"))
+	obj.SaveImg2db = s2bool(c.PostForm("SaveImg2db"), false)
+	obj.RemotePostPw = c.PostForm("RemotePostPw")
+	obj.QQClientID = c.PostForm("QQClientID")
+	obj.QQClientSecret = c.PostForm("QQClientSecret")
+	obj.WeiboClientID = c.PostForm("WeiboClientID")
+	obj.WeiboClientSecret = c.PostForm("WeiboClientSecret")
+	obj.GithubClientID = c.PostForm("GithubClientID")
+	obj.GithubClientSecret = c.PostForm("GithubClientSecret")
+	obj.SendEmail = s2bool(c.PostForm("SendEmail"), false)
+	obj.SmtpHost = c.PostForm("SmtpHost")
+	obj.SmtpPort = s2int(c.PostForm("SmtpPort"), 465)
+	obj.SmtpEmail = c.PostForm("SmtpEmail")
+	obj.SmtpPassword = c.PostForm("SmtpPassword")
+	obj.SendToEmail = c.PostForm("SendToEmail")
 
 	jb, _ := json.Marshal(obj)
 	_ = h.App.Db.Hset(model.KeyValueTb, []byte("site_config"), jb)
@@ -192,5 +195,5 @@ func (h *BaseHandler) AdminSiteConfigPost(ctx *fasthttp.RequestCtx) {
 		}
 	}
 
-	ctx.Redirect(h.App.Cf.Site.MainDomain+"/admin/site/conf", 302)
+	c.Redirect(302, "/admin/site/conf")
 }

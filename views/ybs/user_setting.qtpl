@@ -7,7 +7,7 @@
         <fieldset>
             <legend>登录名: {%s p.User.Name %}</legend>
 
-            <img id="img" src="/static/avatar/{%dul p.User.ID %}.jpg" alt="{%s p.User.Name %} avatar" onclick="document.getElementById('file-input').click();" title="点击更换头像" style="cursor: pointer;height: 119px;width: 119px;">
+            <img id="img" src="/avatar/{%dul p.User.ID %}.jpg" alt="{%s p.User.Name %} avatar" onclick="document.getElementById('file-input').click();" title="点击更换头像" style="cursor: pointer;height: 119px;width: 119px;">
             <input id="file-input" type="file" accept="image/*" style="display: none;" />
 
             <div>

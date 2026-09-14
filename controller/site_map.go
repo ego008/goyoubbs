@@ -4,14 +4,16 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
-	"github.com/ego008/goutils/json"
-	"github.com/ego008/sdb"
-	"github.com/valyala/fasthttp"
 	"goyoubbs/model"
 	"goyoubbs/util"
+	"net/http"
 	"os"
 	"strconv"
 	"strings"
+
+	"github.com/ego008/goutils/json"
+	"github.com/ego008/sdb"
+	"github.com/gin-gonic/gin"
 )
 
 const maxUrlInSitemap = 50000
@@ -22,18 +24,18 @@ type locItem struct {
 	pid uint64
 }
 
-func (h *BaseHandler) SiteMapHandler(ctx *fasthttp.RequestCtx) {
-	curUser, _ := h.CurrentUser(ctx)
+func (h *BaseHandler) SiteMapHandler(c *gin.Context) {
+	curUser, _ := h.CurrentUser(c)
 	if h.App.Cf.Site.Authorized && curUser.Flag < model.FlagAuthor {
 		if curUser.ID == 0 {
-			ctx.Redirect(h.App.Cf.Site.MainDomain+"/login", 302)
+			c.Redirect(302, "/login")
 			return
 		}
-		ctx.Redirect(h.App.Cf.Site.MainDomain+"/setting", 302)
+		c.Redirect(302, "/setting")
 		return
 	}
 
-	ctx.SetContentType("application/xml; charset=utf-8")
+	c.Header("Content-Type", "application/xml; charset=utf-8")
 
 	db := h.App.Db
 
@@ -45,7 +47,7 @@ func (h *BaseHandler) SiteMapHandler(ctx *fasthttp.RequestCtx) {
 	})
 
 	if obj.Id == 0 {
-		_, _ = ctx.WriteString("nil")
+		c.String(200, "nil")
 		return
 	}
 
@@ -101,23 +103,23 @@ func (h *BaseHandler) SiteMapHandler(ctx *fasthttp.RequestCtx) {
 
 	buf.WriteString("</sitemapindex>")
 
-	_, _ = ctx.Write(buf.Bytes())
+	c.String(200, buf.String())
 }
 
-func (h *BaseHandler) SitemapIndexHandler(ctx *fasthttp.RequestCtx) {
-	curUser, _ := h.CurrentUser(ctx)
+func (h *BaseHandler) SitemapIndexHandler(c *gin.Context) {
+	curUser, _ := h.CurrentUser(c)
 	if h.App.Cf.Site.Authorized && curUser.Flag < model.FlagAuthor {
 		if curUser.ID == 0 {
-			ctx.Redirect(h.App.Cf.Site.MainDomain+"/login", 302)
+			c.Redirect(302, "/login")
 			return
 		}
-		ctx.Redirect(h.App.Cf.Site.MainDomain+"/setting", 302)
+		c.Redirect(302, "/setting")
 		return
 	}
 
-	//ctx.SetContentType("application/xml; charset=utf-8")
+	//c.Header("Content-Type", "application/xml; charset=utf-8")
 
-	xmlFile := strings.TrimSpace(ctx.UserValue("xmlFile").(string))
+	xmlFile := strings.TrimSpace(c.Param("xmlFile"))
 
 	// get type & index form xmlFile = "posts_1.xml"
 	index := strings.Index(xmlFile, "_")
@@ -126,7 +128,7 @@ func (h *BaseHandler) SitemapIndexHandler(ctx *fasthttp.RequestCtx) {
 	var err error
 	indexInt, err = strconv.ParseUint(indexStr, 10, 64)
 	if err != nil {
-		ctx.NotFound()
+		c.Status(http.StatusNotFound)
 		return
 	}
 
@@ -137,8 +139,8 @@ func (h *BaseHandler) SitemapIndexHandler(ctx *fasthttp.RequestCtx) {
 		// get sitemap_x.xml mtime
 		var fileInfo os.FileInfo
 		if fileInfo, err = os.Stat(filename); err != nil {
-			ctx.SetStatusCode(fasthttp.StatusInternalServerError)
-			_, _ = ctx.WriteString("500: InternalServerError")
+			c.Status(http.StatusInternalServerError)
+			c.String(200, "500: InternalServerError")
 			return
 		}
 		modifiedTime := fileInfo.ModTime()
@@ -155,8 +157,8 @@ func (h *BaseHandler) SitemapIndexHandler(ctx *fasthttp.RequestCtx) {
 		}
 
 		if modifiedTime.UTC().Unix() >= modifiedTm {
-			ctx.SetContentType("application/xml; charset=utf-8")
-			_, _ = ctx.Write(buf)
+			c.Header("Content-Type", "application/xml; charset=utf-8")
+			c.String(200, string(buf))
 			return
 		}
 
@@ -196,24 +198,24 @@ func (h *BaseHandler) SitemapIndexHandler(ctx *fasthttp.RequestCtx) {
 	}
 
 	if len(locLst) == 0 {
-		ctx.NotFound()
+		c.Status(http.StatusNotFound)
 		return
 	}
 
 	err = writeXmlToFile(xmlFile, h.App.Cf.Site.MainDomain, locLst)
 	if err != nil {
-		ctx.SetStatusCode(fasthttp.StatusInternalServerError)
+		c.Status(http.StatusInternalServerError)
 		return
 	}
 
 	buf, err = os.ReadFile("static/sitemap/" + xmlFile)
 	if err != nil {
-		ctx.SetStatusCode(fasthttp.StatusInternalServerError)
+		c.Status(http.StatusInternalServerError)
 		return
 	}
 
-	ctx.SetContentType("application/xml; charset=utf-8")
-	_, _ = ctx.Write(buf)
+	c.Header("Content-Type", "application/xml; charset=utf-8")
+	c.String(200, string(buf))
 }
 
 func writeXmlToFile(fn, domain string, locLst []locItem) error {

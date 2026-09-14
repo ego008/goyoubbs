@@ -1,18 +1,20 @@
 package controller
 
 import (
-	"github.com/valyala/fasthttp"
 	"goyoubbs/model"
 	"goyoubbs/util"
 	"goyoubbs/views/admin"
+	"net/http"
 	"sort"
 	"strings"
+
+	"github.com/gin-gonic/gin"
 )
 
-func (h *BaseHandler) AdminRateLimitSetting(ctx *fasthttp.RequestCtx) {
-	curUser, _ := h.CurrentUser(ctx)
+func (h *BaseHandler) AdminRateLimitSetting(c *gin.Context) {
+	curUser, _ := h.CurrentUser(c)
 	if curUser.Flag < model.FlagAdmin {
-		ctx.Redirect(h.App.Cf.Site.MainDomain+"/admin", 302)
+		c.Redirect(302, "/admin")
 		return
 	}
 
@@ -27,7 +29,7 @@ func (h *BaseHandler) AdminRateLimitSetting(ctx *fasthttp.RequestCtx) {
 	evn.NodeLst = model.NodeGetAll(h.App.Mc, h.App.Db)
 	evn.LinkLst = model.LinkList(h.App.Mc, h.App.Db, true)
 
-	evn.MyIp = ReadUserIP(ctx)
+	evn.MyIp = ReadUserIP(c)
 	var stLst []model.SettingKv
 	stLst = model.SettingGetByKeys(h.App.Db, model.SettingKeys)
 	sort.Slice(stLst, func(i, j int) bool {
@@ -39,21 +41,22 @@ func (h *BaseHandler) AdminRateLimitSetting(ctx *fasthttp.RequestCtx) {
 	evn.HasTopicReview = model.CheckHasTopic2Review(h.App.Db)
 	evn.HasReplyReview = model.CheckHasComment2Review(h.App.Db)
 
-	ctx.SetContentType("text/html; charset=utf-8")
-	admin.WritePageTemplate(ctx, evn)
+	c.Header("Content-Type", "text/html; charset=utf-8")
+	c.Status(http.StatusOK)
+	admin.WritePageTemplate(c.Writer, evn)
 }
 
-func (h *BaseHandler) AdminRateLimitSettingPost(ctx *fasthttp.RequestCtx) {
-	curUser, _ := h.CurrentUser(ctx)
+func (h *BaseHandler) AdminRateLimitSettingPost(c *gin.Context) {
+	curUser, _ := h.CurrentUser(c)
 	if curUser.Flag < model.FlagAdmin {
-		ctx.Redirect(h.App.Cf.Site.MainDomain+"/login", 302)
+		c.Redirect(302, "/login")
 		return
 	}
 
 	stMp := map[string]string{}
 	var kvs [][]byte
 	for _, v := range model.SettingKeys {
-		stValue := strings.TrimSpace(string(ctx.FormValue(v)))
+		stValue := strings.TrimSpace(c.Query(v))
 		stValue = util.SliceUniqStr(stValue, ",")
 
 		// reset stValue
@@ -70,7 +73,7 @@ func (h *BaseHandler) AdminRateLimitSettingPost(ctx *fasthttp.RequestCtx) {
 	}
 
 	if len(kvs) == 0 {
-		ctx.Redirect(h.App.Cf.Site.MainDomain+"/admin/ratelimit/setting", 302)
+		c.Redirect(302, "/admin/ratelimit/setting")
 		return
 	}
 
@@ -83,7 +86,7 @@ func (h *BaseHandler) AdminRateLimitSettingPost(ctx *fasthttp.RequestCtx) {
 	}
 
 	if err := h.App.Db.Hmset(model.TbnSetting, kvs...); err != nil {
-		ctx.Redirect(h.App.Cf.Site.MainDomain+"/admin/ratelimit/setting", 302)
+		c.Redirect(302, "/admin/ratelimit/setting")
 		return
 	}
 
@@ -102,5 +105,5 @@ func (h *BaseHandler) AdminRateLimitSettingPost(ctx *fasthttp.RequestCtx) {
 		model.UpdateAllowIpPrefix(h.App.Db)
 	}
 
-	ctx.Redirect(h.App.Cf.Site.MainDomain+"/admin/ratelimit/setting", 302)
+	c.Redirect(302, "/admin/ratelimit/setting")
 }

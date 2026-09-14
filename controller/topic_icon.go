@@ -2,62 +2,66 @@ package controller
 
 import (
 	"bytes"
-	"github.com/ego008/goutils/lst"
-	"github.com/ego008/sdb"
-	"github.com/valyala/fasthttp"
 	"goyoubbs/model"
 	"goyoubbs/util"
 	"io"
 	"log"
+	"net/http"
 	"strconv"
+	"strings"
+
+	"github.com/ego008/goutils/lst"
+	"github.com/ego008/sdb"
+	"github.com/gin-gonic/gin"
 )
 
-func serveFileCon(ctx *fasthttp.RequestCtx, db *sdb.DB, uid uint64) {
+func serveFileCon(c *gin.Context, db *sdb.DB, uid uint64) {
 	etag := strconv.FormatUint(uid, 10)
-	ctx.Response.Header.Set("Etag", `"`+etag+`"`)
-	ctx.Response.Header.Set("Cache-Control", "public, max-age=25920000") // 300 days
+	c.Header("Etag", `"`+etag+`"`)
+	c.Header("Cache-Control", "public, max-age=25920000") // 300 days
 
-	if match := ctx.Request.Header.Peek("If-None-Match"); len(match) > 2 {
-		if bytes.Equal(match[1:len(match)-1], []byte(etag)) {
-			ctx.SetStatusCode(fasthttp.StatusNotModified)
+	if match := c.GetHeader("If-None-Match"); len(match) > 2 {
+		if strings.Trim(match, `"`) == etag {
+			c.Status(http.StatusNotModified)
 			return
 		}
 	}
 
 	rs := db.Hget("user_avatar", sdb.I2b(uid))
 	if !rs.OK() {
-		ctx.NotFound()
+		c.Status(http.StatusNotFound)
 		return
 	}
-	data := rs.Bytes()
 
-	ctx.Response.Header.Set("Content-Length", strconv.Itoa(len(data)))
-	ctx.SetBody(data)
+	c.Data(200, "image/jpeg", rs.Bytes())
 }
 
-func serveFileCon2(ctx *fasthttp.RequestCtx, data []byte, tid, rn uint64) {
+func serveFileCon2(c *gin.Context, data []byte, tid, rn uint64) {
 	etag := strconv.FormatUint(tid, 10) + "a" + strconv.FormatUint(rn, 10)
-	ctx.Response.Header.Set("Etag", `"`+etag+`"`)
-	ctx.Response.Header.Set("Cache-Control", "public, max-age=25920000") // 300 days
+	c.Header("Etag", `"`+etag+`"`)
+	c.Header("Cache-Control", "public, max-age=25920000") // 300 days
 
-	ctx.Response.Header.Set("Content-Length", strconv.Itoa(len(data)))
-	ctx.SetBody(data)
+	c.Data(200, "image/jpeg", data)
 }
 
-func (h *BaseHandler) TopicIconHandle(ctx *fasthttp.RequestCtx) {
-	ctx.SetContentType("image/jpeg")
-
-	tid := ctx.UserValue("tid").(string)
+func (h *BaseHandler) TopicIconHandle(c *gin.Context) {
+	c.Header("Content-Type", "image/jpeg")
+	tid := c.Param("tid.jpg")
+	if len(tid) < 5 {
+		c.Status(http.StatusNotFound)
+		return
+	}
+	tid = tid[:len(tid)-4]
 	tidInt, err := strconv.ParseUint(tid, 10, 64)
 	if err != nil {
-		ctx.NotFound()
+		c.Status(http.StatusNotFound)
 		return
 	}
 	db := h.App.Db
 	topic := model.TopicGetById(db, tidInt)
 	if topic.ID == 0 {
 		// 不存在
-		ctx.NotFound()
+		c.Status(http.StatusNotFound)
 		return
 	}
 
@@ -67,16 +71,16 @@ func (h *BaseHandler) TopicIconHandle(ctx *fasthttp.RequestCtx) {
 
 	topic.Comments = db.HgetInt(model.CommentNumTbName, tidByte)
 	if topic.Comments == 0 {
-		// 实际没走这里，在前端已指定 src="/static/avatar/*"
-		serveFileCon(ctx, db, topic.UserId)
+		// 实际没走这里，在前端已指定 src="/avatar/*"
+		serveFileCon(c, db, topic.UserId)
 		return
 	}
 
-	if match := ctx.Request.Header.Peek("If-None-Match"); len(match) > 2 {
+	if match := c.GetHeader("If-None-Match"); len(match) > 2 {
 		etag := tid + "a" + strconv.FormatUint(topic.Comments, 10)
-		if bytes.Equal(match[1:len(match)-1], []byte(etag)) {
-			ctx.Response.Header.Set("Etag", `"`+etag+`"`)
-			ctx.SetStatusCode(fasthttp.StatusNotModified)
+		if strings.Trim(match, `"`) == etag {
+			c.Header("Etag", `"`+etag+`"`)
+			c.Status(http.StatusNotModified)
 			return
 		}
 	}
@@ -87,7 +91,7 @@ func (h *BaseHandler) TopicIconHandle(ctx *fasthttp.RequestCtx) {
 		rs := db.Hget("topic_icon", tidByte)
 		if rs.OK() {
 			if bytes.Equal(rs.Bytes()[:8], commentNumB) {
-				serveFileCon2(ctx, rs.Bytes()[8:], tidInt, topic.Comments)
+				serveFileCon2(c, rs.Bytes()[8:], tidInt, topic.Comments)
 				return
 			}
 		}
@@ -105,7 +109,7 @@ func (h *BaseHandler) TopicIconHandle(ctx *fasthttp.RequestCtx) {
 		}
 	}
 	if len(uIds) == 1 {
-		serveFileCon(ctx, db, topic.UserId)
+		serveFileCon(c, db, topic.UserId)
 		return
 	}
 	if len(uIds) > 9 {
@@ -140,7 +144,7 @@ func (h *BaseHandler) TopicIconHandle(ctx *fasthttp.RequestCtx) {
 	err = util.Merge(srcLst, dst)
 	if err != nil {
 		log.Println("Merge err", err)
-		serveFileCon(ctx, db, topic.UserId)
+		serveFileCon(c, db, topic.UserId)
 		return
 	}
 
@@ -149,5 +153,5 @@ func (h *BaseHandler) TopicIconHandle(ctx *fasthttp.RequestCtx) {
 		_ = db.Hset("topic_icon", tidByte, sdb.Bconcat(commentNumB, dst.Bytes()))
 	}
 
-	serveFileCon2(ctx, dst.Bytes(), tidInt, topic.Comments)
+	serveFileCon2(c, dst.Bytes(), tidInt, topic.Comments)
 }

@@ -2,22 +2,24 @@ package controller
 
 import (
 	"fmt"
-	"github.com/ego008/goutils/json"
-	"github.com/ego008/sdb"
-	"github.com/segmentio/fasthash/fnv1a"
-	"github.com/valyala/fasthttp"
 	"goyoubbs/model"
 	"goyoubbs/util"
 	"goyoubbs/views/admin"
 	"log"
+	"net/http"
 	"strconv"
 	"strings"
+
+	"github.com/ego008/goutils/json"
+	"github.com/ego008/sdb"
+	"github.com/gin-gonic/gin"
+	"github.com/segmentio/fasthash/fnv1a"
 )
 
-func (h *BaseHandler) AdminTopicAddPage(ctx *fasthttp.RequestCtx) {
-	curUser, _ := h.CurrentUser(ctx)
+func (h *BaseHandler) AdminTopicAddPage(c *gin.Context) {
+	curUser, _ := h.CurrentUser(c)
 	if curUser.Flag < model.FlagAuthor {
-		ctx.Redirect(h.App.Cf.Site.MainDomain+"/admin", 302)
+		c.Redirect(302, "/admin")
 		return
 	}
 
@@ -47,25 +49,26 @@ func (h *BaseHandler) AdminTopicAddPage(ctx *fasthttp.RequestCtx) {
 		evn.HasReplyReview = model.CheckHasComment2Review(db)
 	}
 
-	ctx.SetContentType("text/html; charset=utf-8")
-	admin.WritePageTemplate(ctx, evn)
+	c.Header("Content-Type", "text/html; charset=utf-8")
+	c.Status(http.StatusOK)
+	admin.WritePageTemplate(c.Writer, evn)
 }
 
 // AdminTopicAddPost 发表、审核、编辑 公用
-func (h *BaseHandler) AdminTopicAddPost(ctx *fasthttp.RequestCtx) {
-	ctx.SetContentType("application/json; charset=UTF-8")
+func (h *BaseHandler) AdminTopicAddPost(c *gin.Context) {
+	c.Header("Content-Type", "application/json; charset=UTF-8")
 
-	curUser, _ := h.CurrentUser(ctx)
+	curUser, _ := h.CurrentUser(c)
 
 	if curUser.Flag < model.FlagAuthor {
-		_, _ = ctx.WriteString(`{"Code":401,"Msg":"请先登录"}`)
+		c.String(200, `{"Code":401,"Msg":"请先登录"}`)
 		return
 	}
 
 	var rec model.TopicRecForm
-	err := util.Bind(ctx, util.JSON, &rec)
+	err := util.Bind(c, util.JSON, &rec)
 	if err != nil {
-		_, _ = ctx.WriteString(`{"Code":400,"Msg":"unable to read body"}`)
+		c.String(200, `{"Code":400,"Msg":"unable to read body"}`)
 		return
 	}
 
@@ -77,18 +80,18 @@ func (h *BaseHandler) AdminTopicAddPost(ctx *fasthttp.RequestCtx) {
 
 	titleLen := len(rec.Title)
 	if titleLen == 0 {
-		_, _ = ctx.WriteString(`{"Code":400,"Msg":"文章标题不能为空"}`)
+		c.String(200, `{"Code":400,"Msg":"文章标题不能为空"}`)
 		return
 	} else if titleLen > scf.TitleMaxLen {
 		msg := fmt.Sprintf(`{"Code":400,"Msg":"文章标题太长 %d > %d "}`, titleLen, scf.TitleMaxLen)
-		_, _ = ctx.WriteString(msg)
+		c.String(200, msg)
 		return
 	}
 
 	contentLen := len(rec.Content)
 	if curUser.Flag < model.FlagAdmin && contentLen > scf.TopicConMaxLen {
 		msg := fmt.Sprintf(`{"Code":400,"Msg":"文章内容太长 %d > %d "}`, contentLen, scf.TopicConMaxLen)
-		_, _ = ctx.WriteString(msg)
+		c.String(200, msg)
 		return
 	}
 
@@ -103,7 +106,7 @@ func (h *BaseHandler) AdminTopicAddPost(ctx *fasthttp.RequestCtx) {
 	titleMd5 := fnv1a.HashString64(rec.Title)
 	if rs := db.Hget("title_fnv1a", sdb.I2b(titleMd5)); rs.OK() {
 		if rec.ID != sdb.B2i(rs.Bytes()) {
-			_, _ = ctx.WriteString(`{"Code":400,"Msg":"相同的文章标题已存在，请修改"}`)
+			c.String(200, `{"Code":400,"Msg":"相同的文章标题已存在，请修改"}`)
 			return
 		}
 	}
@@ -112,7 +115,7 @@ func (h *BaseHandler) AdminTopicAddPost(ctx *fasthttp.RequestCtx) {
 	if isEdit {
 		topic = model.TopicGetById(db, rec.ID)
 		if topic.ID == 0 {
-			_, _ = ctx.WriteString(`{"Code":400,"Msg":"该 id 帖子不存在"}`)
+			c.String(200, `{"Code":400,"Msg":"该 id 帖子不存在"}`)
 			return
 		}
 		oldTopic = topic
@@ -156,7 +159,7 @@ func (h *BaseHandler) AdminTopicAddPost(ctx *fasthttp.RequestCtx) {
 	// 编辑
 	if isEdit {
 		if curUser.Flag < model.FlagAdmin {
-			_, _ = ctx.WriteString(`{"Code":403,"Msg":"权限限制"}`)
+			c.String(200, `{"Code":403,"Msg":"权限限制"}`)
 			return
 		}
 		if oldTopic.Title != topic.Title || oldTopic.Content != topic.Content {
@@ -184,7 +187,7 @@ func (h *BaseHandler) AdminTopicAddPost(ctx *fasthttp.RequestCtx) {
 			}
 		}
 		rsp.Tid = topic.ID
-		_ = json.NewEncoder(ctx).Encode(rsp)
+		_ = json.NewEncoder(c.Writer).Encode(rsp)
 
 		// 删除缓存
 		h.App.Mc.Del([]byte("ContentFmt:" + strconv.FormatUint(topic.ID, 10)))
@@ -203,7 +206,7 @@ func (h *BaseHandler) AdminTopicAddPost(ctx *fasthttp.RequestCtx) {
 		_ = db.Hset("review_topic:"+strconv.FormatUint(topic.UserId, 10), sdb.I2b(uint64(topic.AddTime)), nil)
 		rsp.Code = 200 // 201
 		rsp.Msg = "* 您的帖子已经提交，系统开启了发帖审核，请耐心等管理员审核"
-		_ = json.NewEncoder(ctx).Encode(rsp)
+		_ = json.NewEncoder(c.Writer).Encode(rsp)
 		return
 	}
 
@@ -220,5 +223,5 @@ func (h *BaseHandler) AdminTopicAddPost(ctx *fasthttp.RequestCtx) {
 	// 记录标题md5
 	_ = db.Hset("title_fnv1a", sdb.I2b(titleMd5), sdb.I2b(topic.ID))
 
-	_ = json.NewEncoder(ctx).Encode(rsp)
+	_ = json.NewEncoder(c.Writer).Encode(rsp)
 }

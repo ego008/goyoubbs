@@ -2,13 +2,16 @@ package cronjob
 
 import (
 	"fmt"
+	"goyoubbs/model"
+	"goyoubbs/util"
+	"io"
+	"net/http"
+	"net/url"
+	"strings"
+
 	"github.com/VictoriaMetrics/fastcache"
 	"github.com/ego008/goutils/json"
 	"github.com/ego008/sdb"
-	"github.com/valyala/fasthttp"
-	"goyoubbs/model"
-	"goyoubbs/util"
-	"strings"
 )
 
 // getTagFromTitle remote
@@ -40,30 +43,31 @@ func getTagFromTitle(db *sdb.DB, apiUrl string) {
 	//	return
 	//}
 
-	req := fasthttp.AcquireRequest()
-	res := fasthttp.AcquireResponse()
+	// 1. 构建 url.Values 参数
+	formData := url.Values{
+		"state": {"ok"},
+		"ms":    {rs.Data[1].String()},
+	}
 
-	defer func() {
-		fasthttp.ReleaseRequest(req)
-		fasthttp.ReleaseResponse(res)
-	}()
-
-	// 默认是application/x-www-form-urlencoded
-	// req.Header.SetContentType("application/json")
-	req.Header.SetContentType("application/x-www-form-urlencoded") // !important
-	req.Header.SetMethod("POST")
-
-	req.SetRequestURI(apiUrl)
-	req.SetBodyString(`state=ok&ms=` + rs.Data[1].String())
-
-	err = fastHttpClient.Do(req, res)
+	// 2. 发送 POST 请求（自动设置 Content-Type 为 application/x-www-form-urlencoded）
+	httpClient := &http.Client{}
+	res, err := httpClient.PostForm(apiUrl, formData)
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
+	defer res.Body.Close()
 
-	if res.StatusCode() != fasthttp.StatusOK {
-		fmt.Println("res.StatusCode", res.StatusCode())
+	// 3. 检查状态码
+	if res.StatusCode != http.StatusOK {
+		fmt.Println("res.StatusCode", res.StatusCode)
+		return
+	}
+
+	// 4. 读取响应 Body（如需要）
+	body, err := io.ReadAll(res.Body)
+	if err != nil {
+		fmt.Println(err)
 		return
 	}
 
@@ -72,7 +76,7 @@ func getTagFromTitle(db *sdb.DB, apiUrl string) {
 		Tag  string `json:"tag"`
 	}{}
 
-	err = json.Unmarshal(res.Body(), &t)
+	err = json.Unmarshal(body, &t)
 	if err != nil {
 		fmt.Println(err)
 		return

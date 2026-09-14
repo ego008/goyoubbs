@@ -4,7 +4,7 @@
     <article role="article">
 
         <header>
-            <a href="/member/{%dul p.TopicFmt.UserId %}" rel="nofollow"><img alt="{%s p.TopicFmt.Name %} avatar" src="/static/avatar/{%dul p.TopicFmt.UserId %}.jpg" class="avatar"></a>
+            <a href="/member/{%dul p.TopicFmt.UserId %}" rel="nofollow"><img alt="{%s p.TopicFmt.Name %} avatar" src="/avatar/{%dul p.TopicFmt.UserId %}.jpg" class="avatar"></a>
             <h1 class="entry-title">
                 {%s p.TopicFmt.Title %}
             </h1>
@@ -72,7 +72,7 @@
             {% for _, item := range p.CommentLst %}
             <article id="r{%dul item.ID %}">
                 <header>
-                    <a href="/member/{%dul item.UserId %}" rel="nofollow"><img alt="{%s item.Name %} avatar" src="/static/avatar/{%dul item.UserId %}.jpg" class="avatar"></a>
+                    <a href="/member/{%dul item.UserId %}" rel="nofollow"><img alt="{%s item.Name %} avatar" src="/avatar/{%dul item.UserId %}.jpg" class="avatar"></a>
                     <div class="meta gray5">
                         <a href="{%s item.Link %}" class="comment-count comment-id">#{%dul item.ID %}</a> <a href="/member/{%dul item.UserId %}" rel="nofollow">{%s item.Name %}</a>
                         {% if p.CurrentUser.Flag >= 99 %}

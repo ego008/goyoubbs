@@ -1,34 +1,35 @@
 package controller
 
 import (
-	"github.com/ego008/sdb"
-	"github.com/valyala/fasthttp"
 	"goyoubbs/model"
 	"goyoubbs/util"
 	"goyoubbs/views/ybs"
+	"net/http"
 	"strings"
+
+	"github.com/gin-gonic/gin"
 )
 
-func (h *BaseHandler) SearchPage(ctx *fasthttp.RequestCtx) {
-	curUser, _ := h.CurrentUser(ctx)
+func (h *BaseHandler) SearchPage(c *gin.Context) {
+	curUser, _ := h.CurrentUser(c)
 
 	if h.App.Cf.Site.Authorized && curUser.Flag < model.FlagAuthor {
 		if curUser.ID == 0 {
-			ctx.Redirect(h.App.Cf.Site.MainDomain+"/login", 302)
+			c.Redirect(302, "/login")
 			return
 		}
-		ctx.Redirect(h.App.Cf.Site.MainDomain+"/setting", 302)
+		c.Redirect(302, "/setting")
 		return
 	}
 
 	//if curUser.ID == 0 {
-	//	ctx.Redirect(h.App.Cf.Site.MainDomain+"/login", 302)
+	//	c.Redirect(302,h.App.Cf.Site.MainDomain+"/login")
 	//	return
 	//}
 
-	q := strings.TrimSpace(sdb.B2s(ctx.FormValue("q")))
+	q := strings.TrimSpace(c.Query("q"))
 	if len(q) == 0 {
-		ctx.Redirect(h.App.Cf.Site.MainDomain+"/", 302)
+		c.Redirect(302, "/")
 		return
 	}
 
@@ -41,7 +42,7 @@ func (h *BaseHandler) SearchPage(ctx *fasthttp.RequestCtx) {
 		where = "content"
 		qLow = strings.TrimSpace(qLow[2:])
 		if len(qLow) == 0 {
-			ctx.Redirect(scf.MainDomain+"/", fasthttp.StatusSeeOther)
+			c.Redirect(302, scf.MainDomain+"/")
 			return
 		}
 	}
@@ -76,6 +77,7 @@ func (h *BaseHandler) SearchPage(ctx *fasthttp.RequestCtx) {
 		}
 	}
 
-	ctx.SetContentType("text/html; charset=utf-8")
-	ybs.WritePageTemplate(ctx, evn)
+	c.Header("Content-Type", "text/html; charset=utf-8")
+	c.Status(http.StatusOK)
+	ybs.WritePageTemplate(c.Writer, evn)
 }

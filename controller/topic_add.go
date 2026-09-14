@@ -2,22 +2,24 @@ package controller
 
 import (
 	"fmt"
-	"github.com/ego008/goutils/json"
-	"github.com/ego008/sdb"
-	"github.com/segmentio/fasthash/fnv1a"
-	"github.com/valyala/fasthttp"
 	"goyoubbs/model"
 	"goyoubbs/util"
 	"goyoubbs/views/ybs"
+	"net/http"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/ego008/goutils/json"
+	"github.com/ego008/sdb"
+	"github.com/gin-gonic/gin"
+	"github.com/segmentio/fasthash/fnv1a"
 )
 
-func (h *BaseHandler) TopicAddPage(ctx *fasthttp.RequestCtx) {
-	curUser, _ := h.CurrentUser(ctx)
+func (h *BaseHandler) TopicAddPage(c *gin.Context) {
+	curUser, _ := h.CurrentUser(c)
 	if curUser.Flag < model.FlagAuthor {
-		ctx.Redirect(h.App.Cf.Site.MainDomain+"/login", 302)
+		c.Redirect(302, "/login")
 		return
 	}
 
@@ -30,7 +32,7 @@ func (h *BaseHandler) TopicAddPage(ctx *fasthttp.RequestCtx) {
 	evn.Title = "发表文章"
 	evn.PageName = "topic_input"
 
-	nid := sdb.B2s(ctx.FormValue("nid"))
+	nid := c.Query("nid")
 	nidInt, err := strconv.ParseUint(nid, 10, 64)
 	if err != nil {
 		nidInt = 1
@@ -54,25 +56,26 @@ func (h *BaseHandler) TopicAddPage(ctx *fasthttp.RequestCtx) {
 		evn.HasReplyReview = model.CheckHasComment2Review(db)
 	}
 
-	ctx.SetContentType("text/html; charset=utf-8")
-	ybs.WritePageTemplate(ctx, evn)
+	c.Header("Content-Type", "text/html; charset=utf-8")
+	c.Status(http.StatusOK)
+	ybs.WritePageTemplate(c.Writer, evn)
 }
 
 // TopicAddPost 发表
-func (h *BaseHandler) TopicAddPost(ctx *fasthttp.RequestCtx) {
-	ctx.SetContentType("application/json; charset=UTF-8")
+func (h *BaseHandler) TopicAddPost(c *gin.Context) {
+	c.Header("Content-Type", "application/json; charset=UTF-8")
 
-	curUser, _ := h.CurrentUser(ctx)
+	curUser, _ := h.CurrentUser(c)
 
 	if curUser.Flag < model.FlagAuthor {
-		_, _ = ctx.WriteString(`{"Code":401,"Msg":"请先登录"}`)
+		c.String(200, `{"Code":401,"Msg":"请先登录"}`)
 		return
 	}
 
 	var rec model.TopicRecForm
-	err := util.Bind(ctx, util.JSON, &rec)
+	err := util.Bind(c, util.JSON, &rec)
 	if err != nil {
-		_, _ = ctx.WriteString(`{"Code":400,"Msg":"unable to read body"}`)
+		c.String(200, `{"Code":400,"Msg":"unable to read body"}`)
 		return
 	}
 
@@ -84,18 +87,18 @@ func (h *BaseHandler) TopicAddPost(ctx *fasthttp.RequestCtx) {
 
 	titleLen := len(rec.Title)
 	if titleLen == 0 {
-		_, _ = ctx.WriteString(`{"Code":400,"Msg":"文章标题不能为空"}`)
+		c.String(200, `{"Code":400,"Msg":"文章标题不能为空"}`)
 		return
 	} else if titleLen > scf.TitleMaxLen {
 		msg := fmt.Sprintf(`{"Code":400,"Msg":"文章标题太长 %d > %d "}`, titleLen, scf.TitleMaxLen)
-		_, _ = ctx.WriteString(msg)
+		c.String(200, msg)
 		return
 	}
 
 	contentLen := len(rec.Content)
 	if curUser.Flag < model.FlagAdmin && contentLen > scf.TopicConMaxLen {
 		msg := fmt.Sprintf(`{"Code":400,"Msg":"文章内容太长 %d > %d "}`, contentLen, scf.TopicConMaxLen)
-		_, _ = ctx.WriteString(msg)
+		c.String(200, msg)
 		return
 	}
 
@@ -106,7 +109,7 @@ func (h *BaseHandler) TopicAddPost(ctx *fasthttp.RequestCtx) {
 		isEdit = true
 		// fix
 		if curUser.Flag < model.FlagAdmin {
-			_, _ = ctx.WriteString(`{"Code":403,"Msg":"权限限制"}`)
+			c.String(200, `{"Code":403,"Msg":"权限限制"}`)
 			return
 		}
 	}
@@ -115,7 +118,7 @@ func (h *BaseHandler) TopicAddPost(ctx *fasthttp.RequestCtx) {
 	titleMd5 := fnv1a.HashString64(rec.Title)
 	if rs := db.Hget("title_fnv1a", sdb.I2b(titleMd5)); rs.OK() {
 		if rec.ID != sdb.B2i(rs.Bytes()) {
-			_, _ = ctx.WriteString(`{"Code":400,"Msg":"相同的文章标题已存在，请修改"}`)
+			c.String(200, `{"Code":400,"Msg":"相同的文章标题已存在，请修改"}`)
 			return
 		}
 	}
@@ -124,7 +127,7 @@ func (h *BaseHandler) TopicAddPost(ctx *fasthttp.RequestCtx) {
 	if isEdit {
 		topic = model.TopicGetById(db, rec.ID)
 		if topic.ID == 0 {
-			_, _ = ctx.WriteString(`{"Code":400,"Msg":"该 id 帖子不存在"}`)
+			c.String(200, `{"Code":400,"Msg":"该 id 帖子不存在"}`)
 			return
 		}
 		oldTopic = topic
@@ -169,7 +172,7 @@ func (h *BaseHandler) TopicAddPost(ctx *fasthttp.RequestCtx) {
 	// 编辑
 	if isEdit {
 		if curUser.Flag < model.FlagAdmin {
-			_, _ = ctx.WriteString(`{"Code":403,"Msg":"权限限制"}`)
+			c.String(200, `{"Code":403,"Msg":"权限限制"}`)
 			return
 		}
 		if oldTopic.Title != topic.Title || oldTopic.Content != topic.Content {
@@ -191,7 +194,7 @@ func (h *BaseHandler) TopicAddPost(ctx *fasthttp.RequestCtx) {
 			}
 		}
 		rsp.Tid = topic.ID
-		_ = json.NewEncoder(ctx).Encode(rsp)
+		_ = json.NewEncoder(c.Writer).Encode(rsp)
 
 		// 删除缓存
 		h.App.Mc.Del([]byte("ContentFmt:" + strconv.FormatUint(topic.ID, 10)))
@@ -203,23 +206,23 @@ func (h *BaseHandler) TopicAddPost(ctx *fasthttp.RequestCtx) {
 	// get ip
 	if topic.ClientIp == "" {
 		// 审核不取ip
-		clip := ctx.Request.Header.Peek(fasthttp.HeaderXForwardedFor)
+		clip := c.GetHeader("X-Forwarded-For")
 		if len(clip) == 0 {
-			clip = ctx.Request.Header.Peek("X-FORWARDED-FOR")
+			clip = c.GetHeader("X-FORWARDED-FOR")
 		}
-		topic.ClientIp = sdb.B2s(clip)
+		topic.ClientIp = clip
 	}
 	if curUser.Flag < model.FlagTrust && scf.PostReview {
 		// 非管理员+开启审核
 		// 检测限制，防止机器恶意灌水
 		if rs := db.Hget("userLastPostTime", sdb.I2b(curUser.ID)); rs.OK() {
 			if (uint64(stamp) - sdb.B2i(rs.Bytes())) < 20 {
-				_, _ = ctx.WriteString(`{"Code":403,"Msg":"稍休息一下，请勿灌水"}`)
+				c.String(200, `{"Code":403,"Msg":"稍休息一下，请勿灌水"}`)
 				return
 			}
 		}
 		if model.TopicGetV2ReviewNum(db, curUser.ID) >= 10 {
-			_, _ = ctx.WriteString(`{"Code":403,"Msg":"请勿灌水"}`)
+			c.String(200, `{"Code":403,"Msg":"请勿灌水"}`)
 			return
 		}
 
@@ -243,7 +246,7 @@ func (h *BaseHandler) TopicAddPost(ctx *fasthttp.RequestCtx) {
 			model.EmailInfoUpdate(db, mailInfo)
 		}
 
-		_ = json.NewEncoder(ctx).Encode(rsp)
+		_ = json.NewEncoder(c.Writer).Encode(rsp)
 		return
 	}
 
@@ -259,5 +262,5 @@ func (h *BaseHandler) TopicAddPost(ctx *fasthttp.RequestCtx) {
 	// 记录标题md5
 	_ = db.Hset("title_fnv1a", sdb.I2b(titleMd5), sdb.I2b(topic.ID))
 
-	_ = json.NewEncoder(ctx).Encode(rsp)
+	_ = json.NewEncoder(c.Writer).Encode(rsp)
 }

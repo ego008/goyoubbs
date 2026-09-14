@@ -1,26 +1,36 @@
 package controller
 
 import (
-	"github.com/ego008/goutils/json"
-	"github.com/ego008/sdb"
-	"github.com/fasthttp/router"
-	"github.com/mileusna/useragent"
-	"github.com/valyala/fasthttp"
-	"goyoubbs/model"
+	"fmt"
 	"io/fs"
 	"log"
+	"net/http"
 	"os"
 	"strings"
 	"time"
+
+	"goyoubbs/model"
+
+	"github.com/ego008/goutils/json"
+	"github.com/ego008/sdb"
+	"github.com/gin-gonic/gin"
+	"github.com/mileusna/useragent"
 )
 
 func RouterReload(ap *model.Application) {
-	mux := router.New()
-	MainRouter(ap, mux)
-	ap.Mux = mux
+	// 假设在 main.go 中已初始化 router 并传入，或在此处创建并赋值给 ap.GinEngine
+	var router *gin.Engine
+	if ap.Mux != nil {
+		router = ap.Mux
+	} else {
+		router = gin.New()
+		router.Use(gin.Logger(), gin.Recovery())
+		ap.Mux = router
+	}
+	MainRouter(ap, router)
 }
 
-func MainRouter(ap *model.Application, sm *router.Router) {
+func MainRouter(ap *model.Application, router *gin.Engine) {
 	h := BaseHandler{App: ap}
 
 	// 自定义路径及内容 参见 https://youbbs.org/t/3324
@@ -39,11 +49,11 @@ func MainRouter(ap *model.Application, sm *router.Router) {
 				return
 			}
 			// 默认 GET
-			sm.GET(obj.Router, func(ctx *fasthttp.RequestCtx) {
-				key := ctx.Path()
-				rs2 := ap.Db.Hget("custom_router", key)
+			router.GET(obj.Router, func(c *gin.Context) {
+				reqKey := c.Request.URL.Path
+				rs2 := ap.Db.Hget("custom_router", []byte(reqKey))
 				if !rs2.OK() {
-					ctx.NotFound()
+					c.String(http.StatusNotFound, "404 page not found")
 					return
 				}
 				obj2 := model.CustomRouter{}
@@ -51,202 +61,211 @@ func MainRouter(ap *model.Application, sm *router.Router) {
 				if strings.HasPrefix(obj2.Content, "goto:") {
 					// match goto url
 					// goto: https://youbbs.org/
-					ctx.Redirect(strings.TrimSpace(obj2.Content[5:]), 302)
+					c.Redirect(http.StatusFound, strings.TrimSpace(obj2.Content[5:]))
 					return
 				}
-				ctx.SetContentType(obj2.MimeType)
-				_, _ = ctx.WriteString(obj2.Content)
+				c.Data(http.StatusOK, obj2.MimeType, []byte(obj2.Content))
 			})
 		})
 	}
 
-	// https://youbbs.org/static/avatar/1.jpg
+	// https://youbbs.org/avatar/1.jpg
 	// 自定义 avatar handle
-	sm.GET("/static/avatar/{uid}.jpg", h.UserAvatarHandle)
-	sm.GET("/icon/t/{tid}.jpg", h.TopicIconHandle)
+	// old /avatar/:uid.jpg
+	router.GET("/avatar/:uid.jpg", h.UserAvatarHandle)
+	router.GET("/icon/t/:tid.jpg", h.TopicIconHandle)
 
 	// db img
-	sm.GET("/dbi/{key}", h.DbImageHandle)
+	router.GET("/dbi/:key", h.DbImageHandle)
 
 	// 用户上传图片
 	log.Printf("UploadDir from %q", ap.Cf.Site.UploadDir)
 	if _, err := os.Stat(ap.Cf.Site.UploadDir); err != nil {
-		//Dir not exist
+		// Dir not exist
 		err = os.MkdirAll(ap.Cf.Site.UploadDir, os.ModePerm)
 		if err != nil {
 			log.Println("#os.MkdirAll UploadDir", err)
 		}
 	}
-	sm.GET("/static/upload/{filepath:*}", func(ctx *fasthttp.RequestCtx) {
+	// old /static/upload/*filepath
+	router.GET("/upload/*filepath", func(c *gin.Context) {
 		if ap.Cf.Site.Authorized {
-			ssValue := h.GetCookie(ctx, "SessionID")
+			ssValue := h.GetCookie(c, "SessionID")
 			if len(ssValue) == 0 {
-				_, _ = ctx.WriteString("401")
+				c.String(http.StatusUnauthorized, "401")
 				return
 			}
 		}
 
-		fp := ap.Cf.Site.UploadDir + sdb.B2s(ctx.Path()[14:])
-		fasthttp.ServeFile(ctx, fp)
+		filepath := c.Param("filepath")
+		fp := ap.Cf.Site.UploadDir + filepath
+		c.File(fp)
 	})
-
-	// static file server
-	//mux.ServeFiles("/static/{filepath:*}", staticPath)
-	//sm.ServeFilesCustom("/static/{filepath:*}", &fasthttp.FS{
-	//	Root:               "static",
-	//	GenerateIndexPages: false,
-	//	AcceptByteRange:    true,
-	//})
 
 	// use embed.FS for static file
-	sub, _ := fs.Sub(ap.Assets, "static")
-	sm.ServeFilesCustom("/static/{filepath:*}", &fasthttp.FS{
-		FS:              sub,
-		Root:            "",
-		AcceptByteRange: true,
+	sub, err := fs.Sub(ap.Assets, "static")
+	if err != nil {
+		log.Panicln("#fs.Sub error:", err)
+	}
+
+	router.GET("/static/*filepath", func(c *gin.Context) {
+		reqPath := c.Request.URL.Path
+
+		// 如果请求路径以 /static/upload/ 开头，转向头像处理函数
+		if strings.HasPrefix(reqPath, "/static/upload/") {
+			if len(reqPath) < 19 {
+				c.Status(404)
+				return
+			}
+			fp := ap.Cf.Site.UploadDir + "/" + reqPath[15:]
+			c.File(fp)
+			return
+		}
+
+		// 其他普通静态资源（如 /static/css/style.css）交给 embed.FS
+		fileServer := http.StripPrefix("/static/", http.FileServer(http.FS(sub)))
+		fileServer.ServeHTTP(c.Writer, c.Request)
 	})
 
-	sm.GET("/captcha/{filepath:*}", h.CaptchaHandle)
+	router.GET("/captcha/*filepath", h.CaptchaHandle)
 
-	sm.GET("/robots.txt", h.Robots)
-	sm.GET("/ads.txt", h.Ads)
-	sm.GET("/feed", h.FeedHandler)
-	sm.GET("/sitemap.xml", h.SiteMapHandler)
-	sm.GET("/sitemap/{xmlFile}", h.SitemapIndexHandler)
-	sm.GET("/favicon.ico", h.ShowIcon)
+	router.GET("/robots.txt", h.Robots)
+	router.GET("/ads.txt", h.Ads)
+	router.GET("/feed", h.FeedHandler)
+	router.GET("/sitemap.xml", h.SiteMapHandler)
+	router.GET("/sitemap/:xmlFile", h.SitemapIndexHandler)
+	router.GET("/favicon.ico", h.ShowIcon)
 
-	sm.POST("/get/link/count", h.GetLinkCount)
-	sm.POST("/api/post/content", h.ApiAdminRemotePost) // 管理员发帖、评论接口
+	router.POST("/get/link/count", h.GetLinkCount)
+	router.POST("/api/post/content", h.ApiAdminRemotePost) // 管理员发帖、评论接口
+	router.POST("/api/post/print", h.ApiAdminPrintPost)    // 管理员打印post
 
-	sm.GET("/login", h.UserLoginPage)
-	sm.POST("/login", h.UserLoginPost)
-	sm.GET("/register", h.UserLoginPage)
-	sm.POST("/register", h.UserLoginPost)
-	sm.GET("/logout", h.UserLogout)
+	router.GET("/login", h.UserLoginPage)
+	router.POST("/login", h.UserLoginPost)
+	router.GET("/register", h.UserLoginPage)
+	router.POST("/register", h.UserLoginPost)
+	router.GET("/logout", h.UserLogout)
 
-	sm.GET("/qqlogin", h.QQOauthHandler)
-	sm.GET("/oauth/qq/callback", h.QQOauthCallback)
-	sm.GET("/wblogin", h.WeiboOauthHandler)
-	sm.GET("/oauth/wb/callback", h.WeiboOauthCallback)
-	sm.GET("/githublogin", h.GithubOauthHandler)
-	sm.GET("/oauth/github/callback", h.GithubOauthCallback)
+	router.GET("/qqlogin", h.QQOauthHandler)
+	router.GET("/oauth/qq/callback", h.QQOauthCallback)
+	router.GET("/wblogin", h.WeiboOauthHandler)
+	router.GET("/oauth/wb/callback", h.WeiboOauthCallback)
+	router.GET("/githublogin", h.GithubOauthHandler)
+	router.GET("/oauth/github/callback", h.GithubOauthCallback)
 
 	// admin
 	// only post method
-	sm.POST("/content/preview", h.ContentPreview)
-	sm.POST("/user/avatar/upload", h.AvatarUpload)
-	sm.POST("/file/upload", h.FileUpload)
+	router.POST("/content/preview", h.ContentPreview)
+	router.POST("/user/avatar/upload", h.AvatarUpload)
+	router.POST("/file/upload", h.FileUpload)
 
-	admin := sm.Group("/admin")
-	admin.GET("/", h.AdminHomePage)
-	//
-	admin.GET("/node", h.AdminNodePage)
-	admin.POST("/node", h.AdminNodePost)
-	admin.GET("/link", h.AdminLinkPage)
-	admin.POST("/link", h.AdminLinkPost)
-	admin.GET("/site/conf", h.AdminSiteConfigPage)
-	admin.POST("/site/conf", h.AdminSiteConfigPost)
-	admin.GET("/site/router", h.AdminSiteRouterPage)
-	admin.POST("/site/router", h.AdminSiteRouterPost)
-	admin.GET("/site/download/cur/db", h.AdminCurDbPage)
-	admin.GET("/site/download/cur/img", h.AdminImgPage)
-	admin.GET("/user", h.AdminUserPage)
-	admin.POST("/user", h.AdminUserPost)
-	admin.GET("/topic/add", h.AdminTopicAddPage)
-	admin.POST("/topic/add", h.AdminTopicAddPost)
-	admin.GET("/topic/edit", h.AdminTopicEditPage)
-	admin.POST("/topic/edit", h.AdminTopicAddPost)
-	admin.GET("/topic/review", h.AdminTopicReviewPage)
-	admin.POST("/topic/review", h.AdminTopicAddPost)
-	admin.GET("/comment/review", h.AdminCommentReviewPage)
-	admin.POST("/comment/review", h.AdminCommentReviewPost)
-	admin.GET("/comment/edit", h.AdminCommentEditPage)
-	admin.POST("/comment/edit", h.AdminCommentReviewPost)
-	admin.GET("/ratelimit/iplookup", h.AdminRateLimitIpLookup)
-	admin.GET("/ratelimit/setting", h.AdminRateLimitSetting)
-	admin.POST("/ratelimit/setting", h.AdminRateLimitSettingPost)
+	admin := router.Group("/admin")
+	{
+		admin.GET("/", h.AdminHomePage)
+		admin.GET("/node", h.AdminNodePage)
+		admin.POST("/node", h.AdminNodePost)
+		admin.GET("/link", h.AdminLinkPage)
+		admin.POST("/link", h.AdminLinkPost)
+		admin.GET("/site/conf", h.AdminSiteConfigPage)
+		admin.POST("/site/conf", h.AdminSiteConfigPost)
+		admin.GET("/site/router", h.AdminSiteRouterPage)
+		admin.POST("/site/router", h.AdminSiteRouterPost)
+		admin.GET("/site/download/cur/db", h.AdminCurDbPage)
+		admin.GET("/site/download/cur/img", h.AdminImgPage)
+		admin.GET("/user", h.AdminUserPage)
+		admin.POST("/user", h.AdminUserPost)
+		admin.GET("/topic/add", h.AdminTopicAddPage)
+		admin.POST("/topic/add", h.AdminTopicAddPost)
+		admin.GET("/topic/edit", h.AdminTopicEditPage)
+		admin.POST("/topic/edit", h.AdminTopicAddPost)
+		admin.GET("/topic/review", h.AdminTopicReviewPage)
+		admin.POST("/topic/review", h.AdminTopicAddPost)
+		admin.GET("/comment/review", h.AdminCommentReviewPage)
+		admin.POST("/comment/review", h.AdminCommentReviewPost)
+		admin.GET("/comment/edit", h.AdminCommentEditPage)
+		admin.POST("/comment/edit", h.AdminCommentReviewPost)
+		admin.GET("/ratelimit/iplookup", h.AdminRateLimitIpLookup)
+		admin.GET("/ratelimit/setting", h.AdminRateLimitSetting)
+		admin.POST("/ratelimit/setting", h.AdminRateLimitSettingPost)
+	}
 
-	sm.GET("/name/{uname}", mdwRateLimit(h.MemberNamePage))
-	sm.GET("/member/{uid}", mdwRateLimit(h.MemberPage))
-	sm.GET("/t/{tid}", mdwRateLimit(h.TopicDetailPage))
-	sm.POST("/t/{tid}", h.TopicDetailPost)
+	router.GET("/name/:uname", mdwRateLimit(), h.MemberNamePage)
+	router.GET("/member/:uid", mdwRateLimit(), h.MemberPage)
+	router.GET("/t/:tid", mdwRateLimit(), h.TopicDetailPage)
+	router.POST("/t/:tid", h.TopicDetailPost)
 
-	sm.GET("/n/{nid}", mdwRateLimit(h.NodePage))
-	sm.GET("/tag/{tag}", mdwRateLimit(h.TagPage))
-	sm.GET("/q", mdwRateLimit(h.SearchPage))
+	router.GET("/n/:nid", mdwRateLimit(), h.NodePage)
+	router.GET("/tag/:tag", mdwRateLimit(), h.TagPage)
+	router.GET("/q", mdwRateLimit(), h.SearchPage)
 
 	// login
-	sm.GET("/my/msg", h.MyMsgPage)
-	sm.GET("/topic/add", h.TopicAddPage)
-	sm.POST("/topic/add", h.TopicAddPost)
-	sm.GET("/setting", h.UserSettingPage)
-	sm.POST("/setting", h.UserSettingPost)
+	router.GET("/my/msg", h.MyMsgPage)
+	router.GET("/topic/add", h.TopicAddPage)
+	router.POST("/topic/add", h.TopicAddPost)
+	router.GET("/setting", h.UserSettingPage)
+	router.POST("/setting", h.UserSettingPost)
 
 	// old
-	sm.GET("/topic/{tid}/{title}", func(ctx *fasthttp.RequestCtx) {
-		ctx.Redirect(h.App.Cf.Site.MainDomain+"/t/"+ctx.UserValue("tid").(string), 301)
+	router.GET("/topic/:tid/:title", func(c *gin.Context) {
+		tid := c.Param("tid")
+		c.Redirect(http.StatusMovedPermanently, fmt.Sprintf("%s/t/%s", ap.Cf.Site.MainDomain, tid))
 	})
-	sm.GET("/category/{nid}/{title}", func(ctx *fasthttp.RequestCtx) {
-		ctx.Redirect(h.App.Cf.Site.MainDomain+"/n/"+ctx.UserValue("nid").(string), 301)
+	router.GET("/category/:nid/:title", func(c *gin.Context) {
+		nid := c.Param("nid")
+		c.Redirect(http.StatusMovedPermanently, fmt.Sprintf("%s/n/%s", ap.Cf.Site.MainDomain, nid))
 	})
 
-	sm.GET("/{filepath}", h.StaticFile)
-	sm.GET("/", h.HomePage)
+	router.GET("/:filepath", h.StaticFile)
+	router.GET("/", h.HomePage)
 }
 
-// mdwRateLimit simple mdw for RateLimit
-func mdwRateLimit(next fasthttp.RequestHandler) fasthttp.RequestHandler {
-	return func(ctx *fasthttp.RequestCtx) {
+// mdwRateLimit 改写为符合 Gin 规范的中间件构造函数
+func mdwRateLimit() gin.HandlerFunc {
+	return func(c *gin.Context) {
 		if model.RateLimitDay == 0 || model.RateLimitHour == 0 {
-			// ok, go next
-			next(ctx)
+			c.Next()
 			return
 		}
 
 		// ua
-		ua := useragent.Parse(string(ctx.Request.Header.Peek("User-Agent")))
+		ua := useragent.Parse(c.GetHeader("User-Agent"))
 		if len(ua.String) == 0 {
-			ctx.Error("403", fasthttp.StatusForbidden)
-			_, _ = ctx.Write(nil)
+			c.String(http.StatusForbidden, "403")
+			c.Abort()
 			return
 		}
 
 		m := model.BadBotNameMap.Load().(model.Map)
 		if _, ok := m[ua.Name]; ok {
-			ctx.Error("403", fasthttp.StatusForbidden)
-			_, _ = ctx.Write(nil)
+			c.String(http.StatusForbidden, "403")
+			c.Abort()
 			return
 		}
 
 		// user ip
-		uip := ReadUserIP(ctx)
+		uip := ReadUserIP(c)
 		if len(uip) == 0 {
-			ctx.Error("403", fasthttp.StatusForbidden)
-			_, _ = ctx.Write(nil)
+			c.String(http.StatusForbidden, "403")
+			c.Abort()
 			return
 		}
 
 		// BadIpPrefix
 		if model.BadIpPrefixLst.ItemInPrefix(uip) {
-			ctx.Error("403", fasthttp.StatusForbidden)
-			_, _ = ctx.Write(nil)
+			c.String(http.StatusForbidden, "403")
+			c.Abort()
 			return
 		}
 
 		t1 := time.Now()
 
 		// RateLimit if not a bot
-		// the maximum number of items I want from this user in one hour
 		// check ip white ip prefix
 		if !model.AllowIpPrefixLst.ItemInPrefix(uip) {
-			// log.Println(uip, "not in white list")
-			// if not in white list
-			// hour
 			_, cntH, underRateLimit := model.Limiter.Incr(uint64(t1.UTC().Unix()), uip)
-			// log.Println(cntD, cntH, underRateLimit)
 			if !underRateLimit {
-				ctx.Error("429", fasthttp.StatusForbidden)
-				_, _ = ctx.Write(nil)
+				c.String(http.StatusForbidden, "429")
+				c.Abort()
 				return
 			}
 
@@ -260,7 +279,6 @@ func mdwRateLimit(next fasthttp.RequestHandler) fasthttp.RequestHandler {
 			}
 		}
 
-		// ok, go next
-		next(ctx)
+		c.Next()
 	}
 }

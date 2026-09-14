@@ -1,22 +1,23 @@
 package controller
 
 import (
-	"github.com/ego008/goutils/json"
-	"github.com/valyala/fasthttp"
 	"goyoubbs/model"
 	"goyoubbs/util"
 	"html/template"
 	"log"
 	"strconv"
 	"strings"
+
+	"github.com/ego008/goutils/json"
+	"github.com/gin-gonic/gin"
 )
 
-func (h *BaseHandler) ContentPreview(ctx *fasthttp.RequestCtx) {
-	ctx.SetContentType("application/json; charset=UTF-8")
-	curUser, _ := h.CurrentUser(ctx)
+func (h *BaseHandler) ContentPreview(c *gin.Context) {
+	c.Header("Content-Type", "application/json; charset=UTF-8")
+	curUser, _ := h.CurrentUser(c)
 
 	if curUser.Flag < model.FlagAuthor {
-		_, _ = ctx.WriteString(`{"Code":401,"Msg":"请先登录"}`)
+		c.String(200, `{"Code":401,"Msg":"请先登录"}`)
 		return
 	}
 
@@ -32,15 +33,15 @@ func (h *BaseHandler) ContentPreview(ctx *fasthttp.RequestCtx) {
 	}
 
 	var rec recForm
-	err := util.Bind(ctx, util.JSON, &rec)
+	err := util.Bind(c, util.JSON, &rec)
 	if err != nil {
 		log.Println(err)
-		_, _ = ctx.WriteString(`{"Code":400,"Msg":"unable to read body"}`)
+		c.String(200, `{"Code":400,"Msg":"unable to read body"}`)
 		return
 	}
 
 	if len(rec.Content) == 0 {
-		_, _ = ctx.WriteString(`{"Code":400,"Msg":"内容不能为空"}`)
+		c.String(200, `{"Code":400,"Msg":"内容不能为空"}`)
 		return
 	}
 
@@ -55,11 +56,11 @@ func (h *BaseHandler) ContentPreview(ctx *fasthttp.RequestCtx) {
 		// 检测字数
 		titleLen := len(rec.Title)
 		if titleLen > h.App.Cf.Site.TitleMaxLen {
-			_, _ = ctx.WriteString(`{"Code":201,"Msg":"文章标题太长 ` + strconv.Itoa(titleLen) + ` > ` + strconv.Itoa(h.App.Cf.Site.TitleMaxLen) + `"}`)
+			c.String(200, `{"Code":201,"Msg":"文章标题太长 `+strconv.Itoa(titleLen)+` > `+strconv.Itoa(h.App.Cf.Site.TitleMaxLen)+`"}`)
 			return
 		}
 		if conLen > h.App.Cf.Site.TopicConMaxLen {
-			_, _ = ctx.WriteString(`{"Code":201,"Msg":"主题内容太长 ` + strconv.Itoa(conLen) + ` > ` + strconv.Itoa(h.App.Cf.Site.TopicConMaxLen) + `"}`)
+			c.String(200, `{"Code":201,"Msg":"主题内容太长 `+strconv.Itoa(conLen)+` > `+strconv.Itoa(h.App.Cf.Site.TopicConMaxLen)+`"}`)
 			return
 		}
 		// 主贴预览显示摘要
@@ -67,12 +68,12 @@ func (h *BaseHandler) ContentPreview(ctx *fasthttp.RequestCtx) {
 	} else if rec.Act == "commentPreview" {
 		// 检测字数
 		if conLen > h.App.Cf.Site.CommentConMaxLen {
-			_, _ = ctx.WriteString(`{"Code":201,"Msg":"评论内容太长 ` + strconv.Itoa(conLen) + ` > ` + strconv.Itoa(h.App.Cf.Site.CommentConMaxLen) + `"}`)
+			c.String(200, `{"Code":201,"Msg":"评论内容太长 `+strconv.Itoa(conLen)+` > `+strconv.Itoa(h.App.Cf.Site.CommentConMaxLen)+`"}`)
 			return
 		}
 	}
 	_html += util.ContentFmt(rec.Content)
 	rsp.Html = template.HTML(_html)
 
-	_ = json.NewEncoder(ctx).Encode(rsp)
+	_ = json.NewEncoder(c.Writer).Encode(rsp)
 }

@@ -1,17 +1,19 @@
 package controller
 
 import (
-	"github.com/ego008/sdb"
-	"github.com/valyala/fasthttp"
 	"goyoubbs/model"
 	"goyoubbs/views/admin"
+	"net/http"
 	"strconv"
+
+	"github.com/ego008/sdb"
+	"github.com/gin-gonic/gin"
 )
 
-func (h *BaseHandler) AdminTopicEditPage(ctx *fasthttp.RequestCtx) {
-	curUser, _ := h.CurrentUser(ctx)
+func (h *BaseHandler) AdminTopicEditPage(c *gin.Context) {
+	curUser, _ := h.CurrentUser(c)
 	if curUser.Flag < model.FlagAdmin {
-		ctx.Redirect(h.App.Cf.Site.MainDomain+"/admin", 302)
+		c.Redirect(302, "/admin")
 		return
 	}
 
@@ -23,29 +25,29 @@ func (h *BaseHandler) AdminTopicEditPage(ctx *fasthttp.RequestCtx) {
 	evn.Title = "编辑帖子"
 	evn.PageName = "admin_topic_edit"
 
-	tid := sdb.B2s(ctx.FormValue("id")) // 编辑帖子id
+	tid := c.Query("id") // 编辑帖子id
 	tidI, err := strconv.ParseUint(tid, 10, 64)
 	if err != nil {
-		_, _ = ctx.WriteString(`{"Code":400,"Msg":"id 不是数字"}`)
+		c.String(200, `{"Code":400,"Msg":"id 不是数字"}`)
 		return
 	}
 
 	//var rec model.Topic
 	rec := model.TopicGetById(h.App.Db, tidI)
 	if rec.ID == 0 {
-		_, _ = ctx.WriteString(`{"Code":400,"Msg":"该 id 帖子不存在"}`)
+		c.String(200, `{"Code":400,"Msg":"该 id 帖子不存在"}`)
 		return
 	}
 
 	// 是不是删除
-	isDel := sdb.B2s(ctx.FormValue("del")) // 删除帖子
+	isDel := c.Query("del") // 删除帖子
 	if isDel == "1" {
 		model.TopicDel(h.App.Mc, h.App.Db, rec)
 		if h.App.Cf.Site.SaveTopicIcon {
 			// 删九宫格图片
 			_ = h.App.Db.Hdel("topic_icon", sdb.I2b(tidI))
 		}
-		ctx.Redirect(h.App.Cf.Site.MainDomain+"/admin/topic/add", 302)
+		c.Redirect(302, "/admin/topic/add")
 		return
 	}
 
@@ -71,7 +73,7 @@ func (h *BaseHandler) AdminTopicEditPage(ctx *fasthttp.RequestCtx) {
 	// evn.UserLst = model.UserGetAllAdmin(h.App.Db)
 	evn.UserLst = []model.User{author}
 
-	if len(ctx.QueryArgs().Peek("back")) > 0 {
+	if len(c.Query("back")) > 0 {
 		evn.GoBack = true
 	}
 
@@ -79,6 +81,7 @@ func (h *BaseHandler) AdminTopicEditPage(ctx *fasthttp.RequestCtx) {
 	evn.HasTopicReview = model.CheckHasTopic2Review(h.App.Db)
 	evn.HasReplyReview = model.CheckHasComment2Review(h.App.Db)
 
-	ctx.SetContentType("text/html; charset=utf-8")
-	admin.WritePageTemplate(ctx, evn)
+	c.Header("Content-Type", "text/html; charset=utf-8")
+	c.Status(http.StatusOK)
+	admin.WritePageTemplate(c.Writer, evn)
 }

@@ -1,15 +1,17 @@
 package controller
 
 import (
-	"github.com/valyala/fasthttp"
 	"goyoubbs/model"
 	"goyoubbs/views/ybs"
+	"net/http"
+
+	"github.com/gin-gonic/gin"
 )
 
-func (h *BaseHandler) MyMsgPage(ctx *fasthttp.RequestCtx) {
-	curUser, _ := h.CurrentUser(ctx)
+func (h *BaseHandler) MyMsgPage(c *gin.Context) {
+	curUser, _ := h.CurrentUser(c)
 	if curUser.ID == 0 {
-		ctx.Redirect(h.App.Cf.Site.MainDomain+"/login", 302)
+		c.Redirect(302, "/login")
 		return
 	}
 
@@ -30,6 +32,7 @@ func (h *BaseHandler) MyMsgPage(ctx *fasthttp.RequestCtx) {
 		evn.HasReplyReview = model.CheckHasComment2Review(db)
 	}
 
-	ctx.SetContentType("text/html; charset=utf-8")
-	ybs.WritePageTemplate(ctx, evn)
+	c.Header("Content-Type", "text/html; charset=utf-8")
+	c.Status(http.StatusOK)
+	ybs.WritePageTemplate(c.Writer, evn)
 }

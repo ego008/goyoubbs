@@ -1,41 +1,43 @@
 package mdw
 
 import (
-	"github.com/valyala/fasthttp"
-	"time"
+	"github.com/gin-gonic/gin"
 )
 
-var epoch = time.Unix(0, 0).Format(time.RFC1123)
+var (
+	// 按照你原代码中的定义的变量名称保持一致
+	etagHeaders = []string{
+		"ETag",
+		"If-Modified-Since",
+		"If-Match",
+		"If-None-Match",
+		"If-Range",
+		"If-Unmodified-Since",
+	}
 
-var noCacheHeaders = map[string]string{
-	"Expires":         epoch,
-	"Cache-Control":   "no-cache, private, max-age=0",
-	"Pragma":          "no-cache",
-	"X-Accel-Expires": "0",
-}
+	noCacheHeaders = map[string]string{
+		"Expires":         "Thu, 01 Jan 1970 00:00:00 UTC",
+		"Cache-Control":   "no-cache, private, max-age=0",
+		"Pragma":          "no-cache",
+		"X-Accel-Expires": "0",
+	}
+)
 
-var etagHeaders = []string{
-	"ETag",
-	"If-Modified-Since",
-	"If-Match",
-	"If-None-Match",
-	"If-Range",
-	"If-Unmodified-Since",
-}
-
-func RspNoCache(next fasthttp.RequestHandler) fasthttp.RequestHandler {
-	return func(ctx *fasthttp.RequestCtx) {
-		// Delete any ETag headers that may have been set
+func RspNoCache() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		// 1. 删除请求头中的 ETag 相关 Header
 		for _, v := range etagHeaders {
-			if string(ctx.Request.Header.Peek(v)) != "" {
-				ctx.Request.Header.Del(v)
+			if c.GetHeader(v) != "" {
+				c.Request.Header.Del(v)
 			}
 		}
 
-		// Set our NoCache headers
+		// 2. 设置禁止缓存的响应头 (Response Headers)
 		for k, v := range noCacheHeaders {
-			ctx.Response.Header.Set(k, v)
+			c.Header(k, v)
 		}
-		next(ctx)
+
+		// 3. 执行后续 Handler
+		c.Next()
 	}
 }

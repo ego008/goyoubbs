@@ -1,33 +1,34 @@
 package controller
 
 import (
-	"github.com/ego008/sdb"
-	"github.com/valyala/fasthttp"
 	"goyoubbs/model"
 	"goyoubbs/util"
 	"goyoubbs/views/admin"
+	"net/http"
 	"strconv"
+
+	"github.com/gin-gonic/gin"
 )
 
-func (h *BaseHandler) AdminCommentEditPage(ctx *fasthttp.RequestCtx) {
-	curUser, _ := h.CurrentUser(ctx)
+func (h *BaseHandler) AdminCommentEditPage(c *gin.Context) {
+	curUser, _ := h.CurrentUser(c)
 	if curUser.Flag < model.FlagAdmin {
-		ctx.Redirect(h.App.Cf.Site.MainDomain+"/admin", 302)
+		c.Redirect(302, "/admin")
 		return
 	}
 
 	scf := h.App.Cf.Site
 	db := h.App.Db
 
-	tid, cid := sdb.B2s(ctx.QueryArgs().Peek("tid")), sdb.B2s(ctx.QueryArgs().Peek("cid"))
+	tid, cid := c.Query("tid"), c.Query("cid")
 	tidI, err := strconv.ParseUint(tid, 10, 64)
 	if err != nil {
-		ctx.Redirect(h.App.Cf.Site.MainDomain+"/admin", 302)
+		c.Redirect(302, "/admin")
 		return
 	}
 	cidI, err := strconv.ParseUint(cid, 10, 64)
 	if err != nil {
-		ctx.Redirect(h.App.Cf.Site.MainDomain+"/admin", 302)
+		c.Redirect(302, "/admin")
 		return
 	}
 
@@ -56,7 +57,7 @@ func (h *BaseHandler) AdminCommentEditPage(ctx *fasthttp.RequestCtx) {
 	}
 	evn.DefaultUser = author
 
-	if len(ctx.QueryArgs().Peek("back")) > 0 {
+	if len(c.Query("back")) > 0 {
 		evn.GoBack = true
 	}
 
@@ -64,6 +65,7 @@ func (h *BaseHandler) AdminCommentEditPage(ctx *fasthttp.RequestCtx) {
 	evn.HasTopicReview = model.CheckHasTopic2Review(h.App.Db)
 	evn.HasReplyReview = model.CheckHasComment2Review(h.App.Db)
 
-	ctx.SetContentType("text/html; charset=utf-8")
-	admin.WritePageTemplate(ctx, evn)
+	c.Header("Content-Type", "text/html; charset=utf-8")
+	c.Status(http.StatusOK)
+	admin.WritePageTemplate(c.Writer, evn)
 }

@@ -34,7 +34,7 @@ func (p *TopicDetailPage) StreamMainBody(qw422016 *qt422016.Writer) {
 //line views/ybs/topic_detail.qtpl:7
 	qw422016.E().S(p.TopicFmt.Name)
 //line views/ybs/topic_detail.qtpl:7
-	qw422016.N().S(` avatar" src="/static/avatar/`)
+	qw422016.N().S(` avatar" src="/avatar/`)
 //line views/ybs/topic_detail.qtpl:7
 	qw422016.N().DUL(p.TopicFmt.UserId)
 //line views/ybs/topic_detail.qtpl:7
@@ -278,7 +278,7 @@ func (p *TopicDetailPage) StreamMainBody(qw422016 *qt422016.Writer) {
 //line views/ybs/topic_detail.qtpl:75
 			qw422016.E().S(item.Name)
 //line views/ybs/topic_detail.qtpl:75
-			qw422016.N().S(` avatar" src="/static/avatar/`)
+			qw422016.N().S(` avatar" src="/avatar/`)
 //line views/ybs/topic_detail.qtpl:75
 			qw422016.N().DUL(item.UserId)
 //line views/ybs/topic_detail.qtpl:75

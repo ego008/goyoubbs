@@ -336,7 +336,7 @@ func (p *BasePage) StreamBanner(qw422016 *qt422016.Writer) {
 //line views/ybs/base.qtpl:123
 		qw422016.N().S(`
     <li class="pure-menu-item pure-menu-has-children pure-menu-allow-hover">
-        <a href="#" id="menuLink1" class="pure-menu-link" style="padding: .5em 1em;"><img class="avatar" src="/static/avatar/`)
+        <a href="#" id="menuLink1" class="pure-menu-link" style="padding: .5em 1em;"><img class="avatar" src="/avatar/`)
 //line views/ybs/base.qtpl:125
 		qw422016.N().DUL(p.CurrentUser.ID)
 //line views/ybs/base.qtpl:125
@@ -601,7 +601,7 @@ func (p *BasePage) StreamAside(qw422016 *qt422016.Writer) {
 //line views/ybs/base.qtpl:191
 			qw422016.E().S(p.RecentComment[k].Name)
 //line views/ybs/base.qtpl:191
-			qw422016.N().S(` avatar" src="/static/avatar/`)
+			qw422016.N().S(` avatar" src="/avatar/`)
 //line views/ybs/base.qtpl:191
 			qw422016.N().DUL(p.RecentComment[k].UserId)
 //line views/ybs/base.qtpl:191

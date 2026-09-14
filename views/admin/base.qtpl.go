@@ -328,7 +328,7 @@ func (p *BasePage) StreamBanner(qw422016 *qt422016.Writer) {
 	if p.CurrentUser.ID > 0 {
 //line views/admin/base.qtpl:116
 		qw422016.N().S(`
-    <li class="pure-menu-item"><a href="/setting" class="pure-menu-link"><img src="/static/avatar/`)
+    <li class="pure-menu-item"><a href="/setting" class="pure-menu-link"><img src="/avatar/`)
 //line views/admin/base.qtpl:117
 		qw422016.N().DUL(p.CurrentUser.ID)
 //line views/admin/base.qtpl:117
@@ -599,7 +599,7 @@ func (p *BasePage) StreamAside(qw422016 *qt422016.Writer) {
 //line views/admin/base.qtpl:185
 			qw422016.E().S(p.RecentComment[k].Name)
 //line views/admin/base.qtpl:185
-			qw422016.N().S(` avatar" src="/static/avatar/`)
+			qw422016.N().S(` avatar" src="/avatar/`)
 //line views/admin/base.qtpl:185
 			qw422016.N().DUL(p.RecentComment[k].UserId)
 //line views/admin/base.qtpl:185

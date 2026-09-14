@@ -1,17 +1,19 @@
 package controller
 
 import (
-	"github.com/valyala/fasthttp"
 	"goyoubbs/model"
 	"goyoubbs/views/admin"
+	"net/http"
 	"sort"
 	"strings"
+
+	"github.com/gin-gonic/gin"
 )
 
-func (h *BaseHandler) AdminRateLimitIpLookup(ctx *fasthttp.RequestCtx) {
-	curUser, _ := h.CurrentUser(ctx)
+func (h *BaseHandler) AdminRateLimitIpLookup(c *gin.Context) {
+	curUser, _ := h.CurrentUser(c)
 	if curUser.Flag < model.FlagAdmin {
-		ctx.Redirect(h.App.Cf.Site.MainDomain+"/admin", 302)
+		c.Redirect(302, "/admin")
 		return
 	}
 
@@ -41,7 +43,7 @@ func (h *BaseHandler) AdminRateLimitIpLookup(ctx *fasthttp.RequestCtx) {
 
 	limit := 100
 	// items
-	startKeyStr := string(ctx.FormValue("key"))
+	startKeyStr := c.Query("key")
 	for _, item := range model.IpInfoGetByKeyStart(h.App.Db, startKeyStr, limit) {
 		items = append(items, model.KvStr{
 			Key:   item.Ip,
@@ -76,6 +78,7 @@ func (h *BaseHandler) AdminRateLimitIpLookup(ctx *fasthttp.RequestCtx) {
 	evn.HasTopicReview = model.CheckHasTopic2Review(h.App.Db)
 	evn.HasReplyReview = model.CheckHasComment2Review(h.App.Db)
 
-	ctx.SetContentType("text/html; charset=utf-8")
-	admin.WritePageTemplate(ctx, evn)
+	c.Header("Content-Type", "text/html; charset=utf-8")
+	c.Status(http.StatusOK)
+	admin.WritePageTemplate(c.Writer, evn)
 }

@@ -1,17 +1,18 @@
 package controller
 
 import (
-	"github.com/ego008/sdb"
-	"github.com/valyala/fasthttp"
 	"goyoubbs/model"
 	"goyoubbs/views/admin"
+	"net/http"
 	"strconv"
+
+	"github.com/gin-gonic/gin"
 )
 
-func (h *BaseHandler) AdminLinkPage(ctx *fasthttp.RequestCtx) {
-	curUser, _ := h.CurrentUser(ctx)
+func (h *BaseHandler) AdminLinkPage(c *gin.Context) {
+	curUser, _ := h.CurrentUser(c)
 	if curUser.Flag < model.FlagAdmin {
-		ctx.Redirect(h.App.Cf.Site.MainDomain+"/admin", 302)
+		c.Redirect(302, "/admin")
 		return
 	}
 
@@ -29,7 +30,7 @@ func (h *BaseHandler) AdminLinkPage(ctx *fasthttp.RequestCtx) {
 	//
 	evn.Act = "添加"
 	evn.Link = model.Link{}
-	ids := sdb.B2s(ctx.FormValue("id"))
+	ids := c.Query("id")
 	if len(ids) > 0 {
 		evn.Link = model.Link{}
 		link := model.LinkGetById(h.App.Db, ids)
@@ -43,19 +44,20 @@ func (h *BaseHandler) AdminLinkPage(ctx *fasthttp.RequestCtx) {
 	evn.HasTopicReview = model.CheckHasTopic2Review(h.App.Db)
 	evn.HasReplyReview = model.CheckHasComment2Review(h.App.Db)
 
-	ctx.SetContentType("text/html; charset=utf-8")
-	admin.WritePageTemplate(ctx, evn)
+	c.Header("Content-Type", "text/html; charset=utf-8")
+	c.Status(http.StatusOK)
+	admin.WritePageTemplate(c.Writer, evn)
 }
 
-func (h *BaseHandler) AdminLinkPost(ctx *fasthttp.RequestCtx) {
-	curUser, _ := h.CurrentUser(ctx)
+func (h *BaseHandler) AdminLinkPost(c *gin.Context) {
+	curUser, _ := h.CurrentUser(c)
 	if curUser.Flag < model.FlagAdmin {
-		ctx.Redirect(h.App.Cf.Site.MainDomain+"/login", 302)
+		c.Redirect(302, "/login")
 		return
 	}
 
 	var id uint64
-	ids := sdb.B2s(ctx.FormValue("id"))
+	ids := c.Query("id")
 	if len(ids) > 0 {
 		idI, err := strconv.ParseUint(ids, 10, 64)
 		if err == nil {
@@ -65,14 +67,14 @@ func (h *BaseHandler) AdminLinkPost(ctx *fasthttp.RequestCtx) {
 
 	obj := model.Link{}
 	obj.ID = id
-	obj.Name = sdb.B2s(ctx.FormValue("Name"))
-	obj.Score, _ = strconv.Atoi(sdb.B2s(ctx.FormValue("Score")))
-	obj.Url = sdb.B2s(ctx.FormValue("Url"))
+	obj.Name = c.PostForm("Name")
+	obj.Score, _ = strconv.Atoi(c.PostForm("Score"))
+	obj.Url = c.PostForm("Url")
 
 	model.LinkSet(h.App.Db, obj)
 
 	// 删除缓存
 	h.App.Mc.Del([]byte("LinkList"))
 
-	ctx.Redirect(h.App.Cf.Site.MainDomain+"/admin/link", 302)
+	c.Redirect(302, "/admin/link")
 }

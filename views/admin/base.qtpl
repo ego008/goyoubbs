@@ -114,7 +114,7 @@ function handleScroll() {
 <a href="/" class="pure-menu-heading pure-menu-link">{%s p.SiteCf.Name %}</a>
 <ul class="pure-menu-list">
     {% if p.CurrentUser.ID > 0 %}
-    <li class="pure-menu-item"><a href="/setting" class="pure-menu-link"><img src="/static/avatar/{%dul p.CurrentUser.ID %}.jpg" class="avatar" alt="{%s p.CurrentUser.Name %} avatar"> {%s p.CurrentUser.Name %}</a></li>
+    <li class="pure-menu-item"><a href="/setting" class="pure-menu-link"><img src="/avatar/{%dul p.CurrentUser.ID %}.jpg" class="avatar" alt="{%s p.CurrentUser.Name %} avatar"> {%s p.CurrentUser.Name %}</a></li>
     <li class="pure-menu-item"><a href="/logout" class="pure-menu-link">退出</a></li>
     {% else %}
     <li class="pure-menu-item"><a href="/login" rel="nofollow" class="pure-menu-link">登录</a></li>
@@ -182,7 +182,7 @@ This is a base MainBody
         <ul id="recent_comments">
             {% for k := range p.RecentComment %}
             <li>
-                <img alt="{%s p.RecentComment[k].Name %} avatar" src="/static/avatar/{%dul p.RecentComment[k].UserId %}.jpg" class="avatar"> <a href="{%s p.RecentComment[k].Link %}">{%s p.RecentComment[k].Content %}</a>
+                <img alt="{%s p.RecentComment[k].Name %} avatar" src="/avatar/{%dul p.RecentComment[k].UserId %}.jpg" class="avatar"> <a href="{%s p.RecentComment[k].Link %}">{%s p.RecentComment[k].Content %}</a>
             </li>
             {% endfor %}
         </ul>

@@ -12,7 +12,7 @@ import (
 
 	"github.com/ego008/goutils/json"
 	"github.com/ego008/sdb"
-	"github.com/valyala/fasthttp"
+	"github.com/gin-gonic/gin"
 )
 
 const (
@@ -25,37 +25,39 @@ type response struct {
 	Url string
 }
 
-func (h *BaseHandler) FileUpload(ctx *fasthttp.RequestCtx) {
-	ctx.SetContentType("application/json; charset=UTF-8")
+func (h *BaseHandler) FileUpload(c *gin.Context) {
+	c.Header("Content-Type", "application/json; charset=UTF-8")
 
-	curUser, _ := h.CurrentUser(ctx)
+	curUser, _ := h.CurrentUser(c)
 
 	if curUser.Flag == 0 {
-		_, _ = ctx.WriteString(`{"Code":401,"Msg":"请先登录"}`)
+		c.String(200, `{"Code":401,"Msg":"请先登录"}`)
 		return
 	}
 
-	file, err := ctx.FormFile("file")
+	// 1. 直接获取上传的文件 Header
+	fileHeader, err := c.FormFile("image")
 	if err != nil {
-		_, _ = ctx.WriteString(`{"Code":500,"Msg":"` + err.Error() + `"}`)
+		// 获取失败（如未提供文件或表单解析失败）
+		c.String(200, `{"Code":500,"Msg":"`+err.Error()+`"}`)
 		return
 	}
-	fileHandler, err := file.Open()
+
+	// 2. 打开文件流
+	fileHandler, err := fileHeader.Open()
 	if err != nil {
-		_, _ = ctx.WriteString(`{"Code":400,"Msg":"` + err.Error() + `"}`)
+		c.String(200, `{"code":400,"msg":"`+err.Error()+`"}`)
 		return
 	}
-	defer func() {
-		_ = fileHandler.Close()
-	}()
+	defer fileHandler.Close()
 
 	var imgData bytes.Buffer
 	if fileSize, err := io.Copy(&imgData, fileHandler); err != nil {
-		_, _ = ctx.WriteString(`{"Code":400,"Msg":"` + err.Error() + `"}`)
+		c.String(200, `{"Code":400,"Msg":"`+err.Error()+`"}`)
 		return
 	} else {
 		if fileSize > fileMaxSize {
-			_, _ = ctx.WriteString(`{"Code":400,"Msg":"image size too much"}`)
+			c.String(200, `{"Code":400,"Msg":"image size too much"}`)
 			return
 		}
 	}
@@ -96,7 +98,7 @@ func (h *BaseHandler) FileUpload(ctx *fasthttp.RequestCtx) {
 			saveName = imgKeyS + fileSuffix
 			showPath = "/static/upload/" + saveName
 		} else {
-			_, _ = ctx.WriteString(`{"Code":400,"Msg":"unknown image or media format"}`)
+			c.String(200, `{"Code":400,"Msg":"unknown image or media format"}`)
 			return
 		}
 		//fileSuffix = path.Ext(file.Filename) // source file suffix
@@ -114,7 +116,7 @@ func (h *BaseHandler) FileUpload(ctx *fasthttp.RequestCtx) {
 		rsp.Code = 200
 		rsp.Url = showPath
 		rsp.Msg = "上传成功"
-		_ = json.NewEncoder(ctx).Encode(rsp)
+		_ = json.NewEncoder(c.Writer).Encode(rsp)
 
 		// fix
 		if fileSuffix == ".mp4" {
@@ -130,14 +132,14 @@ func (h *BaseHandler) FileUpload(ctx *fasthttp.RequestCtx) {
 		if h.App.Cf.Site.SaveImg2db {
 			// db
 			if err = db.Hset(model.TbnDbImg, imgKeyB, imgData.Bytes()); err != nil {
-				_, _ = ctx.WriteString(`{"Code":400,"Msg":"` + err.Error() + `"}`)
+				c.String(200, `{"Code":400,"Msg":"`+err.Error()+`"}`)
 				imgData.Reset()
 				return
 			}
 		} else {
 			// local
 			if err = os.WriteFile(saveFullPath, imgData.Bytes(), 0644); err != nil {
-				_, _ = ctx.WriteString(`{"Code":400,"Msg":"` + err.Error() + `"}`)
+				c.String(200, `{"Code":400,"Msg":"`+err.Error()+`"}`)
 				imgData.Reset()
 				return
 			}
@@ -150,7 +152,7 @@ func (h *BaseHandler) FileUpload(ctx *fasthttp.RequestCtx) {
 		// 保存hash值
 		_ = db.Hset("local_upload_md5_key", imgKeyB, sdb.I2b(curUser.ID))
 
-		_ = json.NewEncoder(ctx).Encode(rsp)
+		_ = json.NewEncoder(c.Writer).Encode(rsp)
 		return
 	}
 
@@ -159,7 +161,7 @@ func (h *BaseHandler) FileUpload(ctx *fasthttp.RequestCtx) {
 		img, err = util.GetImageObj(&imgData)
 		imgData.Reset()
 		if err != nil {
-			_, _ = ctx.WriteString(`{"Code":400,"Msg":"` + err.Error() + `"}`)
+			c.String(200, `{"Code":400,"Msg":"`+err.Error()+`"}`)
 			return
 		}
 
@@ -167,27 +169,27 @@ func (h *BaseHandler) FileUpload(ctx *fasthttp.RequestCtx) {
 
 		buf := new(bytes.Buffer)
 		if err = jpeg.Encode(buf, dstImg, &jpeg.Options{Quality: 95}); err != nil {
-			_, _ = ctx.WriteString(`{"Code":400,"Msg":"` + err.Error() + `"}`)
+			c.String(200, `{"Code":400,"Msg":"`+err.Error()+`"}`)
 			return
 		}
 
 		if h.App.Cf.Site.SaveImg2db {
 			// db
 			if err = db.Hset(model.TbnDbImg, imgKeyB, buf.Bytes()); err != nil {
-				_, _ = ctx.WriteString(`{"Code":400,"Msg":"` + err.Error() + `"}`)
+				c.String(200, `{"Code":400,"Msg":"`+err.Error()+`"}`)
 				return
 			}
 		} else {
 			// local
 			if err = os.WriteFile(saveFullPath, buf.Bytes(), 0644); err != nil {
-				_, _ = ctx.WriteString(`{"Code":400,"Msg":"` + err.Error() + `"}`)
+				c.String(200, `{"Code":400,"Msg":"`+err.Error()+`"}`)
 				return
 			}
 		}
 	} else {
 		// local
 		if err = os.WriteFile(saveFullPath, imgData.Bytes(), 0644); err != nil {
-			_, _ = ctx.WriteString(`{"Code":400,"Msg":"` + err.Error() + `"}`)
+			c.String(200, `{"Code":400,"Msg":"`+err.Error()+`"}`)
 			imgData.Reset()
 			return
 		}
@@ -206,5 +208,5 @@ func (h *BaseHandler) FileUpload(ctx *fasthttp.RequestCtx) {
 	// 保存hash值
 	_ = db.Hset("local_upload_md5_key", imgKeyB, sdb.I2b(curUser.ID))
 
-	_ = json.NewEncoder(ctx).Encode(rsp)
+	_ = json.NewEncoder(c.Writer).Encode(rsp)
 }

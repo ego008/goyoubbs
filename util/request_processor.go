@@ -3,8 +3,10 @@ package util
 import (
 	"bytes"
 	"encoding/xml"
+	"net/http"
+
 	"github.com/ego008/goutils/json"
-	"github.com/valyala/fasthttp"
+	"github.com/gin-gonic/gin"
 )
 
 var (
@@ -17,9 +19,9 @@ var (
 	//
 	// Usage:
 	// To read from a request:
-	// util.Bind(ctx, util.JSON, &myStructValue)
+	// util.Bind(c, util.JSON, &myStructValue)
 	// To send a response:
-	// muxie.Dispatch(w, muxie.JSON, mySendDataValue)
+	// util.Dispatch(c, util.JSON, mySendDataValue)
 	JSON = &jsonProcessor{Prefix: nil, Indent: "", UnescapeHTML: false}
 
 	// XML implements the full `Processor` interface.
@@ -28,9 +30,9 @@ var (
 	//
 	// Usage:
 	// To read from a request:
-	// muxie.Bind(r, muxie.XML, &myStructValue)
+	// util.Bind(c, util.XML, &myStructValue)
 	// To send a response:
-	// muxie.Dispatch(w, muxie.XML, mySendDataValue)
+	// util.Dispatch(c, util.XML, mySendDataValue)
 	XML = &xmlProcessor{Indent: ""}
 )
 
@@ -38,38 +40,33 @@ func withCharset(cType string) string {
 	return cType + "; charset=" + Charset
 }
 
-// Binder is the interface which `muxie.Bind` expects.
+// Binder is the interface which `util.Bind` expects.
 // It is used to bind a request to a go struct value (ptr).
 type Binder interface {
-	Bind(*fasthttp.RequestCtx, interface{}) error
+	Bind(*gin.Context, interface{}) error
 }
 
 // Bind accepts the current request and any `Binder` to bind
 // the request data to the "ptrOut".
-func Bind(ctx *fasthttp.RequestCtx, b Binder, ptrOut interface{}) error {
-	return b.Bind(ctx, ptrOut)
+func Bind(c *gin.Context, b Binder, ptrOut interface{}) error {
+	return b.Bind(c, ptrOut)
 }
 
-// Dispatcher is the interface which `muxie.Dispatch` expects.
+// Dispatcher is the interface which `util.Dispatch` expects.
 // It is used to send a response based on a go struct value.
 type Dispatcher interface {
-	// no io.Writer because we need to set the headers here,
-	// Binder and Processor are only for HTTP.
-	Dispatch(*fasthttp.RequestCtx, interface{}) error
-	// http.Response
+	Dispatch(*gin.Context, interface{}) error
 }
 
 // Dispatch accepts the current response writer and any `Dispatcher`
 // to send the "v" to the client.
-func Dispatch(ctx *fasthttp.RequestCtx, d Dispatcher, v interface{}) error {
-	return d.Dispatch(ctx, v)
+func Dispatch(c *gin.Context, d Dispatcher, v interface{}) error {
+	return d.Dispatch(c, v)
 }
 
 // Processor implements both `Binder` and `Dispatcher` interfaces.
 // It is used for implementations that can `Bind` and `Dispatch`
 // the same data form.
-//
-// Look `JSON` and `XML` for more.
 type Processor interface {
 	Binder
 	Dispatcher
@@ -89,18 +86,22 @@ var (
 )
 
 type jsonProcessor struct {
-	Prefix       []byte
 	Indent       string
+	Prefix       []byte
 	UnescapeHTML bool
 }
 
 var _ Processor = (*jsonProcessor)(nil)
 
-func (p *jsonProcessor) Bind(ctx *fasthttp.RequestCtx, v interface{}) error {
-	return json.Unmarshal(ctx.PostBody(), v)
+func (p *jsonProcessor) Bind(c *gin.Context, v interface{}) error {
+	body, err := c.GetRawData()
+	if err != nil {
+		return err
+	}
+	return json.Unmarshal(body, v)
 }
 
-func (p *jsonProcessor) Dispatch(ctx *fasthttp.RequestCtx, v interface{}) error {
+func (p *jsonProcessor) Dispatch(c *gin.Context, v interface{}) error {
 	var (
 		result []byte
 		err    error
@@ -130,9 +131,8 @@ func (p *jsonProcessor) Dispatch(ctx *fasthttp.RequestCtx, v interface{}) error 
 		result = append([]byte(p.Prefix), result...)
 	}
 
-	ctx.SetContentType(withCharset("application/json"))
-	_, err = ctx.Write(result)
-	return err
+	c.Data(http.StatusOK, withCharset("application/json"), result)
+	return nil
 }
 
 type xmlProcessor struct {
@@ -141,11 +141,15 @@ type xmlProcessor struct {
 
 var _ Processor = (*xmlProcessor)(nil)
 
-func (p *xmlProcessor) Bind(ctx *fasthttp.RequestCtx, v interface{}) error {
-	return xml.Unmarshal(ctx.PostBody(), v)
+func (p *xmlProcessor) Bind(c *gin.Context, v interface{}) error {
+	body, err := c.GetRawData()
+	if err != nil {
+		return err
+	}
+	return xml.Unmarshal(body, v)
 }
 
-func (p *xmlProcessor) Dispatch(ctx *fasthttp.RequestCtx, v interface{}) error {
+func (p *xmlProcessor) Dispatch(c *gin.Context, v interface{}) error {
 	var (
 		result []byte
 		err    error
@@ -165,7 +169,6 @@ func (p *xmlProcessor) Dispatch(ctx *fasthttp.RequestCtx, v interface{}) error {
 		return err
 	}
 
-	ctx.SetContentType(withCharset("text/xml"))
-	_, err = ctx.Write(result)
-	return err
+	c.Data(http.StatusOK, withCharset("text/xml"), result)
+	return nil
 }

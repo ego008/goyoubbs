@@ -1,22 +1,24 @@
 package controller
 
 import (
-	"github.com/ego008/goutils/json"
-	"github.com/valyala/fasthttp"
 	"goyoubbs/model"
 	"goyoubbs/util"
 	"goyoubbs/views/ybs"
 	"log"
+	"net/http"
+
+	"github.com/ego008/goutils/json"
+	"github.com/gin-gonic/gin"
 )
 
-func (h *BaseHandler) UserSettingPage(ctx *fasthttp.RequestCtx) {
-	curUser, _ := h.CurrentUser(ctx)
+func (h *BaseHandler) UserSettingPage(c *gin.Context) {
+	curUser, _ := h.CurrentUser(c)
 	if curUser.Flag < model.FlagReview {
 		if curUser.ID == 0 {
-			ctx.Redirect(h.App.Cf.Site.MainDomain+"/login", 302)
+			c.Redirect(302, "/login")
 			return
 		}
-		_, _ = ctx.WriteString("403: forbidden")
+		c.String(200, "403: forbidden")
 		return
 	}
 
@@ -36,15 +38,16 @@ func (h *BaseHandler) UserSettingPage(ctx *fasthttp.RequestCtx) {
 	evn.HasTopicReview = model.CheckHasTopic2Review(h.App.Db)
 	evn.HasReplyReview = model.CheckHasComment2Review(h.App.Db)
 
-	ctx.SetContentType("text/html; charset=utf-8")
-	ybs.WritePageTemplate(ctx, evn)
+	c.Header("Content-Type", "text/html; charset=utf-8")
+	c.Status(http.StatusOK)
+	ybs.WritePageTemplate(c.Writer, evn)
 }
 
-func (h *BaseHandler) UserSettingPost(ctx *fasthttp.RequestCtx) {
+func (h *BaseHandler) UserSettingPost(c *gin.Context) {
 
-	curUser, _ := h.CurrentUser(ctx)
+	curUser, _ := h.CurrentUser(c)
 	if curUser.ID == 0 {
-		_, _ = ctx.WriteString(`{"Code":403,"Msg":"author is none"}`)
+		c.String(200, `{"Code":403,"Msg":"author is none"}`)
 		return
 	}
 
@@ -56,10 +59,10 @@ func (h *BaseHandler) UserSettingPost(ctx *fasthttp.RequestCtx) {
 	}
 
 	var rec recForm
-	err := util.Bind(ctx, util.JSON, &rec)
+	err := util.Bind(c, util.JSON, &rec)
 	if err != nil {
 		log.Println(err)
-		_, _ = ctx.WriteString(`{"Code":400,"Msg":"unable to read body"}`)
+		c.String(200, `{"Code":400,"Msg":"unable to read body"}`)
 		return
 	}
 
@@ -75,7 +78,7 @@ func (h *BaseHandler) UserSettingPost(ctx *fasthttp.RequestCtx) {
 
 	if len(rec.Password) > 0 && len(rec.Password0) > 0 {
 		if rec.Password0 != obj.Password {
-			_, _ = ctx.WriteString(`{"Code":403,"Msg":"原密码不对"}`)
+			c.String(200, `{"Code":403,"Msg":"原密码不对"}`)
 			return
 		}
 		obj.Password = rec.Password
@@ -88,5 +91,5 @@ func (h *BaseHandler) UserSettingPost(ctx *fasthttp.RequestCtx) {
 
 	rsp.Code = 200
 	rsp.Msg = "已成功更新"
-	_ = json.NewEncoder(ctx).Encode(rsp)
+	_ = json.NewEncoder(c.Writer).Encode(rsp)
 }

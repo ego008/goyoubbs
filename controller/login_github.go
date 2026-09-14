@@ -2,22 +2,23 @@ package controller
 
 import (
 	"context"
-	"github.com/ego008/goutils/json"
-	"github.com/ego008/sdb"
-	"github.com/google/go-github/github"
-	"github.com/rs/xid"
-	"github.com/valyala/fasthttp"
-	"golang.org/x/oauth2"
-	githuboauth "golang.org/x/oauth2/github"
 	"goyoubbs/model"
 	"goyoubbs/util"
 	"log"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/ego008/goutils/json"
+	"github.com/ego008/sdb"
+	"github.com/gin-gonic/gin"
+	"github.com/google/go-github/github"
+	"github.com/rs/xid"
+	"golang.org/x/oauth2"
+	githuboauth "golang.org/x/oauth2/github"
 )
 
-func (h *BaseHandler) GithubOauthHandler(ctx *fasthttp.RequestCtx) {
+func (h *BaseHandler) GithubOauthHandler(c *gin.Context) {
 	scf := h.App.Cf.Site
 
 	// https://github.com/settings/developers
@@ -33,28 +34,28 @@ func (h *BaseHandler) GithubOauthHandler(ctx *fasthttp.RequestCtx) {
 	now := time.Now().UTC().Unix()
 	githubUrlState := strconv.FormatInt(now, 10)[6:]
 
-	_ = h.SetCookie(ctx, "githubUrlState", githubUrlState, 1)
+	_ = h.SetCookie(c, "githubUrlState", githubUrlState, 1)
 
 	gotoUrl := oauthConf.AuthCodeURL(githubUrlState, oauth2.AccessTypeOnline)
-	ctx.Redirect(gotoUrl, fasthttp.StatusSeeOther)
+	c.Redirect(302, gotoUrl)
 }
 
-func (h *BaseHandler) GithubOauthCallback(ctx *fasthttp.RequestCtx) {
-	githubUrlState := h.GetCookie(ctx, "githubUrlState")
+func (h *BaseHandler) GithubOauthCallback(c *gin.Context) {
+	githubUrlState := h.GetCookie(c, "githubUrlState")
 	if len(githubUrlState) == 0 {
-		_, _ = ctx.WriteString(`githubUrlState cookie missed`)
+		c.String(200, `githubUrlState cookie missed`)
 		return
 	}
 
-	code := sdb.B2s(ctx.FormValue("code"))
+	code := c.Query("code")
 	if code == "" {
-		_, _ = ctx.WriteString("Invalid code")
+		c.String(200, "Invalid code")
 		return
 	}
 
-	state := sdb.B2s(ctx.FormValue("state"))
+	state := c.Query("state")
 	if state != githubUrlState {
-		_, _ = ctx.WriteString("Invalid state")
+		c.String(200, "Invalid state")
 		return
 	}
 
@@ -69,7 +70,7 @@ func (h *BaseHandler) GithubOauthCallback(ctx *fasthttp.RequestCtx) {
 
 	token, err := oauthConf.Exchange(context.Background(), code)
 	if err != nil {
-		_, _ = ctx.WriteString(err.Error())
+		c.String(200, err.Error())
 		return
 	}
 
@@ -77,7 +78,7 @@ func (h *BaseHandler) GithubOauthCallback(ctx *fasthttp.RequestCtx) {
 	client := github.NewClient(oauthClient)
 	githubUser, _, err := client.Users.Get(context.Background(), "")
 	if err != nil {
-		_, _ = ctx.WriteString(err.Error())
+		c.String(200, err.Error())
 		return
 	}
 
@@ -89,7 +90,7 @@ func (h *BaseHandler) GithubOauthCallback(ctx *fasthttp.RequestCtx) {
 	jb, _ := json.Marshal(githubUser)
 	_ = db.Hset("github_user_info", []byte(githubIdStr), jb)
 
-	next := h.GetCookie(ctx, "next")
+	next := h.GetCookie(c, "next")
 
 	authorKey := "gh:" + githubIdStr
 	rs := db.Hget("oauth2user", []byte(authorKey))
@@ -102,7 +103,7 @@ func (h *BaseHandler) GithubOauthCallback(ctx *fasthttp.RequestCtx) {
 			// 已绑定用户名则直接登录
 			uObj, _ := model.UserGetById(db, obj.Uid)
 			if uObj.ID == 0 {
-				_, _ = ctx.WriteString("uid not found")
+				c.String(200, "uid not found")
 				return
 			}
 			sessionId := xid.New().String()
@@ -110,14 +111,14 @@ func (h *BaseHandler) GithubOauthCallback(ctx *fasthttp.RequestCtx) {
 			uObj.Session = sessionId
 			jb, _ := json.Marshal(uObj)
 			_ = db.Hset(model.UserTbName, sdb.I2b(uObj.ID), jb)
-			_ = h.SetCookie(ctx, "SessionID", strconv.FormatUint(uObj.ID, 10)+":"+sessionId, 365)
+			_ = h.SetCookie(c, "SessionID", strconv.FormatUint(uObj.ID, 10)+":"+sessionId, 365)
 
 			if len(next) > 0 {
-				h.DelCookie(ctx, "next")
-				ctx.Redirect(scf.MainDomain+next, fasthttp.StatusSeeOther)
+				h.DelCookie(c, "next")
+				c.Redirect(302, scf.MainDomain+next)
 				return
 			}
-			ctx.Redirect(scf.MainDomain+"/", fasthttp.StatusSeeOther)
+			c.Redirect(302, scf.MainDomain+"/")
 			return
 		}
 	} else {
@@ -130,12 +131,12 @@ func (h *BaseHandler) GithubOauthCallback(ctx *fasthttp.RequestCtx) {
 	// 绑定用户名，跳到注册页面，填写默认登录名
 
 	if scf.CloseReg {
-		_, _ = ctx.WriteString(`stop to new register`)
+		c.String(200, `stop to new register`)
 		return
 	}
 
 	// 保存 openid ，以便在 注册 时取出可用登录名及注册成功后自动获取头像
-	_ = h.SetCookie(ctx, "openid", authorKey, 1)
+	_ = h.SetCookie(c, "openid", authorKey, 1)
 
 	// 获取用户名和头像
 	name := util.RemoveCharacter(*githubUser.Login)
@@ -156,11 +157,11 @@ func (h *BaseHandler) GithubOauthCallback(ctx *fasthttp.RequestCtx) {
 		OpenId:  githubIdStr,
 		Name:    name,
 		Avatar:  *githubUser.AvatarURL,
-		Agent:   sdb.B2s(ctx.UserAgent()),
+		Agent:   c.Request.UserAgent(),
 		About:   "",
 		Url:     uUrl,
 	})
 	_ = db.Hset("oauth_tmp_info", sdb.S2b(authorKey), jb)
 
-	ctx.Redirect(scf.MainDomain+"/register", fasthttp.StatusSeeOther)
+	c.Redirect(302, scf.MainDomain+"/register")
 }

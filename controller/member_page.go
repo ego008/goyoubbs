@@ -1,19 +1,20 @@
 package controller
 
 import (
-	"github.com/ego008/sdb"
-	"github.com/valyala/fasthttp"
 	"goyoubbs/model"
 	"goyoubbs/util"
 	"goyoubbs/views/ybs"
+	"net/http"
 	"net/url"
 	"strconv"
 	"strings"
+
+	"github.com/gin-gonic/gin"
 )
 
-func (h *BaseHandler) MemberNamePage(ctx *fasthttp.RequestCtx) {
+func (h *BaseHandler) MemberNamePage(c *gin.Context) {
 	// 内容 @用户名 的链接
-	uNameRaw := strings.TrimSpace(ctx.UserValue("uname").(string))
+	uNameRaw := strings.TrimSpace(c.Param("uname"))
 	if uName, err := url.QueryUnescape(uNameRaw); err == nil {
 		uNameRaw = uName
 	}
@@ -24,56 +25,56 @@ func (h *BaseHandler) MemberNamePage(ctx *fasthttp.RequestCtx) {
 			var code int
 			user, code = model.UserGetById(h.App.Db, unUint64)
 			if code != 1 {
-				ctx.NotFound()
+				c.Status(http.StatusNotFound)
 				return
 			}
 		} else {
-			ctx.NotFound()
+			c.Status(http.StatusNotFound)
 			return
 		}
 	}
-	ctx.Redirect(h.App.Cf.Site.MainDomain+"/member/"+strconv.FormatUint(user.ID, 10), 301)
+	c.Redirect(302, "/member/"+strconv.FormatUint(user.ID, 10))
 }
 
-func (h *BaseHandler) MemberPage(ctx *fasthttp.RequestCtx) {
-	curUser, _ := h.CurrentUser(ctx)
+func (h *BaseHandler) MemberPage(c *gin.Context) {
+	curUser, _ := h.CurrentUser(c)
 
 	if h.App.Cf.Site.Authorized && curUser.Flag < model.FlagAuthor {
 		if curUser.ID == 0 {
-			ctx.Redirect(h.App.Cf.Site.MainDomain+"/login", 302)
+			c.Redirect(302, "/login")
 			return
 		}
-		ctx.Redirect(h.App.Cf.Site.MainDomain+"/setting", 302)
+		c.Redirect(302, "/setting")
 		return
 	}
 
-	uid := strings.TrimSpace(ctx.UserValue("uid").(string))
+	uid := strings.TrimSpace(c.Param("uid"))
 	uidInt, err := strconv.ParseUint(uid, 10, 64)
 	if err != nil {
 		// 不是数字，取用户名
-		ctx.NotFound()
-		_, _ = ctx.WriteString(uid + " uid not found")
+		c.Status(http.StatusNotFound)
+		c.String(200, uid+" uid not found")
 		return
 	}
 	user, code := model.UserGetById(h.App.Db, uidInt)
 	if code != 1 {
-		ctx.NotFound()
-		_, _ = ctx.WriteString(uid + " user not found")
+		c.Status(http.StatusNotFound)
+		c.String(200, uid+" user not found")
 		return
 	}
 
-	btn, key, score := sdb.B2s(ctx.FormValue("btn")), sdb.B2s(ctx.FormValue("key")), sdb.B2s(ctx.FormValue("score"))
+	btn, key, score := c.Query("btn"), c.Query("key"), c.Query("score")
 	if len(key) > 0 {
 		_, err := strconv.ParseUint(key, 10, 64)
 		if err != nil {
-			ctx.Redirect(h.App.Cf.Site.MainDomain+"/", 302)
+			c.Redirect(302, "/")
 			return
 		}
 	}
 	if len(score) > 0 {
 		_, err := strconv.ParseUint(score, 10, 64)
 		if err != nil {
-			ctx.Redirect(h.App.Cf.Site.MainDomain+"/", 302)
+			c.Redirect(302, "/")
 			return
 		}
 	}
@@ -84,7 +85,7 @@ func (h *BaseHandler) MemberPage(ctx *fasthttp.RequestCtx) {
 	}
 
 	var titleText string
-	lstType := sdb.B2s(ctx.FormValue("type"))
+	lstType := c.Query("type")
 	if lstType == "comment" {
 		titleText = "评论的主题"
 	} else {
@@ -133,6 +134,7 @@ func (h *BaseHandler) MemberPage(ctx *fasthttp.RequestCtx) {
 		}
 	}
 
-	ctx.SetContentType("text/html; charset=utf-8")
-	ybs.WritePageTemplate(ctx, evn)
+	c.Header("Content-Type", "text/html; charset=utf-8")
+	c.Status(http.StatusOK)
+	ybs.WritePageTemplate(c.Writer, evn)
 }

@@ -122,7 +122,7 @@ Page prints a page implementing Page interface.
 <ul class="pure-menu-list">
     {% if p.CurrentUser.ID > 0 %}
     <li class="pure-menu-item pure-menu-has-children pure-menu-allow-hover">
-        <a href="#" id="menuLink1" class="pure-menu-link" style="padding: .5em 1em;"><img class="avatar" src="/static/avatar/{%dul p.CurrentUser.ID %}.jpg" alt="{%s p.CurrentUser.Name %} avatar"/></a>
+        <a href="#" id="menuLink1" class="pure-menu-link" style="padding: .5em 1em;"><img class="avatar" src="/avatar/{%dul p.CurrentUser.ID %}.jpg" alt="{%s p.CurrentUser.Name %} avatar"/></a>
         <ul class="pure-menu-children">
             <li class="pure-menu-item"><a href="/setting" class="pure-menu-link">设置</a></li>
             <li class="pure-menu-item"><a href="/logout" class="pure-menu-link menu-item-divided">退出</a></li>
@@ -188,7 +188,7 @@ This is a base MainBody
         <ul id="recent_comments">
             {% for k := range p.RecentComment %}
             <li>
-                <img alt="{%s p.RecentComment[k].Name %} avatar" src="/static/avatar/{%dul p.RecentComment[k].UserId %}.jpg" class="avatar"> <a href="{%s p.RecentComment[k].Link %}">{%s p.RecentComment[k].Content %}</a>
+                <img alt="{%s p.RecentComment[k].Name %} avatar" src="/avatar/{%dul p.RecentComment[k].UserId %}.jpg" class="avatar"> <a href="{%s p.RecentComment[k].Link %}">{%s p.RecentComment[k].Content %}</a>
             </li>
             {% endfor %}
         </ul>

@@ -1,23 +1,24 @@
 package controller
 
 import (
-	"github.com/ego008/goutils/json"
-	"github.com/ego008/sdb"
-	"github.com/rs/xid"
-	"github.com/valyala/fasthttp"
 	"goyoubbs/lib/weiboOAuth"
 	"goyoubbs/model"
 	"goyoubbs/util"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/ego008/goutils/json"
+	"github.com/ego008/sdb"
+	"github.com/gin-gonic/gin"
+	"github.com/rs/xid"
 )
 
-func (h *BaseHandler) WeiboOauthHandler(ctx *fasthttp.RequestCtx) {
+func (h *BaseHandler) WeiboOauthHandler(c *gin.Context) {
 	scf := h.App.Cf.Site
 	weibo, err := weiboOAuth.NewWeiboOAuth(scf.WeiboClientID, scf.WeiboClientSecret, scf.MainDomain+"/oauth/wb/callback")
 	if err != nil {
-		_, _ = ctx.WriteString(err.Error())
+		c.String(200, err.Error())
 		return
 	}
 	// weiboOAuth.Logging = true
@@ -27,51 +28,51 @@ func (h *BaseHandler) WeiboOauthHandler(ctx *fasthttp.RequestCtx) {
 
 	urlStr, err := weibo.GetAuthorizationURL(WeiboUrlState)
 	if err != nil {
-		_, _ = ctx.WriteString(err.Error())
+		c.String(200, err.Error())
 		return
 	}
 
-	_ = h.SetCookie(ctx, "WeiboUrlState", WeiboUrlState, 1)
-	ctx.Redirect(urlStr, fasthttp.StatusSeeOther)
+	_ = h.SetCookie(c, "WeiboUrlState", WeiboUrlState, 1)
+	c.Redirect(302, urlStr)
 }
 
-func (h *BaseHandler) WeiboOauthCallback(ctx *fasthttp.RequestCtx) {
-	WeiboUrlState := h.GetCookie(ctx, "WeiboUrlState")
+func (h *BaseHandler) WeiboOauthCallback(c *gin.Context) {
+	WeiboUrlState := h.GetCookie(c, "WeiboUrlState")
 	if len(WeiboUrlState) == 0 {
-		_, _ = ctx.WriteString(`WeiboUrlState cookie missed`)
+		c.String(200, `WeiboUrlState cookie missed`)
 		return
 	}
 
 	scf := h.App.Cf.Site
 	weibo, err := weiboOAuth.NewWeiboOAuth(scf.WeiboClientID, scf.WeiboClientSecret, scf.MainDomain+"/oauth/wb/callback")
 	if err != nil {
-		_, _ = ctx.WriteString(err.Error())
+		c.String(200, err.Error())
 		return
 	}
 	// weiboOAuth.Logging = true
 
-	code := sdb.B2s(ctx.FormValue("code"))
+	code := c.Query("code")
 	if code == "" {
-		_, _ = ctx.WriteString("Invalid code")
+		c.String(200, "Invalid code")
 		return
 	}
 
-	state := sdb.B2s(ctx.FormValue("state"))
+	state := c.Query("state")
 	if state != WeiboUrlState {
-		_, _ = ctx.WriteString("Invalid state")
+		c.String(200, "Invalid state")
 		return
 	}
 
 	token, err := weibo.GetAccessToken(code)
 	if err != nil {
-		_, _ = ctx.WriteString(err.Error())
+		c.String(200, err.Error())
 		return
 	}
 
 	wbUserID := token.UIDString
 
 	timeStamp := uint64(time.Now().UTC().Unix())
-	next := h.GetCookie(ctx, "next")
+	next := h.GetCookie(c, "next")
 
 	db := h.App.Db
 	authorKey := "wb:" + wbUserID
@@ -84,7 +85,7 @@ func (h *BaseHandler) WeiboOauthCallback(ctx *fasthttp.RequestCtx) {
 			// 已绑定用户名则直接登录
 			uObj, _ := model.UserGetById(db, obj.Uid)
 			if uObj.ID == 0 {
-				_, _ = ctx.WriteString("uid not found")
+				c.String(200, "uid not found")
 				return
 			}
 			sessionId := xid.New().String()
@@ -92,14 +93,14 @@ func (h *BaseHandler) WeiboOauthCallback(ctx *fasthttp.RequestCtx) {
 			uObj.Session = sessionId
 			jb, _ := json.Marshal(uObj)
 			_ = db.Hset(model.UserTbName, sdb.I2b(uObj.ID), jb)
-			_ = h.SetCookie(ctx, "SessionID", strconv.FormatUint(uObj.ID, 10)+":"+sessionId, 365)
+			_ = h.SetCookie(c, "SessionID", strconv.FormatUint(uObj.ID, 10)+":"+sessionId, 365)
 
 			if len(next) > 0 {
-				h.DelCookie(ctx, "next")
-				ctx.Redirect(scf.MainDomain+next, fasthttp.StatusSeeOther)
+				h.DelCookie(c, "next")
+				c.Redirect(302, scf.MainDomain+next)
 				return
 			}
-			ctx.Redirect(scf.MainDomain+"/", fasthttp.StatusSeeOther)
+			c.Redirect(302, scf.MainDomain+"/")
 			return
 		}
 	}
@@ -109,12 +110,12 @@ func (h *BaseHandler) WeiboOauthCallback(ctx *fasthttp.RequestCtx) {
 	// 绑定用户名，跳到注册页面，填写默认登录名
 
 	if scf.CloseReg {
-		_, _ = ctx.WriteString(`stop to new register`)
+		c.String(200, `stop to new register`)
 		return
 	}
 
 	// 保存 openid ，以便在 注册 时取出可用登录名及注册成功后自动获取头像
-	_ = h.SetCookie(ctx, "openid", authorKey, 1)
+	_ = h.SetCookie(c, "openid", authorKey, 1)
 
 	// 获取用户名和头像
 	profile, err := weibo.GetUserInfo(token.AccessToken, wbUserID)
@@ -133,12 +134,12 @@ func (h *BaseHandler) WeiboOauthCallback(ctx *fasthttp.RequestCtx) {
 			OpenId:  wbUserID,
 			Name:    name,
 			Avatar:  profile.Avatar,
-			Agent:   sdb.B2s(ctx.UserAgent()),
+			Agent:   c.Request.UserAgent(),
 			About:   profile.Description,
 			Url:     profile.URL,
 		})
 		_ = db.Hset("oauth_tmp_info", sdb.S2b(authorKey), jb)
 	}
 
-	ctx.Redirect(scf.MainDomain+"/register", fasthttp.StatusSeeOther)
+	c.Redirect(302, scf.MainDomain+"/register")
 }

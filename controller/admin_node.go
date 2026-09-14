@@ -1,17 +1,18 @@
 package controller
 
 import (
-	"github.com/ego008/sdb"
-	"github.com/valyala/fasthttp"
 	"goyoubbs/model"
 	"goyoubbs/views/admin"
+	"net/http"
 	"strconv"
+
+	"github.com/gin-gonic/gin"
 )
 
-func (h *BaseHandler) AdminNodePage(ctx *fasthttp.RequestCtx) {
-	curUser, _ := h.CurrentUser(ctx)
+func (h *BaseHandler) AdminNodePage(c *gin.Context) {
+	curUser, _ := h.CurrentUser(c)
 	if curUser.Flag < model.FlagAdmin {
-		ctx.Redirect(h.App.Cf.Site.MainDomain+"/admin", 302)
+		c.Redirect(302, "/admin")
 		return
 	}
 
@@ -28,7 +29,7 @@ func (h *BaseHandler) AdminNodePage(ctx *fasthttp.RequestCtx) {
 	//
 	evn.Act = "添加"
 	evn.Node = model.Node{}
-	_id := sdb.B2s(ctx.FormValue("id"))
+	_id := c.Query("id")
 	if len(_id) > 0 {
 		idi, _ := strconv.ParseUint(_id, 10, 64)
 		evn.Node = model.Node{}
@@ -43,19 +44,20 @@ func (h *BaseHandler) AdminNodePage(ctx *fasthttp.RequestCtx) {
 	evn.HasTopicReview = model.CheckHasTopic2Review(h.App.Db)
 	evn.HasReplyReview = model.CheckHasComment2Review(h.App.Db)
 
-	ctx.SetContentType("text/html; charset=utf-8")
-	admin.WritePageTemplate(ctx, evn)
+	c.Header("Content-Type", "text/html; charset=utf-8")
+	c.Status(http.StatusOK)
+	admin.WritePageTemplate(c.Writer, evn)
 }
 
-func (h *BaseHandler) AdminNodePost(ctx *fasthttp.RequestCtx) {
-	curUser, _ := h.CurrentUser(ctx)
+func (h *BaseHandler) AdminNodePost(c *gin.Context) {
+	curUser, _ := h.CurrentUser(c)
 	if curUser.Flag < model.FlagAdmin {
-		ctx.Redirect(h.App.Cf.Site.MainDomain+"/login", 302)
+		c.Redirect(302, "/login")
 		return
 	}
 
 	var id uint64
-	_id := string(ctx.FormValue("id"))
+	_id := c.Query("id")
 	if len(_id) > 0 {
 		idI, err := strconv.ParseUint(_id, 10, 64)
 		if err == nil {
@@ -65,14 +67,14 @@ func (h *BaseHandler) AdminNodePost(ctx *fasthttp.RequestCtx) {
 
 	obj := model.Node{}
 	obj.ID = id
-	obj.Name = string(ctx.FormValue("Name"))
-	obj.Score, _ = strconv.Atoi(string(ctx.FormValue("Score")))
-	obj.About = string(ctx.FormValue("About"))
+	obj.Name = c.PostForm("Name")
+	obj.Score, _ = strconv.Atoi(c.PostForm("Score"))
+	obj.About = c.PostForm("About")
 
 	_, _ = model.NodeSet(h.App.Db, obj)
 
 	// 删除缓存
 	h.App.Mc.Del([]byte("NodeGetAll"))
 
-	ctx.Redirect(h.App.Cf.Site.MainDomain+"/admin/node", 302)
+	c.Redirect(302, "/admin/node")
 }

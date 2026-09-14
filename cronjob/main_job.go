@@ -1,11 +1,12 @@
 package cronjob
 
 import (
-	"github.com/ego008/sdb"
 	"goyoubbs/model"
 	"goyoubbs/util"
 	"sync/atomic"
 	"time"
+
+	"github.com/ego008/sdb"
 )
 
 type BaseHandler struct {

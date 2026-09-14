@@ -3,10 +3,12 @@ package controller
 import (
 	"bytes"
 	"errors"
-	"github.com/ego008/captcha"
-	"github.com/valyala/fasthttp"
+	"net/http"
 	"path"
 	"strings"
+
+	"github.com/ego008/captcha"
+	"github.com/gin-gonic/gin"
 )
 
 var (
@@ -14,47 +16,45 @@ var (
 	captchaImgHeight = captcha.StdHeight
 )
 
-func (h *BaseHandler) CaptchaHandle(ctx *fasthttp.RequestCtx) {
-	dir, file := path.Split(string(ctx.URI().Path()))
+func (h *BaseHandler) CaptchaHandle(c *gin.Context) {
+	dir, file := path.Split(c.Request.URL.Path)
 	ext := path.Ext(file)
 	id := file[:len(file)-len(ext)]
 	if ext == "" || id == "" {
-		ctx.NotFound()
+		c.Status(http.StatusNotFound)
 		return
 	}
-	if len(ctx.FormValue("reload")) > 0 {
+	if len(c.Query("reload")) > 0 {
 		captcha.Reload(id)
 	}
-	lang := strings.ToLower(string(ctx.FormValue("lang")))
+	lang := strings.ToLower(c.Query("lang"))
 	download := path.Base(dir) == "download"
-	if errors.Is(captchaServeFastHTTP(ctx, id, ext, lang, download), captcha.ErrNotFound) {
-		ctx.NotFound()
+	if errors.Is(captchaServeFastHTTP(c, id, ext, lang, download), captcha.ErrNotFound) {
+		c.Status(http.StatusNotFound)
 	}
 }
 
-func captchaServeFastHTTP(ctx *fasthttp.RequestCtx, id, ext, lang string, download bool) error {
-	ctx.Response.Header.Set("Cache-Control", "no-cache, no-store, must-revalidate")
-	ctx.Response.Header.Set("Pragma", "no-cache")
-	ctx.Response.Header.Set("Expires", "0")
+func captchaServeFastHTTP(c *gin.Context, id, ext, lang string, download bool) error {
+	c.Header("Cache-Control", "no-cache, no-store, must-revalidate")
+	c.Header("Pragma", "no-cache")
+	c.Header("Expires", "0")
 
 	var content bytes.Buffer
 	switch ext {
 	case ".png":
-		ctx.Response.Header.Set("Content-Type", "image/png")
+		c.Header("Content-Type", "image/png")
 		_ = captcha.WriteImage(&content, id, captchaImgWidth, captchaImgHeight)
 	case ".wav":
-		ctx.Response.Header.Set("Content-Type", "audio/x-wav")
+		c.Header("Content-Type", "audio/x-wav")
 		_ = captcha.WriteAudio(&content, id, lang)
 	default:
 		return captcha.ErrNotFound
 	}
 
 	if download {
-		ctx.Response.Header.Set("Content-Type", "application/octet-stream")
+		c.Header("Content-Type", "application/octet-stream")
 	}
 
-	ctx.SetStatusCode(fasthttp.StatusOK)
-	ctx.SetBody(content.Bytes())
-
+	c.String(http.StatusOK, content.String())
 	return nil
 }

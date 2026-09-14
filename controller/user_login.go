@@ -1,25 +1,27 @@
 package controller
 
 import (
-	"github.com/ego008/captcha"
-	"github.com/ego008/goutils/json"
-	"github.com/ego008/sdb"
-	"github.com/rs/xid"
-	"github.com/valyala/fasthttp"
 	"goyoubbs/model"
 	"goyoubbs/util"
 	"goyoubbs/views/ybs"
+	"net/http"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/ego008/captcha"
+	"github.com/ego008/goutils/json"
+	"github.com/ego008/sdb"
+	"github.com/gin-gonic/gin"
+	"github.com/rs/xid"
 )
 
 // UserLoginPage 把这个页面放到这里为了解决验证码不显示的bug
-func (h *BaseHandler) UserLoginPage(ctx *fasthttp.RequestCtx) {
+func (h *BaseHandler) UserLoginPage(c *gin.Context) {
 
 	scf := h.App.Cf.Site
 
-	act := strings.TrimLeft(sdb.B2s(ctx.RequestURI()), "/")
+	act := strings.TrimLeft(c.Request.URL.Path, "/")
 	title := "登录"
 	if act == "register" {
 		title = "注册"
@@ -36,7 +38,7 @@ func (h *BaseHandler) UserLoginPage(ctx *fasthttp.RequestCtx) {
 	evn.CaptchaId = captcha.New()
 
 	// 继承第三方登录信息
-	openid := h.GetCookie(ctx, "openid")
+	openid := h.GetCookie(c, "openid")
 	if openid != "" {
 		if rs := h.App.Db.Hget("oauth_tmp_info", []byte(openid[3:])); rs.OK() {
 			obj := model.AuthProfileInfo{}
@@ -48,7 +50,7 @@ func (h *BaseHandler) UserLoginPage(ctx *fasthttp.RequestCtx) {
 	if openid == "" { // 避免第三方登录循环
 		if !scf.AllowNameReg && act == "register" {
 			// 只允许第三方账户登录或已注册用户登录
-			ctx.Redirect(scf.MainDomain+"/login", 302)
+			c.Redirect(302, scf.MainDomain+"/login")
 			return
 		}
 		if scf.QQClientID != "" || scf.WeiboClientID != "" || scf.GithubClientID != "" {
@@ -56,26 +58,27 @@ func (h *BaseHandler) UserLoginPage(ctx *fasthttp.RequestCtx) {
 		}
 	}
 
-	token := h.GetCookie(ctx, "token")
+	token := h.GetCookie(c, "token")
 	if len(token) == 0 {
 		token = xid.New().String()
-		_ = h.SetCookie(ctx, "token", token, 1)
+		_ = h.SetCookie(c, "token", token, 1)
 	}
 
-	ctx.SetContentType("text/html; charset=utf-8")
-	ybs.WritePageTemplate(ctx, evn)
+	c.Header("Content-Type", "text/html; charset=utf-8")
+	c.Status(http.StatusOK)
+	ybs.WritePageTemplate(c.Writer, evn)
 }
 
-func (h *BaseHandler) UserLoginPost(ctx *fasthttp.RequestCtx) {
-	ctx.SetContentType("application/json; charset=UTF-8")
+func (h *BaseHandler) UserLoginPost(c *gin.Context) {
+	c.Header("Content-Type", "application/json; charset=UTF-8")
 
-	token := h.GetCookie(ctx, "token")
+	token := h.GetCookie(c, "token")
 	if len(token) == 0 {
-		_, _ = ctx.WriteString(`{"Code":400,"Msg":"token cookie missed"}`)
+		c.String(200, `{"Code":400,"Msg":"token cookie missed"}`)
 		return
 	}
 
-	act := strings.TrimLeft(sdb.B2s(ctx.RequestURI()), "/")
+	act := strings.TrimLeft(c.Request.URL.Path, "/")
 
 	type recForm struct {
 		Name            string
@@ -89,26 +92,26 @@ func (h *BaseHandler) UserLoginPost(ctx *fasthttp.RequestCtx) {
 	}
 
 	var rec recForm
-	err := util.Bind(ctx, util.JSON, &rec)
+	err := util.Bind(c, util.JSON, &rec)
 	if err != nil {
-		_, _ = ctx.WriteString(`{"Code":400,"Msg":"unable to read body"}`)
+		c.String(200, `{"Code":400,"Msg":"unable to read body"}`)
 		return
 	}
 
 	if len(rec.Name) == 0 || len(rec.Password) == 0 {
-		_, _ = ctx.WriteString(`{"Code":400,"Msg":"name or pw is empty"}`)
+		c.String(200, `{"Code":400,"Msg":"name or pw is empty"}`)
 		return
 	}
 	nameLow := strings.ToLower(strings.TrimSpace(rec.Name))
 	if !util.IsNickname(nameLow) {
-		_, _ = ctx.WriteString(`{"Code":400,"Msg":"name fmt err"}`)
+		c.String(200, `{"Code":400,"Msg":"name fmt err"}`)
 		return
 	}
 
 	// 验证码校验
 	if !captcha.VerifyString(rec.CaptchaId, rec.CaptchaSolution) {
 		// 验证码校验后会注销，以下若有出错返回都要重新生成CaptchaId，错误代码405
-		_, _ = ctx.WriteString(`{"Code":405,"Msg":"验证码错误","NewCaptchaId":"` + captcha.New() + `"}`)
+		c.String(200, `{"Code":405,"Msg":"验证码错误","NewCaptchaId":"`+captcha.New()+`"}`)
 		return
 	}
 
@@ -122,9 +125,9 @@ func (h *BaseHandler) UserLoginPost(ctx *fasthttp.RequestCtx) {
 	if act == "login" {
 
 		tbn := "user_login_pw_err"
-		clientIp := ReadUserIP(ctx)
+		clientIp := ReadUserIP(c)
 		if len(clientIp) == 0 {
-			_, _ = ctx.WriteString(`{"Code":405,"Msg":"clientIp is empty","NewCaptchaId":"` + captcha.New() + `"}`)
+			c.String(200, `{"Code":405,"Msg":"clientIp is empty","NewCaptchaId":"`+captcha.New()+`"}`)
 			return
 		}
 
@@ -133,7 +136,7 @@ func (h *BaseHandler) UserLoginPost(ctx *fasthttp.RequestCtx) {
 		nowTm := time.Now().Unix()
 		if tm := db.HgetInt(tbn, []byte(clientIp)); tm > 0 {
 			if nowTm-int64(tm) < offSetSeconds {
-				_, _ = ctx.WriteString(`{"Code":405,"Msg":"sleep 2 min","NewCaptchaId":"` + captcha.New() + `"}`)
+				c.String(200, `{"Code":405,"Msg":"sleep 2 min","NewCaptchaId":"`+captcha.New()+`"}`)
 				return
 			}
 			hasDelKey = true
@@ -141,13 +144,13 @@ func (h *BaseHandler) UserLoginPost(ctx *fasthttp.RequestCtx) {
 
 		uobj, err := model.UserGetByName(db, nameLow)
 		if err != nil {
-			//_, _ = ctx.WriteString(`{"Code":405,"Msg":"json Decode err:` + err.Error() + `","NewCaptchaId":"` + captcha.New() + `"}`)
-			_, _ = ctx.WriteString(`{"Code":405,"Msg":"用户不存在","NewCaptchaId":"` + captcha.New() + `"}`)
+			//c.String(200, `{"Code":405,"Msg":"json Decode err:` + err.Error() + `","NewCaptchaId":"` + captcha.New() + `"}`)
+			c.String(200, `{"Code":405,"Msg":"用户不存在","NewCaptchaId":"`+captcha.New()+`"}`)
 			return
 		}
 		if uobj.Password != rec.Password {
 			_ = db.Hset(tbn, []byte(clientIp), sdb.I2b(uint64(nowTm)))
-			_, _ = ctx.WriteString(`{"Code":405,"Msg":"name and pw not match","NewCaptchaId":"` + captcha.New() + `"}`)
+			c.String(200, `{"Code":405,"Msg":"name and pw not match","NewCaptchaId":"`+captcha.New()+`"}`)
 			return
 		}
 		if hasDelKey {
@@ -159,7 +162,7 @@ func (h *BaseHandler) UserLoginPost(ctx *fasthttp.RequestCtx) {
 		uobj.Session = sessionid
 		jb, _ := json.Marshal(uobj)
 		_ = db.Hset(model.UserTbName, sdb.I2b(uobj.ID), jb)
-		_ = h.SetCookie(ctx, "SessionID", strconv.FormatUint(uobj.ID, 10)+":"+sessionid, 365)
+		_ = h.SetCookie(c, "SessionID", strconv.FormatUint(uobj.ID, 10)+":"+sessionid, 365)
 
 		loggedUid = uobj.ID
 	} else {
@@ -168,11 +171,11 @@ func (h *BaseHandler) UserLoginPost(ctx *fasthttp.RequestCtx) {
 
 		if db.HgetInt(model.CountTb, sdb.S2b(model.UserTbName)) > 0 {
 			if siteCf.CloseReg {
-				_, _ = ctx.WriteString(`{"Code":405,"Msg":"stop to new register","NewCaptchaId":"` + captcha.New() + `"}`)
+				c.String(200, `{"Code":405,"Msg":"stop to new register","NewCaptchaId":"`+captcha.New()+`"}`)
 				return
 			}
 			if db.Hget("user_name2uid", []byte(nameLow)).State == "ok" {
-				_, _ = ctx.WriteString(`{"Code":405,"Msg":"name is exist","NewCaptchaId":"` + captcha.New() + `"}`)
+				c.String(200, `{"Code":405,"Msg":"name is exist","NewCaptchaId":"`+captcha.New()+`"}`)
 				return
 			}
 		}
@@ -206,13 +209,13 @@ func (h *BaseHandler) UserLoginPost(ctx *fasthttp.RequestCtx) {
 		_ = util.GenAvatar(db, uobj.ID, uobj.Name)
 		autoAvatar = true
 
-		_ = h.SetCookie(ctx, "SessionID", strconv.FormatUint(uobj.ID, 10)+":"+uobj.Session, 365)
+		_ = h.SetCookie(c, "SessionID", strconv.FormatUint(uobj.ID, 10)+":"+uobj.Session, 365)
 
 		loggedUid = uobj.ID
 	}
 
 	// 绑定第三方登录信息
-	openid := h.GetCookie(ctx, "openid") // authorKey
+	openid := h.GetCookie(c, "openid") // authorKey
 	if openid != "" {
 		if rs := h.App.Db.Hget("oauth2user", []byte(openid)); rs.OK() {
 			obj := model.AuthInfo{}
@@ -241,23 +244,23 @@ func (h *BaseHandler) UserLoginPost(ctx *fasthttp.RequestCtx) {
 			}
 		}
 	}
-	h.DelCookie(ctx, "openid")
+	h.DelCookie(c, "openid")
 
 	//
-	h.DelCookie(ctx, "token")
+	h.DelCookie(c, "token")
 
 	rsp := response{}
 	rsp.Code = 200
-	_ = json.NewEncoder(ctx).Encode(rsp)
+	_ = json.NewEncoder(c.Writer).Encode(rsp)
 }
 
-func (h *BaseHandler) UserLogout(ctx *fasthttp.RequestCtx) {
-	curUser, _ := h.CurrentUser(ctx)
+func (h *BaseHandler) UserLogout(c *gin.Context) {
+	curUser, _ := h.CurrentUser(c)
 	if curUser.ID > 0 {
 		cks := []string{"SessionID", "token"}
 		for _, k := range cks {
-			h.DelCookie(ctx, k)
+			h.DelCookie(c, k)
 		}
 	}
-	ctx.Redirect(h.App.Cf.Site.MainDomain+"/", fasthttp.StatusSeeOther)
+	c.Redirect(302, "/")
 }

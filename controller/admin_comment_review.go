@@ -1,20 +1,22 @@
 package controller
 
 import (
-	"github.com/ego008/goutils/json"
-	"github.com/ego008/sdb"
-	"github.com/valyala/fasthttp"
 	"goyoubbs/model"
 	"goyoubbs/util"
 	"goyoubbs/views/admin"
+	"net/http"
 	"strconv"
 	"strings"
+
+	"github.com/ego008/goutils/json"
+	"github.com/ego008/sdb"
+	"github.com/gin-gonic/gin"
 )
 
-func (h *BaseHandler) AdminCommentReviewPage(ctx *fasthttp.RequestCtx) {
-	curUser, _ := h.CurrentUser(ctx)
+func (h *BaseHandler) AdminCommentReviewPage(c *gin.Context) {
+	curUser, _ := h.CurrentUser(c)
 	if curUser.Flag < model.FlagAdmin {
-		ctx.Redirect(h.App.Cf.Site.MainDomain+"/admin", 302)
+		c.Redirect(302, "/admin")
 		return
 	}
 
@@ -27,7 +29,7 @@ func (h *BaseHandler) AdminCommentReviewPage(ctx *fasthttp.RequestCtx) {
 	evn.Title = "待审核评论"
 	evn.PageName = "admin_comment_review"
 
-	act := sdb.B2s(ctx.QueryArgs().Peek("act"))
+	act := c.Query("act")
 	var delKey []byte // 待删除的key
 	// 取待审核信息
 	var rec model.Comment
@@ -47,7 +49,7 @@ func (h *BaseHandler) AdminCommentReviewPage(ctx *fasthttp.RequestCtx) {
 		_ = db.Hdel(model.CommentReviewTbName, delKey)
 		// 删掉个人待审核列表
 		_ = db.Hdel("review_comment:"+strconv.FormatUint(rec.UserId, 10), delKey)
-		ctx.Redirect(h.App.Cf.Site.MainDomain+"/admin/comment/review", 302)
+		c.Redirect(302, "/admin/comment/review")
 		return
 	}
 
@@ -74,30 +76,31 @@ func (h *BaseHandler) AdminCommentReviewPage(ctx *fasthttp.RequestCtx) {
 	evn.HasTopicReview = model.CheckHasTopic2Review(h.App.Db)
 	evn.HasReplyReview = model.CheckHasComment2Review(h.App.Db)
 
-	ctx.SetContentType("text/html; charset=utf-8")
-	admin.WritePageTemplate(ctx, evn)
+	c.Header("Content-Type", "text/html; charset=utf-8")
+	c.Status(http.StatusOK)
+	admin.WritePageTemplate(c.Writer, evn)
 }
 
 // AdminCommentReviewPost 管理员编辑与审核公用
-func (h *BaseHandler) AdminCommentReviewPost(ctx *fasthttp.RequestCtx) {
-	ctx.SetContentType("application/json; charset=UTF-8")
+func (h *BaseHandler) AdminCommentReviewPost(c *gin.Context) {
+	c.Header("Content-Type", "application/json; charset=UTF-8")
 
-	curUser, _ := h.CurrentUser(ctx)
+	curUser, _ := h.CurrentUser(c)
 	if curUser.Flag < model.FlagAdmin {
-		_, _ = ctx.WriteString(`{"Code":401,"Msg":"请先登录"}`)
+		c.String(200, `{"Code":401,"Msg":"请先登录"}`)
 		return
 	}
 
 	var rec model.Comment
-	err := util.Bind(ctx, util.JSON, &rec)
+	err := util.Bind(c, util.JSON, &rec)
 	if err != nil {
-		_, _ = ctx.WriteString(`{"Code":400,"Msg":"unable to read body"}`)
+		c.String(200, `{"Code":400,"Msg":"unable to read body"}`)
 		return
 	}
 
 	rec.Content = strings.TrimSpace(rec.Content)
 	if len(rec.Content) == 0 {
-		_, _ = ctx.WriteString(`{"Code":400,"Msg":"评论内容不能为空"}`)
+		c.String(200, `{"Code":400,"Msg":"评论内容不能为空"}`)
 		return
 	}
 
@@ -113,7 +116,7 @@ func (h *BaseHandler) AdminCommentReviewPost(ctx *fasthttp.RequestCtx) {
 	if isEdit {
 		comment = model.CommentGetById(db, rec.TopicId, rec.ID)
 		if comment.ID == 0 {
-			_, _ = ctx.WriteString(`{"Code":400,"Msg":"该 id 不存在"}`)
+			c.String(200, `{"Code":400,"Msg":"该 id 不存在"}`)
 			return
 		}
 		comment.Content = rec.Content
@@ -121,7 +124,7 @@ func (h *BaseHandler) AdminCommentReviewPost(ctx *fasthttp.RequestCtx) {
 		// 删缓存
 		h.App.Mc.Del([]byte("CommentGetRecent"))
 		h.App.Mc.Del([]byte(model.CommentTbName + strconv.FormatUint(rec.TopicId, 10)))
-		_, _ = ctx.WriteString(`{"Code":200,"Msg":"成功编辑"}`)
+		c.String(200, `{"Code":200,"Msg":"成功编辑"}`)
 		return
 	}
 
@@ -145,5 +148,5 @@ func (h *BaseHandler) AdminCommentReviewPost(ctx *fasthttp.RequestCtx) {
 	// 发表者
 	_ = db.Hdel(model.CommentReviewTbName+":"+strconv.FormatUint(comment.UserId, 10), reviewKey)
 
-	_ = json.NewEncoder(ctx).Encode(rsp)
+	_ = json.NewEncoder(c.Writer).Encode(rsp)
 }

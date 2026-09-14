@@ -1,53 +1,54 @@
 package controller
 
 import (
-	"github.com/ego008/sdb"
-	"github.com/valyala/fasthttp"
 	"goyoubbs/model"
 	"goyoubbs/views/ybs"
+	"net/http"
 	"net/url"
 	"strconv"
 	"strings"
+
+	"github.com/gin-gonic/gin"
 )
 
-func (h *BaseHandler) TagPage(ctx *fasthttp.RequestCtx) {
-	curUser, _ := h.CurrentUser(ctx)
+func (h *BaseHandler) TagPage(c *gin.Context) {
+	curUser, _ := h.CurrentUser(c)
 
 	if h.App.Cf.Site.Authorized && curUser.Flag < model.FlagAuthor {
 		if curUser.ID == 0 {
-			ctx.Redirect(h.App.Cf.Site.MainDomain+"/login", 302)
+			c.Redirect(302, "/login")
 			return
 		}
-		ctx.Redirect(h.App.Cf.Site.MainDomain+"/setting", 302)
+		c.Redirect(302, "/setting")
 		return
 	}
 
 	db := h.App.Db
 	scf := h.App.Cf.Site
 
-	tagRaw := ctx.UserValue("tag").(string)
+	tagRaw := c.Param("tag")
 	if tag, err := url.QueryUnescape(tagRaw); err == nil {
 		tagRaw = tag
 	}
 	tagLower := strings.ToLower(tagRaw)
 	if !db.Hscan("tag:"+tagLower, nil, 1).OK() {
 		// 该标签下文章数为0
-		ctx.Redirect(h.App.Cf.Site.MainDomain+"/", 302)
+		c.Redirect(302, "/")
 		return
 	}
 
-	btn, key, score := sdb.B2s(ctx.FormValue("btn")), sdb.B2s(ctx.FormValue("key")), sdb.B2s(ctx.FormValue("score"))
+	btn, key, score := c.Query("btn"), c.Query("key"), c.Query("score")
 	if len(key) > 0 {
 		_, err := strconv.ParseUint(key, 10, 64)
 		if err != nil {
-			ctx.Redirect(h.App.Cf.Site.MainDomain+"/", 302)
+			c.Redirect(302, "/")
 			return
 		}
 	}
 	if len(score) > 0 {
 		_, err := strconv.ParseUint(score, 10, 64)
 		if err != nil {
-			ctx.Redirect(h.App.Cf.Site.MainDomain+"/", 302)
+			c.Redirect(302, "/")
 			return
 		}
 	}
@@ -79,6 +80,7 @@ func (h *BaseHandler) TagPage(ctx *fasthttp.RequestCtx) {
 		}
 	}
 
-	ctx.SetContentType("text/html; charset=utf-8")
-	ybs.WritePageTemplate(ctx, evn)
+	c.Header("Content-Type", "text/html; charset=utf-8")
+	c.Status(http.StatusOK)
+	ybs.WritePageTemplate(c.Writer, evn)
 }

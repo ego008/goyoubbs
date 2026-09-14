@@ -81,7 +81,7 @@ func (p *SearchPage) StreamMainBody(qw422016 *qt422016.Writer) {
 //line views/ybs/search.qtpl:18
 			qw422016.E().S(item.Title)
 //line views/ybs/search.qtpl:18
-			qw422016.N().S(` icon" src="/static/avatar/`)
+			qw422016.N().S(` icon" src="/avatar/`)
 //line views/ybs/search.qtpl:18
 			qw422016.N().DUL(item.UserId)
 //line views/ybs/search.qtpl:18

@@ -1,13 +1,6 @@
 package controller
 
 import (
-	"github.com/ego008/sdb"
-	"github.com/klauspost/compress/zip"
-	"github.com/syndtr/goleveldb/leveldb"
-	"github.com/syndtr/goleveldb/leveldb/filter"
-	"github.com/syndtr/goleveldb/leveldb/opt"
-	ldbUtil "github.com/syndtr/goleveldb/leveldb/util"
-	"github.com/valyala/fasthttp"
 	"goyoubbs/model"
 	"goyoubbs/util"
 	"io"
@@ -16,12 +9,20 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
+
+	"github.com/ego008/sdb"
+	"github.com/gin-gonic/gin"
+	"github.com/klauspost/compress/zip"
+	"github.com/syndtr/goleveldb/leveldb"
+	"github.com/syndtr/goleveldb/leveldb/filter"
+	"github.com/syndtr/goleveldb/leveldb/opt"
+	ldbUtil "github.com/syndtr/goleveldb/leveldb/util"
 )
 
-func (h *BaseHandler) AdminCurDbPage(ctx *fasthttp.RequestCtx) {
-	curUser, _ := h.CurrentUser(ctx)
+func (h *BaseHandler) AdminCurDbPage(c *gin.Context) {
+	curUser, _ := h.CurrentUser(c)
 	if curUser.Flag < model.FlagAdmin {
-		ctx.Redirect(h.App.Cf.Site.MainDomain+"/admin", 302)
+		c.Redirect(302, "/admin")
 		return
 	}
 
@@ -106,10 +107,10 @@ func (h *BaseHandler) AdminCurDbPage(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
-	ctx.SetContentType("application/zip")
+	c.Header("Content-Type", "application/zip")
 
-	ctx.Response.Header.Set("Content-Disposition", "attachment; filename="+zipName)
-	ctx.SendFile(zipName)
+	c.Header("Content-Disposition", "attachment; filename="+zipName)
+	c.File(zipName)
 	return
 }
 

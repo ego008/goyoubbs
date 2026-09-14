@@ -1,22 +1,26 @@
 package main
 
 import (
+	"context"
 	"crypto/tls"
 	"embed"
 	"flag"
-	"github.com/valyala/fasthttp"
-	"golang.org/x/crypto/acme"
-	"golang.org/x/crypto/acme/autocert"
-	"goyoubbs/controller"
-	"goyoubbs/cronjob"
-	mdw "goyoubbs/middleware"
-	"goyoubbs/model"
 	"log"
 	"net"
+	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
+
+	"goyoubbs/controller"
+	"goyoubbs/cronjob"
+	mdw "goyoubbs/middleware"
+	"goyoubbs/model"
+
+	"github.com/gin-gonic/gin"
+	"golang.org/x/crypto/acme"
+	"golang.org/x/crypto/acme/autocert"
 )
 
 //go:embed static
@@ -41,59 +45,65 @@ func main() {
 	cr := cronjob.BaseHandler{App: myApp}
 	go cr.MainCronJob()
 
-	// 挂载路由
-	controller.RouterReload(myApp)
-	mux := myApp.Mux
+	// 初始化 Gin 引擎
+	router := gin.New()
+	router.Use(gin.Logger(), gin.Recovery())
 
-	var hd fasthttp.RequestHandler
+	// 开发模式下挂载无缓存中间件（需要确保 mdw.RspNoCache 适配了 gin.HandlerFunc）
 	if myApp.Cf.Site.IsDevMod {
-		hd = mdw.RspNoCache(mux.Handler)
-	} else {
-		hd = mux.Handler
+		router.Use(mdw.RspNoCache())
 	}
+
+	// 挂载路由（请注意修改 controller.RouterReload 使其接收 *gin.Engine 或将 router 挂载到 myApp）
+	myApp.Mux = router // 假设在 model.Application 中添加了 GinEngine 字段
+	controller.RouterReload(myApp)
 
 	log.Printf("Serving sdb from directory %q", *sdbDir)
 
-	srv := &fasthttp.Server{
-		Handler:         hd,
-		Name:            "gyb Service",
-		ReadBufferSize:  4096,
-		WriteBufferSize: 4096,
-		// MaxConnsPerIP:
-		// MaxRequestsPerConn:
-		DisableKeepalive:              true,
-		DisableHeaderNamesNormalizing: true,
-		ReadTimeout:                   200 * time.Second, // important
-		WriteTimeout:                  300 * time.Second,
-		IdleTimeout:                   time.Minute,
-		MaxRequestBodySize:            2000 << 20, // 100MB，上传文件最大值
+	// 配置 http.Server 参数（替代 fasthttp.Server）
+	srv := &http.Server{
+		Addr:           *addr,
+		Handler:        router,
+		ReadTimeout:    200 * time.Second,
+		WriteTimeout:   300 * time.Second,
+		IdleTimeout:    time.Minute,
+		MaxHeaderBytes: 1 << 20, // 1MB header size limit
 	}
 
-	// server model
+	// 定义 HTTP 到 HTTPS 重定向 Handler
+	redirectHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		target := "https://" + *domain + r.URL.Path
+		if len(r.URL.RawQuery) > 0 {
+			target += "?" + r.URL.RawQuery
+		}
+		http.Redirect(w, r, target, http.StatusFound)
+	})
+
+	// Server mode 匹配
 	if len(*autoTLS) > 0 && len(*domain) > 0 {
 		// Let's Encrypt, auto cert
 		go func() {
-			log.Printf("TCP address to listen to %q", *addr)
-			if err := fasthttp.ListenAndServe(*addr, redirectHandler); err != nil {
+			log.Printf("HTTP redirect server listening on %q", *addr)
+			if err := http.ListenAndServe(*addr, redirectHandler); err != nil && err != http.ErrServerClosed {
 				log.Fatalf("HTTP server ListenAndServe: %v", err)
 			}
 		}()
 
 		m := &autocert.Manager{
 			Prompt:     autocert.AcceptTOS,
-			HostPolicy: autocert.HostWhitelist(*domain), // Replace with your domain.
+			HostPolicy: autocert.HostWhitelist(*domain),
 			Cache:      autocert.DirCache("./certs"),
 		}
 
 		cfg := &tls.Config{
 			GetCertificate: m.GetCertificate,
 			NextProtos: []string{
-				"http/1.1", acme.ALPNProto,
+				"h2", "http/1.1", acme.ALPNProto,
 			},
 		}
 
-		// Let's Encrypt tls-alpn-01 only works on port 443.
-		ln, err := net.Listen("tcp4", "0.0.0.0:443") /* #nosec G102 */
+		// Let's Encrypt tls-alpn-01 only works on port 443
+		ln, err := net.Listen("tcp4", "0.0.0.0:443")
 		if err != nil {
 			log.Fatalf("net Listen: %v", err)
 		}
@@ -101,65 +111,51 @@ func main() {
 		lnTls := tls.NewListener(ln, cfg)
 
 		go func() {
-			if err = srv.Serve(lnTls); err != nil {
+			if err := srv.Serve(lnTls); err != nil && err != http.ErrServerClosed {
 				log.Fatalf("HTTPS server: %v", err)
 			}
 		}()
 	} else if len(*certFile) > 0 && len(*keyFile) > 0 {
-		// TLS with ertFile & keyFile
-		//go func() {
-		//	log.Printf("TCP address to listen to %q", *addr)
-		//	if err := fasthttp.ListenAndServe(*addr, redirectHandler); err != nil {
-		//		log.Fatalf("HTTP server ListenAndServe: %v", err)
-		//	}
-		//}()
-
+		// TLS with certFile & keyFile
 		go func() {
-			if err := srv.ListenAndServeTLS("0.0.0.0"+*addr, *certFile, *keyFile); err != nil {
+			if err := srv.ListenAndServeTLS(*certFile, *keyFile); err != nil && err != http.ErrServerClosed {
 				log.Fatalf("HTTPS ListenAndServeTLS: %v", err)
 			}
 		}()
-
 	} else {
-		// only http
+		// Only HTTP
 		go func() {
 			log.Printf("TCP address to listen to %q", *addr)
-			if err := srv.ListenAndServe(*addr); err != nil {
+			if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 				log.Fatalf("HTTP server ListenAndServe: %v", err)
 			}
 		}()
 	}
 
-	// graceful stop
-	// subscribe to SIGINT signals
+	// 优雅关机（Graceful Shutdown）
 	signalChan := make(chan os.Signal, 1)
 	signal.Notify(
 		signalChan,
-		syscall.SIGHUP,  // kill -SIGHUP XXXX
-		syscall.SIGINT,  // kill -SIGINT XXXX or Ctrl+c
-		syscall.SIGTERM, // kill -SIGTERM XXXX
-		syscall.SIGQUIT, // kill -SIGQUIT XXXX
+		syscall.SIGHUP,
+		syscall.SIGINT,
+		syscall.SIGTERM,
+		syscall.SIGQUIT,
 	)
 
 	<-signalChan
-	log.Printf("os.Interrupt - shutting down...\n")
-	if err := srv.Shutdown(); err != nil {
-		log.Println("Shutdown err", err)
-		defer os.Exit(1)
+	log.Println("os.Interrupt - shutting down...")
+
+	// 设置关机超时上下文
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	if err := srv.Shutdown(ctx); err != nil {
+		log.Println("Shutdown err:", err)
+		os.Exit(1)
 	} else {
-		myApp.Close() // !important 留意上下文位置
+		myApp.Close() // 留意上下文位置
 		log.Println("gracefully stopped")
 	}
 
-	//go func() {
-	//	<-signalChan
-	//	log.Fatal("os.Kill - terminating...\n")
-	//}()
-
-	defer os.Exit(0)
-	return
-}
-
-func redirectHandler(ctx *fasthttp.RequestCtx) {
-	ctx.Redirect("https://"+*domain+string(ctx.RequestURI()), fasthttp.StatusFound)
+	os.Exit(0)
 }

@@ -2,40 +2,42 @@ package controller
 
 import (
 	"fmt"
-	"github.com/ego008/goutils/json"
-	"github.com/ego008/sdb"
-	"github.com/mssola/user_agent"
-	"github.com/rs/xid"
-	"github.com/valyala/fasthttp"
 	"goyoubbs/model"
 	"goyoubbs/util"
 	"goyoubbs/views/ybs"
 	"html"
+	"net/http"
 	"strconv"
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/ego008/goutils/json"
+	"github.com/ego008/sdb"
+	"github.com/gin-gonic/gin"
+	"github.com/mssola/user_agent"
+	"github.com/rs/xid"
 )
 
 var rangeLock = sync.Mutex{}
 
-func (h *BaseHandler) TopicDetailPage(ctx *fasthttp.RequestCtx) {
-	curUser, _ := h.CurrentUser(ctx)
+func (h *BaseHandler) TopicDetailPage(c *gin.Context) {
+	curUser, _ := h.CurrentUser(c)
 
 	if h.App.Cf.Site.Authorized && curUser.Flag < model.FlagAuthor {
 		if curUser.ID == 0 {
-			ctx.Redirect(h.App.Cf.Site.MainDomain+"/login", 302)
+			c.Redirect(302, "/login")
 			return
 		}
-		ctx.Redirect(h.App.Cf.Site.MainDomain+"/setting", 302)
+		c.Redirect(302, "/setting")
 		return
 	}
 
-	tid := ctx.UserValue("tid").(string)
+	tid := c.Param("tid")
 	tidInt, err := strconv.ParseUint(tid, 10, 64)
 	if err != nil {
-		_, _ = ctx.WriteString(tid + " tid not found")
-		//ctx.Redirect( "/", 302)
+		c.String(200, tid+" tid not found")
+		//c.Redirect(302, "/")
 		return
 	}
 
@@ -44,8 +46,8 @@ func (h *BaseHandler) TopicDetailPage(ctx *fasthttp.RequestCtx) {
 	topic := model.TopicGetById(db, tidInt)
 	if topic.ID == 0 {
 		// 不存在
-		ctx.SetStatusCode(fasthttp.StatusNotFound)
-		ctx.Redirect(h.App.Cf.Site.MainDomain+"/", 302)
+		c.Status(http.StatusNotFound)
+		c.Redirect(302, "/")
 		return
 	}
 	tidByte := sdb.I2b(topic.ID)
@@ -139,7 +141,7 @@ func (h *BaseHandler) TopicDetailPage(ctx *fasthttp.RequestCtx) {
 	// img list
 	if len(imgLst) == 0 {
 		//imgLst = append(imgLst, logoUrl) // for Json-LD
-		imgLst = append(imgLst, scf.MainDomain+"/static/avatar/"+strconv.FormatUint(author.ID, 10)+".jpg")
+		imgLst = append(imgLst, scf.MainDomain+"/avatar/"+strconv.FormatUint(author.ID, 10)+".jpg")
 	} else {
 		for i, v := range imgLst {
 			if strings.HasPrefix(v, "/static/") {
@@ -279,7 +281,7 @@ func (h *BaseHandler) TopicDetailPage(ctx *fasthttp.RequestCtx) {
 	evn.JsonLd = sdb.B2s(jb)
 	// Json-LD ed
 
-	ua := sdb.B2s(ctx.Request.Header.Peek("User-Agent"))
+	ua := c.GetHeader("User-Agent")
 	if len(ua) > 30 {
 		uaCli := user_agent.New(ua)
 		if !uaCli.Bot() {
@@ -301,34 +303,35 @@ func (h *BaseHandler) TopicDetailPage(ctx *fasthttp.RequestCtx) {
 		}
 	}
 
-	token := h.GetCookie(ctx, "token")
+	token := h.GetCookie(c, "token")
 	if len(token) == 0 {
 		token := xid.New().String()
-		_ = h.SetCookie(ctx, "token", token, 1)
+		_ = h.SetCookie(c, "token", token, 1)
 	}
 
-	ctx.SetContentType("text/html; charset=utf-8")
-	ybs.WritePageTemplate(ctx, evn)
+	c.Header("Content-Type", "text/html; charset=utf-8")
+	c.Status(http.StatusOK)
+	ybs.WritePageTemplate(c.Writer, evn)
 }
 
-func (h *BaseHandler) TopicDetailPost(ctx *fasthttp.RequestCtx) {
-	ctx.SetContentType("application/json; charset=UTF-8")
+func (h *BaseHandler) TopicDetailPost(c *gin.Context) {
+	c.Header("Content-Type", "application/json; charset=UTF-8")
 
-	curUser, _ := h.CurrentUser(ctx)
+	curUser, _ := h.CurrentUser(c)
 	if curUser.Flag < model.FlagAuthor {
-		_, _ = ctx.WriteString(`{"Code":401,"Msg":"请先登录 ->"}`)
+		c.String(200, `{"Code":401,"Msg":"请先登录 ->"}`)
 		return
 	}
-	tid := ctx.UserValue("tid").(string)
+	tid := c.Param("tid")
 	tidInt, err := strconv.ParseUint(tid, 10, 64)
 	if err != nil {
-		_, _ = ctx.WriteString(`{"Code":400,"Msg":"错误 tid"}`)
+		c.String(200, `{"Code":400,"Msg":"错误 tid"}`)
 		return
 	}
 
 	scf := h.App.Cf.Site
 	if scf.CloseReply && curUser.Flag < model.FlagAdmin {
-		_, _ = ctx.WriteString(`{"Code":403,"Msg":"评论已关闭"}`)
+		c.String(200, `{"Code":403,"Msg":"评论已关闭"}`)
 		return
 	}
 
@@ -336,15 +339,15 @@ func (h *BaseHandler) TopicDetailPost(ctx *fasthttp.RequestCtx) {
 	topic := model.TopicGetById(db, tidInt)
 	if topic.ID == 0 {
 		// 不存在
-		_, _ = ctx.WriteString(`{"Code":400,"Msg":"帖子不存在"}`)
+		c.String(200, `{"Code":400,"Msg":"帖子不存在"}`)
 		return
 	}
 
 	var rec model.Comment
-	err = util.Bind(ctx, util.JSON, &rec)
+	err = util.Bind(c, util.JSON, &rec)
 	if err != nil {
 		fmt.Println(err)
-		_, _ = ctx.WriteString(`{"Code":400,"Msg":"unable to read body"}`)
+		c.String(200, `{"Code":400,"Msg":"unable to read body"}`)
 		return
 	}
 
@@ -352,20 +355,20 @@ func (h *BaseHandler) TopicDetailPost(ctx *fasthttp.RequestCtx) {
 
 	contentLen := len(rec.Content)
 	if contentLen == 0 {
-		_, _ = ctx.WriteString(`{"Code":400,"Msg":"评论内容不能为空"}`)
+		c.String(200, `{"Code":400,"Msg":"评论内容不能为空"}`)
 		return
 	}
 
 	if curUser.Flag < model.FlagAdmin && contentLen > scf.TopicConMaxLen {
 		msg := fmt.Sprintf(`{"Code":400,"Msg":"文章内容太长 %d > %d "}`, contentLen, scf.TopicConMaxLen)
-		_, _ = ctx.WriteString(msg)
+		c.String(200, msg)
 		return
 	}
 
 	// get ip
-	clip := ctx.Request.Header.Peek(fasthttp.HeaderXForwardedFor)
+	clip := c.GetHeader("X-Forwarded-For")
 	if len(clip) == 0 {
-		clip = ctx.Request.Header.Peek("X-FORWARDED-FOR")
+		clip = c.GetHeader("X-FORWARDED-FOR")
 	}
 
 	stamp := util.GetCNTM(model.TimeOffSet)
@@ -375,7 +378,7 @@ func (h *BaseHandler) TopicDetailPost(ctx *fasthttp.RequestCtx) {
 		TopicId:  topic.ID,
 		UserId:   curUser.ID,
 		Content:  rec.Content,
-		ClientIp: sdb.B2s(clip),
+		ClientIp: clip,
 		AddTime:  stamp,
 	}
 
@@ -391,13 +394,13 @@ func (h *BaseHandler) TopicDetailPost(ctx *fasthttp.RequestCtx) {
 		// 检测限制，防止机器恶意灌水
 		if rs := db.Hget("userLastReplyTime", sdb.I2b(curUser.ID)); rs.OK() {
 			if (uint64(stamp) - sdb.B2i(rs.Bytes())) < 20 {
-				_, _ = ctx.WriteString(`{"Code":403,"Msg":"稍休息一下，请勿灌水"}`)
+				c.String(200, `{"Code":403,"Msg":"稍休息一下，请勿灌水"}`)
 				return
 			}
 		}
 
 		if model.CommentGetReviewNum(db, curUser.ID) >= 10 {
-			_, _ = ctx.WriteString(`{"Code":403,"Msg":"请勿灌水"}`)
+			c.String(200, `{"Code":403,"Msg":"请勿灌水"}`)
 			return
 		}
 		// 把jb 内容暂存到审核列表
@@ -421,7 +424,7 @@ func (h *BaseHandler) TopicDetailPost(ctx *fasthttp.RequestCtx) {
 			model.EmailInfoUpdate(db, mailInfo)
 		}
 
-		_ = json.NewEncoder(ctx).Encode(rsp)
+		_ = json.NewEncoder(c.Writer).Encode(rsp)
 		return
 	}
 
@@ -430,5 +433,5 @@ func (h *BaseHandler) TopicDetailPost(ctx *fasthttp.RequestCtx) {
 	rsp.Tid = comment.ID
 	rsp.Msg = "评论提交成功"
 
-	_ = json.NewEncoder(ctx).Encode(rsp)
+	_ = json.NewEncoder(c.Writer).Encode(rsp)
 }

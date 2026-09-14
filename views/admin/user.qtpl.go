@@ -48,7 +48,7 @@ func (p *User) StreamMainBody(qw422016 *qt422016.Writer) {
 	if p.User.ID > 0 {
 //line views/admin/user.qtpl:14
 		qw422016.N().S(`
-            <img id="img" src="/static/avatar/`)
+            <img id="img" src="/avatar/`)
 //line views/admin/user.qtpl:15
 		qw422016.N().DUL(p.User.ID)
 //line views/admin/user.qtpl:15

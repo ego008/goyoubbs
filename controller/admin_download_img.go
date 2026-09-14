@@ -1,18 +1,19 @@
 package controller
 
 import (
-	"github.com/valyala/fasthttp"
 	"goyoubbs/model"
 	"goyoubbs/util"
 	"log"
 	"os"
 	"time"
+
+	"github.com/gin-gonic/gin"
 )
 
-func (h *BaseHandler) AdminImgPage(ctx *fasthttp.RequestCtx) {
-	curUser, _ := h.CurrentUser(ctx)
+func (h *BaseHandler) AdminImgPage(c *gin.Context) {
+	curUser, _ := h.CurrentUser(c)
 	if curUser.Flag < model.FlagAdmin {
-		ctx.Redirect(h.App.Cf.Site.MainDomain+"/admin", 302)
+		c.Redirect(302, "/admin")
 		return
 	}
 
@@ -28,9 +29,9 @@ func (h *BaseHandler) AdminImgPage(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
-	ctx.SetContentType("application/zip")
+	c.Header("Content-Type", "application/zip")
 
-	ctx.Response.Header.Set("Content-Disposition", "attachment; filename="+zipName)
-	ctx.SendFile(zipName)
+	c.Header("Content-Disposition", "attachment; filename="+zipName)
+	c.File(zipName)
 	return
 }

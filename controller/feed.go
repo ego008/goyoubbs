@@ -1,13 +1,14 @@
 package controller
 
 import (
-	"github.com/valyala/fasthttp"
 	"goyoubbs/model"
 	"html/template"
+
+	"github.com/gin-gonic/gin"
 )
 
-func (h *BaseHandler) FeedHandler(ctx *fasthttp.RequestCtx) {
-	ctx.SetContentType("application/atom+xml; charset=utf-8")
+func (h *BaseHandler) FeedHandler(c *gin.Context) {
+	c.Header("Content-Type", "application/atom+xml; charset=utf-8")
 
 	scf := h.App.Cf.Site
 
@@ -46,7 +47,7 @@ func (h *BaseHandler) FeedHandler(ctx *fasthttp.RequestCtx) {
 	}
 
 	t := template.Must(template.New("feed").Parse(feed))
-	_ = t.Execute(ctx, struct {
+	_ = t.Execute(c.Writer, struct {
 		Update string
 		Items  []model.TopicFeed
 	}{

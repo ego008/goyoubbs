@@ -2,17 +2,21 @@ package cronjob
 
 import (
 	"bytes"
+	"context"
 	"crypto/tls"
 	"errors"
-	"github.com/ego008/sdb"
-	"github.com/valyala/fasthttp"
-	"github.com/valyala/fasthttp/fasthttpproxy"
 	"goyoubbs/util"
 	"image/jpeg"
+	"io"
 	"log"
+	"net"
+	"net/http"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/ego008/sdb"
+	"golang.org/x/net/proxy"
 )
 
 func FetchAvatar(db *sdb.DB, uid uint64, targetUrl, saveFilePath, ua, sock5Str string) (err error) {
@@ -38,16 +42,14 @@ func FetchAvatar(db *sdb.DB, uid uint64, targetUrl, saveFilePath, ua, sock5Str s
 
 	bsUrl, host := util.GetDomainFromURL(targetUrl)
 
-	req := fasthttp.AcquireRequest()
-	res := fasthttp.AcquireResponse()
+	// 1. 创建 HTTP Request
+	req, err := http.NewRequest("GET", targetUrl, nil)
+	if err != nil {
+		log.Println("NewRequest error:", err)
+		return err
+	}
 
-	defer func() {
-		fasthttp.ReleaseRequest(req)
-		fasthttp.ReleaseResponse(res)
-	}()
-
-	req.SetRequestURI(targetUrl)
-	req.Header.SetMethod("GET")
+	// 2. 设置 Request Headers
 	req.Header.Set("Host", host)
 	req.Header.Set("Upgrade-Insecure-Requests", "1")
 	req.Header.Set("User-Agent", ua)
@@ -55,49 +57,61 @@ func FetchAvatar(db *sdb.DB, uid uint64, targetUrl, saveFilePath, ua, sock5Str s
 	req.Header.Set("Accept-Language", "zh-CN,zh;q=0.9,en;q=0.8")
 	req.Header.Set("Referer", targetUrl)
 	req.Header.Set("Origin", bsUrl)
-	req.Header.Set("Accept-Encoding", "gzip, deflate, br")
+	// 注意：标准库 net/http 默认会自动发送并解压 Accept-Encoding: gzip，不需要手动设置和手动 Gunzip/Inflate
 
-	httpCli := &fasthttp.Client{
-		TLSConfig:                     &tls.Config{InsecureSkipVerify: true},
-		NoDefaultUserAgentHeader:      true, // Don't send: User-Agent: fasthttp
-		MaxConnsPerHost:               12000,
-		ReadBufferSize:                4096, // Make sure to set this big enough that your whole request can be read at once.
-		WriteBufferSize:               4096, // Same but for your response.
-		ReadTimeout:                   time.Second,
-		WriteTimeout:                  time.Second,
-		MaxIdleConnDuration:           time.Minute,
-		DisableHeaderNamesNormalizing: true, // If you set the case on your headers correctly you can enable this.
+	// 3. 配置 Transport（TLS 跳过校验、超时、代理）
+	transport := &http.Transport{
+		TLSClientConfig:     &tls.Config{InsecureSkipVerify: true},
+		MaxIdleConns:        12000,
+		MaxIdleConnsPerHost: 1000,
+		IdleConnTimeout:     time.Minute,
 	}
 
+	// 4. 处理 SOCKS5 代理（如果有）
 	if len(sock5Str) > 0 {
-		httpCli.Dial = fasthttpproxy.FasthttpSocksDialer(sock5Str)
+		dialer, err := proxy.SOCKS5("tcp", sock5Str, nil, proxy.Direct)
+		if err != nil {
+			log.Println("SOCKS5 proxy error:", err)
+			return err
+		}
+
+		// 使用闭包包装，兼容标准库 http.Transport.DialContext
+		transport.DialContext = func(ctx context.Context, network, addr string) (net.Conn, error) {
+			return dialer.Dial(network, addr)
+		}
 	}
-	err = httpCli.DoRedirects(req, res, 5)
+
+	// 5. 创建 Client 并配置重定向（上限 5 次）
+	client := &http.Client{
+		Transport: transport,
+		Timeout:   time.Minute, // 整体超时
+		CheckRedirect: func(req *http.Request, via []*http.Request) error {
+			if len(via) >= 5 {
+				return errors.New("stopped after 5 redirects")
+			}
+			return nil
+		},
+	}
+
+	// 6. 执行请求
+	res, err := client.Do(req)
 	if err != nil {
-		log.Println(err)
+		log.Println("client.Do error:", err)
 		return err
 	}
-	if res.StatusCode() != fasthttp.StatusOK {
-		log.Println("res.StatusCode()", res.StatusCode())
-		return errors.New("StatusCode: " + strconv.Itoa(res.StatusCode()))
+	defer res.Body.Close()
+
+	// 7. 检查 HTTP 状态码
+	if res.StatusCode != http.StatusOK {
+		log.Println("res.StatusCode:", res.StatusCode)
+		return errors.New("StatusCode: " + strconv.Itoa(res.StatusCode))
 	}
 
-	var body []byte
-	switch string(res.Header.Peek("Content-Encoding")) {
-	case "gzip":
-		body, err = res.BodyGunzip()
-		if err != nil {
-			log.Println("#gzip", err)
-			return err
-		}
-	case "deflate":
-		body, err = res.BodyInflate()
-		if err != nil {
-			log.Println("#deflate", err)
-			return err
-		}
-	default:
-		body = res.Body()
+	// 8. 读取响应 Body（标准库已自动解压 Gzip/Deflate，不需要手动 switch 判断）
+	body, err := io.ReadAll(res.Body)
+	if err != nil {
+		log.Println("read body error:", err)
+		return err
 	}
 
 	// load original image

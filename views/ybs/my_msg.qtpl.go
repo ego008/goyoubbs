@@ -46,7 +46,7 @@ func (p *MyMsg) StreamMainBody(qw422016 *qt422016.Writer) {
 //line views/ybs/my_msg.qtpl:11
 		qw422016.E().S(item.AuthorName)
 //line views/ybs/my_msg.qtpl:11
-		qw422016.N().S(` avatar" src="/static/avatar/`)
+		qw422016.N().S(` avatar" src="/avatar/`)
 //line views/ybs/my_msg.qtpl:11
 		qw422016.N().DUL(item.UserId)
 //line views/ybs/my_msg.qtpl:11

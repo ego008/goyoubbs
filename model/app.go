@@ -2,21 +2,22 @@ package model
 
 import (
 	"embed"
-	"github.com/VictoriaMetrics/fastcache"
-	"github.com/ego008/goutils/lfqueue"
-	"github.com/ego008/goutils/ratelimit"
-	"github.com/ego008/goutils/splock"
-	"github.com/ego008/sdb"
-	"github.com/fasthttp/router"
-	"github.com/gorilla/securecookie"
-	"github.com/syndtr/goleveldb/leveldb/filter"
-	"github.com/syndtr/goleveldb/leveldb/opt"
 	"goyoubbs/util"
 	"log"
 	"os"
 	"strings"
 	"sync/atomic"
 	"time"
+
+	"github.com/VictoriaMetrics/fastcache"
+	"github.com/ego008/goutils/lfqueue"
+	"github.com/ego008/goutils/ratelimit"
+	"github.com/ego008/goutils/splock"
+	"github.com/ego008/sdb"
+	"github.com/gin-gonic/gin"
+	"github.com/gorilla/securecookie"
+	"github.com/syndtr/goleveldb/leveldb/filter"
+	"github.com/syndtr/goleveldb/leveldb/opt"
 )
 
 var (
@@ -34,7 +35,7 @@ type Application struct {
 	Db     *sdb.DB
 	Sc     *securecookie.SecureCookie
 	Mc     *fastcache.Cache // 数量不固定的缓存，或者是不需要序列化的内容
-	Mux    *router.Router
+	Mux    *gin.Engine
 	Assets *embed.FS
 	Spl    *splock.SimpleLock
 }

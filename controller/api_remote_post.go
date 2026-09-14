@@ -1,14 +1,16 @@
 package controller
 
 import (
-	"github.com/ego008/sdb"
-	"github.com/segmentio/fasthash/fnv1a"
-	"github.com/valyala/fasthttp"
 	"goyoubbs/model"
 	"goyoubbs/util"
+	"net/http"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/ego008/sdb"
+	"github.com/gin-gonic/gin"
+	"github.com/segmentio/fasthash/fnv1a"
 )
 
 func s2uint64(s string) uint64 {
@@ -19,34 +21,34 @@ func s2uint64(s string) uint64 {
 	return i
 }
 
-func (h *BaseHandler) ApiAdminRemotePost(ctx *fasthttp.RequestCtx) {
-	ctx.Response.Header.Set("Access-Control-Allow-Origin", "*")                                                            // 允许访问所有域，可以换成具体url，注意仅具体url才能带cookie信息
-	ctx.Response.Header.Add("Access-Control-Allow-Headers", "Content-Type,AccessToken,X-CSRF-Token, Authorization, Token") //header的类型
-	ctx.Response.Header.Add("Access-Control-Allow-Credentials", "true")                                                    //设置为true，允许ajax异步请求带cookie信息
-	ctx.Response.Header.Add("Access-Control-Allow-Methods", "POST")                                                        //允许请求方法
-	ctx.SetContentType("application/json; charset=UTF-8")
+func (h *BaseHandler) ApiAdminRemotePost(c *gin.Context) {
+	c.Header("Access-Control-Allow-Origin", "*")                                                            // 允许访问所有域，可以换成具体url，注意仅具体url才能带cookie信息
+	c.Header("Access-Control-Allow-Headers", "Content-Type,AccessToken,X-CSRF-Token, Authorization, Token") //header的类型
+	c.Header("Access-Control-Allow-Credentials", "true")                                                    //设置为true，允许ajax异步请求带cookie信息
+	c.Header("Access-Control-Allow-Methods", "POST")                                                        //允许请求方法
+	c.Header("Content-Type", "application/json; charset=UTF-8")
 
-	if string(ctx.Method()) != fasthttp.MethodPost {
-		ctx.SetStatusCode(fasthttp.StatusMethodNotAllowed)
+	if c.Request.Method != http.MethodPost {
+		c.Status(http.StatusMethodNotAllowed)
 		return
 	}
 
 	if h.App.Cf.Site.RemotePostPw == "" {
-		_, _ = ctx.WriteString(`{"Code":403,"Msg":"Site.RemotePostPw is empty"}`)
+		c.String(200, `{"Code":403,"Msg":"Site.RemotePostPw is empty"}`)
 		return
 	}
 
-	topicId := s2uint64(strings.TrimSpace(string(ctx.FormValue("TopicId"))))
-	nodeId := s2uint64(strings.TrimSpace(string(ctx.FormValue("NodeId"))))
-	userName := strings.TrimSpace(string(ctx.FormValue("UserName")))
-	title := strings.TrimSpace(string(ctx.FormValue("Title")))
-	content := strings.TrimSpace(string(ctx.FormValue("Content")))
-	remotePostPw := strings.TrimSpace(string(ctx.FormValue("RemotePostPw")))
+	topicId := s2uint64(strings.TrimSpace(c.Query("TopicId")))
+	nodeId := s2uint64(strings.TrimSpace(c.Query("NodeId")))
+	userName := strings.TrimSpace(c.Query("UserName"))
+	title := strings.TrimSpace(c.Query("Title"))
+	content := strings.TrimSpace(c.Query("Content"))
+	remotePostPw := strings.TrimSpace(c.Query("RemotePostPw"))
 
 	// limit
-	clientIp := []byte(ReadUserIP(ctx))
+	clientIp := []byte(ReadUserIP(c))
 	if len(clientIp) == 0 {
-		_, _ = ctx.WriteString(`{"Code":400,"Msg":"clientIp is empty"}`)
+		c.String(200, `{"Code":400,"Msg":"clientIp is empty"}`)
 		return
 	}
 
@@ -58,7 +60,7 @@ func (h *BaseHandler) ApiAdminRemotePost(ctx *fasthttp.RequestCtx) {
 	tbn := "remote_post_client_pw_err"
 	if tm := db.HgetInt(tbn, clientIp); tm > 0 {
 		if nowTm-int64(tm) < offSetSeconds {
-			_, _ = ctx.WriteString(`{"Code":403,"Msg":"sleep 2 min ` + string(clientIp) + `"}`)
+			c.String(200, `{"Code":403,"Msg":"sleep 2 min `+string(clientIp)+`"}`)
 			return
 		}
 		hasDelKey = true
@@ -67,7 +69,7 @@ func (h *BaseHandler) ApiAdminRemotePost(ctx *fasthttp.RequestCtx) {
 	// check
 	if remotePostPw != h.App.Cf.Site.RemotePostPw {
 		_ = db.Hset(tbn, clientIp, sdb.I2b(uint64(nowTm)))
-		_, _ = ctx.WriteString(`{"Code":403,"Msg":"remotePostPw not match"}`)
+		c.String(200, `{"Code":403,"Msg":"remotePostPw not match"}`)
 		return
 	}
 	if hasDelKey {
@@ -75,18 +77,18 @@ func (h *BaseHandler) ApiAdminRemotePost(ctx *fasthttp.RequestCtx) {
 	}
 
 	if topicId == 0 && nodeId == 0 {
-		_, _ = ctx.WriteString(`{"Code":400,"Msg":"topicId or nodeId must be an int type"}`)
+		c.String(200, `{"Code":400,"Msg":"topicId or nodeId must be an int type"}`)
 		return
 	}
 
 	if content == "" {
-		_, _ = ctx.WriteString(`{"Code":400,"Msg":"content is empty"}`)
+		c.String(200, `{"Code":400,"Msg":"content is empty"}`)
 		return
 	}
 
 	userName = strings.TrimSpace(util.RemoveCharacter(userName))
 	if len(userName) == 0 {
-		_, _ = ctx.WriteString(`{"Code":400,"Msg":"userName is empty"}`)
+		c.String(200, `{"Code":400,"Msg":"userName is empty"}`)
 		return
 	}
 
@@ -96,7 +98,7 @@ func (h *BaseHandler) ApiAdminRemotePost(ctx *fasthttp.RequestCtx) {
 	user, _ := model.UserGetByName(db, nameLow)
 	if user.ID > 0 {
 		if user.Flag == model.FlagForbidden {
-			_, _ = ctx.WriteString(`{"Code":403,"Msg":"user Flag is 0"}`)
+			c.String(200, `{"Code":403,"Msg":"user Flag is 0"}`)
 			return
 		}
 	} else {
@@ -112,7 +114,7 @@ func (h *BaseHandler) ApiAdminRemotePost(ctx *fasthttp.RequestCtx) {
 
 		user = model.UserSet(db, user)
 		if user.ID == 0 {
-			_, _ = ctx.WriteString(`{"Code":500,"Msg":"user set err"}`)
+			c.String(200, `{"Code":500,"Msg":"user set err"}`)
 			return
 		}
 		_ = db.Hset("user_name2uid", []byte(nameLow), sdb.I2b(user.ID))
@@ -128,17 +130,17 @@ func (h *BaseHandler) ApiAdminRemotePost(ctx *fasthttp.RequestCtx) {
 		// 优先发帖
 		// add topic
 		if title == "" {
-			_, _ = ctx.WriteString(`{"Code":400,"Msg":"title is empty"}`)
+			c.String(200, `{"Code":400,"Msg":"title is empty"}`)
 			return
 		}
-		if _, c := model.NodeGetById(db, nodeId); c != 1 {
-			_, _ = ctx.WriteString(`{"Code":400,"Msg":"nodeId not exist"}`)
+		if _, cn := model.NodeGetById(db, nodeId); cn != 1 {
+			c.String(200, `{"Code":400,"Msg":"nodeId not exist"}`)
 			return
 		}
 		// check title
 		titleMd5 := fnv1a.HashString64(title)
 		if rs := db.Hget("title_fnv1a", sdb.I2b(titleMd5)); rs.OK() {
-			_, _ = ctx.WriteString(`{"Code":400,"Msg":"相同的文章标题已存在，请修改"}`)
+			c.String(200, `{"Code":400,"Msg":"相同的文章标题已存在，请修改"}`)
 			return
 		}
 
@@ -162,12 +164,12 @@ func (h *BaseHandler) ApiAdminRemotePost(ctx *fasthttp.RequestCtx) {
 		// 记录标题md5
 		_ = db.Hset("title_fnv1a", sdb.I2b(titleMd5), sdb.I2b(topic.ID))
 
-		_, _ = ctx.WriteString(`{"Code":200,"Msg":"ok, new topicId ` + strconv.FormatUint(topic.ID, 10) + `"}`)
+		c.String(200, `{"Code":200,"Msg":"ok, new topicId `+strconv.FormatUint(topic.ID, 10)+`"}`)
 		return
 	} else {
 		// add comment
 		if topicId <= 0 {
-			_, _ = ctx.WriteString(`{"Code":400,"Msg":"topicId must > 0"}`)
+			c.String(200, `{"Code":400,"Msg":"topicId must > 0"}`)
 			return
 		}
 		comment = model.Comment{
@@ -178,7 +180,7 @@ func (h *BaseHandler) ApiAdminRemotePost(ctx *fasthttp.RequestCtx) {
 			ClientIp: sdb.B2s(clientIp),
 		}
 		comment = model.CommentAdd(h.App.Mc, db, comment)
-		_, _ = ctx.WriteString(`{"Code":200,"Msg":"ok, new commentId ` + strconv.FormatUint(comment.ID, 10) + `"}`)
+		c.String(200, `{"Code":200,"Msg":"ok, new commentId `+strconv.FormatUint(comment.ID, 10)+`"}`)
 		return
 	}
 }

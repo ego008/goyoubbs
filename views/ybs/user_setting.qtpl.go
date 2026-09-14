@@ -41,7 +41,7 @@ func (p *UserSetting) StreamMainBody(qw422016 *qt422016.Writer) {
 //line views/ybs/user_setting.qtpl:8
 	qw422016.N().S(`</legend>
 
-            <img id="img" src="/static/avatar/`)
+            <img id="img" src="/avatar/`)
 //line views/ybs/user_setting.qtpl:10
 	qw422016.N().DUL(p.User.ID)
 //line views/ybs/user_setting.qtpl:10

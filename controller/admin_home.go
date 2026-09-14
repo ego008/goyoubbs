@@ -1,16 +1,17 @@
 package controller
 
 import (
-	"github.com/valyala/fasthttp"
 	"goyoubbs/model"
+
+	"github.com/gin-gonic/gin"
 )
 
-func (h *BaseHandler) AdminHomePage(ctx *fasthttp.RequestCtx) {
-	curUser, _ := h.CurrentUser(ctx)
+func (h *BaseHandler) AdminHomePage(c *gin.Context) {
+	curUser, _ := h.CurrentUser(c)
 	if curUser.Flag < model.FlagAdmin {
-		ctx.Redirect(h.App.Cf.Site.MainDomain+"/login", 302)
+		c.Redirect(302, "/login")
 		return
 	}
 
-	ctx.Redirect(h.App.Cf.Site.MainDomain+"/admin/topic/add", 302)
+	c.Redirect(302, "/admin/topic/add")
 }

@@ -15,7 +15,7 @@
             {% if item.Comments > 0 %}
             <a href="/t/{%dul item.ID %}#r{%dul item.Comments %}"><img alt="{%s item.Title %} icon" src="/icon/t/{%dul item.ID %}.jpg?r={%dul item.Comments %}" class="avatar"></a>
             {% else %}
-            <a href="/t/{%dul item.ID %}"><img alt="{%s item.Title %} icon" src="/static/avatar/{%dul item.UserId %}.jpg" class="avatar"></a>
+            <a href="/t/{%dul item.ID %}"><img alt="{%s item.Title %} icon" src="/avatar/{%dul item.UserId %}.jpg" class="avatar"></a>
             {% endif %}
             <h1 class="entry-title"><a href="/t/{%dul item.ID %}" rel="bookmark">{%s item.Title %}</a></h1>
             <p class="meta">

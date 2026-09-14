@@ -24,7 +24,7 @@ func (p *MemberPage) StreamMainBody(qw422016 *qt422016.Writer) {
 
 <div class="index">
     <div class="user-detail bot-line">
-        <img src="/static/avatar/`)
+        <img src="/avatar/`)
 //line views/ybs/member.qtpl:5
 	qw422016.N().DUL(p.UserFmt.ID)
 //line views/ybs/member.qtpl:5
@@ -227,7 +227,7 @@ func (p *MemberPage) StreamMainBody(qw422016 *qt422016.Writer) {
 //line views/ybs/member.qtpl:56
 			qw422016.E().S(item.Title)
 //line views/ybs/member.qtpl:56
-			qw422016.N().S(` icon" src="/static/avatar/`)
+			qw422016.N().S(` icon" src="/avatar/`)
 //line views/ybs/member.qtpl:56
 			qw422016.N().DUL(item.UserId)
 //line views/ybs/member.qtpl:56

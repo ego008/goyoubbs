@@ -1,18 +1,20 @@
 package controller
 
 import (
-	"github.com/ego008/goutils/json"
-	"github.com/ego008/sdb"
-	"github.com/valyala/fasthttp"
 	"goyoubbs/model"
 	"goyoubbs/views/admin"
+	"net/http"
 	"strconv"
+
+	"github.com/ego008/goutils/json"
+	"github.com/ego008/sdb"
+	"github.com/gin-gonic/gin"
 )
 
-func (h *BaseHandler) AdminTopicReviewPage(ctx *fasthttp.RequestCtx) {
-	curUser, _ := h.CurrentUser(ctx)
+func (h *BaseHandler) AdminTopicReviewPage(c *gin.Context) {
+	curUser, _ := h.CurrentUser(c)
 	if curUser.Flag < model.FlagAdmin {
-		ctx.Redirect(h.App.Cf.Site.MainDomain+"/admin", 302)
+		c.Redirect(302, "/admin")
 		return
 	}
 
@@ -24,7 +26,7 @@ func (h *BaseHandler) AdminTopicReviewPage(ctx *fasthttp.RequestCtx) {
 	evn.Title = "待审核帖子"
 	evn.PageName = "admin_topic_review"
 
-	act := sdb.B2s(ctx.FormValue("act"))
+	act := c.Query("act")
 	var delKey []byte // 待删除的key
 	// 取待审核信息
 	var rec model.Topic
@@ -44,7 +46,7 @@ func (h *BaseHandler) AdminTopicReviewPage(ctx *fasthttp.RequestCtx) {
 		_ = h.App.Db.Hdel(model.TopicReviewTbName, delKey)
 		// 删掉个人待审核列表
 		_ = h.App.Db.Hdel("review_topic:"+strconv.FormatUint(rec.UserId, 10), delKey)
-		ctx.Redirect(h.App.Cf.Site.MainDomain+"/admin/topic/review", 302)
+		c.Redirect(302, "/admin/topic/review")
 		return
 	}
 
@@ -79,6 +81,7 @@ func (h *BaseHandler) AdminTopicReviewPage(ctx *fasthttp.RequestCtx) {
 	evn.HasTopicReview = model.CheckHasTopic2Review(h.App.Db)
 	evn.HasReplyReview = model.CheckHasComment2Review(h.App.Db)
 
-	ctx.SetContentType("text/html; charset=utf-8")
-	admin.WritePageTemplate(ctx, evn)
+	c.Header("Content-Type", "text/html; charset=utf-8")
+	c.Status(http.StatusOK)
+	admin.WritePageTemplate(c.Writer, evn)
 }
