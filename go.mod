@@ -1,6 +1,8 @@
 module goyoubbs
 
-go 1.25.0
+go 1.26.2
+
+replace github.com/ego008/mdb => /Users/wzs/gitapps/mdb
 
 require (
 	github.com/VictoriaMetrics/fastcache v1.12.2
@@ -9,7 +11,7 @@ require (
 	github.com/disintegration/imaging v1.6.2
 	github.com/ego008/captcha v0.0.0-20210207145536-b16672dce081
 	github.com/ego008/goutils v0.0.0-20240302091331-d7e01b773179
-	github.com/ego008/sdb v0.0.0-20220425030734-1f07301d26a5
+	github.com/ego008/mdb v0.0.0-20220425030734-1f07301d26a5
 	github.com/gin-gonic/gin v1.12.0
 	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0
 	github.com/google/go-github v17.0.0+incompatible
@@ -20,10 +22,10 @@ require (
 	github.com/nfnt/resize v0.0.0-20180221191011-83c6a9932646
 	github.com/rs/xid v1.5.0
 	github.com/segmentio/fasthash v1.0.3
-	github.com/syndtr/goleveldb v1.0.0
 	github.com/tidwall/gjson v1.18.0
 	github.com/valyala/quicktemplate v1.7.0
 	github.com/yuin/goldmark v1.7.7
+	go.etcd.io/bbolt v1.5.0
 	golang.org/x/crypto v0.48.0
 	golang.org/x/image v0.18.0
 	golang.org/x/net v0.51.0
@@ -63,8 +65,7 @@ require (
 	github.com/valyala/fasthttp v1.55.0 // indirect
 	go.mongodb.org/mongo-driver/v2 v2.5.0 // indirect
 	golang.org/x/arch v0.22.0 // indirect
-	golang.org/x/sys v0.41.0 // indirect
+	golang.org/x/sys v0.45.0 // indirect
 	golang.org/x/text v0.34.0 // indirect
 	google.golang.org/protobuf v1.36.10 // indirect
-	gopkg.in/yaml.v2 v2.4.0 // indirect
 )

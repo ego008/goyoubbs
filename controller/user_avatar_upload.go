@@ -10,8 +10,9 @@ import (
 	"strconv"
 
 	"github.com/ego008/goutils/json"
-	"github.com/ego008/sdb"
+	"github.com/ego008/mdb"
 	"github.com/gin-gonic/gin"
+	"go.etcd.io/bbolt"
 )
 
 func (h *BaseHandler) AvatarUpload(c *gin.Context) {
@@ -24,13 +25,20 @@ func (h *BaseHandler) AvatarUpload(c *gin.Context) {
 		return
 	}
 
-	uid := c.Query("UserId")
+	uid := c.PostForm("UserId")
 	uidI64, err := strconv.ParseUint(uid, 10, 64)
 	if err != nil {
 		c.String(200, `{"Code":400,"Msg":"uid fmt err"}`)
 		return
 	}
-	user, code := model.UserGetById(h.App.Db, uidI64)
+	var user model.User
+	var code int
+
+	_ = h.App.Db.View(func(tx *bbolt.Tx) error {
+		user, code = model.UserGetById(h.App.Db, tx, uidI64)
+		return nil
+	})
+
 	if code != 1 {
 		c.String(200, `{"Code":404,"Msg":"user not found"}`)
 		return
@@ -39,8 +47,9 @@ func (h *BaseHandler) AvatarUpload(c *gin.Context) {
 		c.String(200, `{"Code":403,"Msg":"can not set other member avatar"}`)
 		return
 	}
+
 	// 1. 直接获取上传的文件 Header
-	fileHeader, err := c.FormFile("image")
+	fileHeader, err := c.FormFile("file")
 	if err != nil {
 		// 获取失败（如未提供文件或表单解析失败）
 		c.String(200, `{"Code":500,"Msg":"`+err.Error()+`"}`)
@@ -101,31 +110,14 @@ func (h *BaseHandler) AvatarUpload(c *gin.Context) {
 		c.String(200, `{"Code":400,"Msg":"`+err.Error()+`"}`)
 		return
 	}
-	err = h.App.Db.Hset("user_avatar", sdb.I2b(uidI64), buf.Bytes())
+
+	err = h.App.Db.Update(func(tx *bbolt.Tx) error {
+		return h.App.Db.HSet(tx, "user_avatar", mdb.I2b(uidI64), buf.Bytes())
+	})
 	if err != nil {
 		c.String(200, `{"Code":400,"Msg":"`+err.Error()+`"}`)
 		return
 	}
-
-	// save to local
-	/*
-		var f3 *os.File
-		f3, err = os.Create(savePath)
-		if err != nil {
-			c.String(200, `{"Code":400,"Msg":"` + err.Error() + `"}`)
-			return
-		}
-		defer func() {
-			_ = f3.Close()
-		}()
-
-		err = jpeg.Encode(f3, dstImg, &jpeg.Options{Quality: 95})
-		if err != nil {
-			c.String(200, `{"Code":400,"Msg":"` + err.Error() + `"}`)
-			return
-		}
-
-	*/
 
 	rsp.Code = 200
 	rsp.Msg = "上传成功"

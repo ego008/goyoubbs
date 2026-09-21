@@ -1,10 +1,14 @@
 package model
 
 import (
+	"slices"
+
 	"github.com/VictoriaMetrics/fastcache"
 	"github.com/ego008/goutils/json"
-	"github.com/ego008/sdb"
+	"github.com/ego008/mdb"
 	"github.com/tidwall/gjson"
+	"go.etcd.io/bbolt"
+
 	"goyoubbs/util"
 	"html"
 	"sort"
@@ -121,107 +125,112 @@ type TopicFeed struct {
 }
 
 // TopicSet 单纯保存
-func TopicSet(db *sdb.DB, obj Topic) Topic {
+func TopicSet(db *mdb.DB, tx *bbolt.Tx, obj Topic) Topic {
 	jb, err := json.Marshal(obj)
 	if err != nil {
 		return obj
 	}
-	_ = db.Hset(TopicTbName, sdb.I2b(obj.ID), jb)
+	_ = db.HSet(tx, TopicTbName, mdb.I2b(obj.ID), jb)
 	return obj
 }
 
-func TopicAdd(mc *fastcache.Cache, db *sdb.DB, obj Topic) Topic {
-	newId, _ := db.Hincr(CountTb, sdb.S2b(TopicTbName), 1) // id 自增
+func TopicAdd(mc *fastcache.Cache, db *mdb.DB, tx *bbolt.Tx, obj Topic) Topic {
+	newId, _ := db.HIncr(tx, CountTb, mdb.S2b(TopicTbName), 1) // id 自增
 	obj.ID = newId
 	jb, _ := json.Marshal(obj)
-	_ = db.Hset(TopicTbName, sdb.I2b(obj.ID), jb)
+	_ = db.HSet(tx, TopicTbName, mdb.I2b(obj.ID), jb)
 	// 添加时间轴
 	// 首页
-	_ = db.Zset(TbnPostUpdate, sdb.I2b(obj.ID), uint64(obj.AddTime))
+	_ = db.ZSet(tx, TbnPostUpdate, mdb.I2b(obj.ID), uint64(obj.AddTime))
 	// 分类页
-	_ = db.Zset("topic_update:"+strconv.FormatUint(obj.NodeId, 10), sdb.I2b(obj.ID), uint64(obj.AddTime))
+	_ = db.ZSet(tx, "topic_update:"+strconv.FormatUint(obj.NodeId, 10), mdb.I2b(obj.ID), uint64(obj.AddTime))
 	// 个人主贴
-	_ = db.Zset("user_topic:"+strconv.FormatUint(obj.UserId, 10), sdb.I2b(obj.ID), uint64(obj.AddTime))
+	_ = db.ZSet(tx, "user_topic:"+strconv.FormatUint(obj.UserId, 10), mdb.I2b(obj.ID), uint64(obj.AddTime))
 	// 分类归档，按id、添加时间排序
-	_ = db.Hset("topic_node:"+strconv.FormatUint(obj.NodeId, 10), sdb.I2b(obj.ID), sdb.I2b(uint64(obj.AddTime)))
+	_ = db.HSet(tx, "topic_node:"+strconv.FormatUint(obj.NodeId, 10), mdb.I2b(obj.ID), mdb.I2b(uint64(obj.AddTime)))
 	// 该分类的文章数
-	_, _ = db.Hincr(NodeTopicNumTbName, sdb.I2b(obj.NodeId), 1)
+	_, _ = db.HIncr(tx, NodeTopicNumTbName, mdb.I2b(obj.NodeId), 1)
 	// 文章总数
-	_, _ = db.Hincr(CountTb, sdb.S2b(TopicTbName+":all_number"), 1)
+	_, _ = db.HIncr(tx, CountTb, mdb.S2b(TopicTbName+":all_number"), 1)
 	// 删除分类缓存
 	mc.Del([]byte("NodeGetAll"))
 	return obj
 }
 
 // TopicDel 删除文章
-func TopicDel(mc *fastcache.Cache, db *sdb.DB, obj Topic) {
+func TopicDel(mc *fastcache.Cache, db *mdb.DB, tx *bbolt.Tx, obj Topic) {
 	// 首页
-	_ = db.Zdel(TbnPostUpdate, sdb.I2b(obj.ID))
+	_ = db.ZDel(tx, TbnPostUpdate, mdb.I2b(obj.ID))
 	// 分类页
-	_ = db.Zdel("topic_update:"+strconv.FormatUint(obj.NodeId, 10), sdb.I2b(obj.ID))
+	_ = db.ZDel(tx, "topic_update:"+strconv.FormatUint(obj.NodeId, 10), mdb.I2b(obj.ID))
 	// 个人主贴
-	_ = db.Zdel("user_topic:"+strconv.FormatUint(obj.UserId, 10), sdb.I2b(obj.ID))
+	_ = db.ZDel(tx, "user_topic:"+strconv.FormatUint(obj.UserId, 10), mdb.I2b(obj.ID))
 	// 分类归档，按id、添加时间排序
-	_ = db.Hdel("topic_node:"+strconv.FormatUint(obj.NodeId, 10), sdb.I2b(obj.ID))
+	_ = db.HDel(tx, "topic_node:"+strconv.FormatUint(obj.NodeId, 10), mdb.I2b(obj.ID))
 	// 该分类的文章数 -1
-	_, _ = db.Hincr(NodeTopicNumTbName, sdb.I2b(obj.NodeId), -1)
+	_, _ = db.HIncr(tx, NodeTopicNumTbName, mdb.I2b(obj.NodeId), -1)
 	// 文章总数-1
-	_, _ = db.Hincr(CountTb, sdb.S2b(TopicTbName+":all_number"), -1)
+	_, _ = db.HIncr(tx, CountTb, mdb.S2b(TopicTbName+":all_number"), -1)
 	// 标签
 	if len(obj.Tags) > 0 {
 		// 删除标签，参见 cronjob/topic_tag
 		for _, tag := range util.StringSplit(obj.Tags, ",") {
 			tagLower := strings.ToLower(tag)
-			tagLowerB := sdb.S2b(tagLower)
-			_ = db.Hdel("tag:"+tagLower, sdb.I2b(obj.ID))
+			tagLowerB := mdb.S2b(tagLower)
+			_ = db.HDel(tx, "tag:"+tagLower, mdb.I2b(obj.ID))
 
-			if db.Hscan("tag:"+tagLower, nil, 1).OK() {
-				_, _ = db.Zincr("tag_article_num", tagLowerB, -1) // 热门标签排序
-			} else {
+			var ok bool
+			_ = db.HScanFunc(tx, "tag:"+tagLower, nil, 1, func(key, val []byte) bool {
+				ok = true
+				_, _ = db.ZIncr(tx, "tag_article_num", tagLowerB, -1) // 热门标签排序
+				return true
+			})
+
+			if !ok {
 				// 删除
-				_ = db.Zdel("tag_article_num", tagLowerB)
-				_ = db.Hdel("tag", tagLowerB)
-				_, _ = db.Hincr("tag_count", sdb.S2b("tag"), -1)
+				_ = db.ZDel(tx, "tag_article_num", tagLowerB)
+				_ = db.HDel(tx, "tag", tagLowerB)
+				_, _ = db.HIncr(tx, "tag_count", mdb.S2b("tag"), -1)
 			}
 		}
 	}
 	// 文章实体
-	_ = db.Hdel(TopicTbName, sdb.I2b(obj.ID))
+	_ = db.HDel(tx, TopicTbName, mdb.I2b(obj.ID))
 	// 删除分类缓存
 	mc.Del([]byte("NodeGetAll"))
 	mc.Del([]byte("GetTagsForSide"))
 }
 
-func TopicGetById(db *sdb.DB, tid uint64) (obj Topic) {
-	rs := db.Hget(TopicTbName, sdb.I2b(tid))
-	if !rs.OK() {
-		return
-	}
-	err := json.Unmarshal(rs.Bytes(), &obj)
-	if err != nil {
-		return
-	}
+func TopicGetById(db *mdb.DB, tx *bbolt.Tx, tid uint64) (obj Topic) {
+	_ = db.HGetFunc(tx, TopicTbName, mdb.I2b(tid), func(val []byte) error {
+		_ = json.Unmarshal(val, &obj)
+		return nil
+	})
 	return
 }
 
 // TopicGetTitlesByIds 根据 ids 取 title ，返回id:title 的map
-func TopicGetTitlesByIds(db *sdb.DB, ids []uint64) map[uint64]string {
+func TopicGetTitlesByIds(db *mdb.DB, tx *bbolt.Tx, ids []uint64) map[uint64]string {
 	id2name := map[uint64]string{}
 	if len(ids) == 0 {
 		return id2name
 	}
 	var idsb [][]byte
 	for _, k := range ids {
-		idsb = append(idsb, sdb.I2b(k))
+		idsb = append(idsb, mdb.I2b(k))
 	}
-	db.Hmget(TopicTbName, idsb).KvEach(func(key, value sdb.BS) {
-		title := gjson.Get(value.String(), "Title").String()
-		id2name[sdb.B2i(key.Bytes())] = title
+	_ = db.HMGetFunc(tx, TopicTbName, idsb, func(key, val []byte) error {
+		if len(val) == 0 {
+			return nil
+		}
+		title := gjson.Get(string(val), "Title").String()
+		id2name[mdb.B2i(key)] = title
+		return nil
 	})
 	return id2name
 }
 
-func TopicGetRelative(mc *fastcache.Cache, db *sdb.DB, aid uint64, tags string) (topLst []TopicLi) {
+func TopicGetRelative(mc *fastcache.Cache, db *mdb.DB, tx *bbolt.Tx, aid uint64, tags string) (topLst []TopicLi) {
 	if len(tags) == 0 {
 		return
 	}
@@ -240,19 +249,17 @@ func TopicGetRelative(mc *fastcache.Cache, db *sdb.DB, aid uint64, tags string) 
 	aidCount := map[uint64]int{}
 
 	for _, tag := range util.StringSplit(tagsLow, ",") {
-		rs := db.Hrscan("tag:"+tag, nil, scanMax)
-		if rs.KvLen() > 0 {
-			for i := 0; i < len(rs.Data)-1; i += 2 {
-				aid2 := sdb.B2i(rs.Data[i].Bytes())
-				if aid2 != aid {
-					if _, ok := aidCount[aid2]; ok {
-						aidCount[aid2] += 1
-					} else {
-						aidCount[aid2] = 1
-					}
+		_ = db.HRScanFunc(tx, "tag:"+tag, nil, scanMax, func(key, val []byte) bool {
+			aid2 := mdb.B2i(key)
+			if aid2 != aid {
+				if _, ok := aidCount[aid2]; ok {
+					aidCount[aid2] += 1
+				} else {
+					aidCount[aid2] = 1
 				}
 			}
-		}
+			return true
+		})
 	}
 
 	if len(aidCount) > 0 {
@@ -274,21 +281,22 @@ func TopicGetRelative(mc *fastcache.Cache, db *sdb.DB, aid uint64, tags string) 
 		var akeys [][]byte
 		j := 0
 		for _, kv := range ss {
-			akeys = append(akeys, sdb.I2b(kv.Key))
+			akeys = append(akeys, mdb.I2b(kv.Key))
 			j++
 			if j == getMax {
 				break
 			}
 		}
 
-		rs := db.Hmget(TopicTbName, akeys)
-		if rs.KvLen() > 0 {
-			for i := 0; i < len(rs.Data)-1; i += 2 {
-				item := TopicLi{}
-				_ = json.Unmarshal(rs.Data[i+1].Bytes(), &item)
-				topLst = append(topLst, item)
+		_ = db.HMGetFunc(tx, TopicTbName, akeys, func(key, val []byte) error {
+			if len(val) == 0 {
+				return nil
 			}
-		}
+			item := TopicLi{}
+			_ = json.Unmarshal(val, &item)
+			topLst = append(topLst, item)
+			return nil
+		})
 	}
 
 	// set to mc
@@ -300,88 +308,94 @@ func TopicGetRelative(mc *fastcache.Cache, db *sdb.DB, aid uint64, tags string) 
 }
 
 // GetTopicList 分页获取首页、分类页的帖子
-func GetTopicList(db *sdb.DB, cmd, tb, key, score string, limit int) TopicPageInfo {
+func GetTopicList(db *mdb.DB, tx *bbolt.Tx, cmd, tb, key, score string, limit int) TopicPageInfo {
 	var items []TopicLstLi
-	var keys [][]byte
+	var keys [][]byte // key  按 score 从大到小排列
 	var hasPrev, hasNext bool
-	var firstKey, firstScore, lastKey, lastScore uint64
+	var firstKey, firstScore, lastKey, lastScore uint64 // firstScore 最大， lastScore 最小
 
 	topicEditTimeMap := map[uint64]uint64{} // 文章编辑时间 / 最后评论时间
-	keyStart := sdb.DS2b(key)
-	scoreStart := sdb.DS2b(score)
+	keyStart := mdb.DS2b(key)
+	scoreStart := mdb.DS2i(score)
 	if cmd == "zrscan" {
-		rs := db.Zrscan(tb, keyStart, scoreStart, limit)
-		if rs.KvLen() > 0 {
-			for i := 0; i < (len(rs.Data) - 1); i += 2 {
-				keys = append(keys, rs.Data[i].Bytes())
-				// 分页游标
-				ki := sdb.B2i(rs.Data[i].Bytes())
-				si := sdb.B2i(rs.Data[i+1].Bytes())
-				topicEditTimeMap[ki] = si
-				if i == 0 {
-					firstKey = ki
-					firstScore = si
-				} else {
-					lastKey = ki
-					lastScore = si
-				}
+		var i int
+		// ZRScanFunc 降序扫描
+		_ = db.ZRScanFunc(tx, tb, keyStart, scoreStart, 0, limit, func(key []byte, score uint64) bool {
+			keys = append(keys, key) // score 大的在前
+			// 分页游标
+			ki := mdb.B2i(key)
+			si := score
+			topicEditTimeMap[ki] = si
+			if i == 0 {
+				firstKey = ki
+				firstScore = si // 最大
+			} else {
+				lastKey = ki
+				lastScore = si // 最小
 			}
-		}
+			i++
+			return true
+		})
 	} else if cmd == "zscan" {
-		rs := db.Zscan(tb, keyStart, scoreStart, limit)
-		if rs.KvLen() > 0 {
-			for i := len(rs.Data) - 2; i >= 0; i -= 2 {
-				keys = append(keys, rs.Data[i].Bytes())
-				// 分页游标
-				ki := sdb.B2i(rs.Data[i].Bytes())
-				si := sdb.B2i(rs.Data[i+1].Bytes())
-				topicEditTimeMap[ki] = si
-				if i == len(rs.Data)-2 {
-					firstKey = ki
-					firstScore = si
-				} else {
-					lastKey = ki
-					lastScore = si
-				}
+		var i int
+		// ZScanFunc 升序扫描
+		_ = db.ZScanFunc(tx, tb, keyStart, scoreStart, 0, limit, func(key []byte, score uint64) bool {
+			keys = append(keys, key) // 目前 score 小的在前，要先大后小，等会倒转
+			// 分页游标
+			ki := mdb.B2i(key)
+			si := score
+			topicEditTimeMap[ki] = si
+			if i == 0 {
+				lastKey = ki
+				lastScore = si // 最小
+			} else {
+				firstKey = ki
+				firstScore = si // 最大
 			}
-		}
+			i++
+			return true
+		})
+
+		// 倒转 keys
+		slices.Reverse(keys)
 	}
 
 	//log.Println("keys len",len(keys))
 
 	if len(keys) > 0 {
 		// 评论数
-		commentsMap := CommentGetNumByKeys(db, keys)
+		commentsMap := CommentGetNumByKeys(db, tx, keys)
 
 		var aItems []Topic
 		userNameMap := map[uint64]string{}
 		nodeNameMap := map[uint64]string{}
 
-		rs := db.Hmget(TopicTbName, keys)
-		if rs.KvLen() > 0 {
-			for i := 0; i < (len(rs.Data) - 1); i += 2 {
-				item := Topic{}
-				_ = json.Unmarshal(rs.Data[i+1].Bytes(), &item)
-				item.Comments, _ = commentsMap[item.ID]
-				aItems = append(aItems, item)
-				userNameMap[item.UserId] = ""
-				nodeNameMap[item.NodeId] = ""
+		_ = db.HMGetFunc(tx, TopicTbName, keys, func(key, val []byte) error {
+			if len(val) == 0 {
+				return nil
 			}
-		}
+			item := Topic{}
+			_ = json.Unmarshal(val, &item)
+			item.Comments, _ = commentsMap[item.ID]
+			aItems = append(aItems, item)
+			userNameMap[item.UserId] = ""
+			nodeNameMap[item.NodeId] = ""
+			return nil
+		})
 
 		// 获取用户 id:名字
 		userIds := make([]uint64, 0, len(userNameMap))
 		for k := range userNameMap {
 			userIds = append(userIds, k)
 		}
-		userNameMap = UserGetNamesByIds(db, userIds)
+		userNameMap = UserGetNamesByIds(db, tx, userIds)
 
 		// 获取分类 id:名字
 		nodeIds := make([]uint64, 0, len(nodeNameMap))
 		for k := range nodeNameMap {
 			nodeIds = append(nodeIds, k)
 		}
-		nodeNameMap = NodeGetNamesByIds(db, nodeIds)
+		nodeNameMap = NodeGetNamesByIds(db, tx, nodeIds)
 
 		for _, article := range aItems {
 			item := TopicLstLi{
@@ -396,12 +410,14 @@ func GetTopicList(db *sdb.DB, cmd, tb, key, score string, limit int) TopicPageIn
 			items = append(items, item)
 		}
 
-		if db.Zscan(tb, sdb.I2b(firstKey), sdb.I2b(firstScore), 1).KvLen() > 0 {
+		_ = db.ZScanFunc(tx, tb, mdb.I2b(firstKey), firstScore, 0, 1, func(_ []byte, _ uint64) bool {
 			hasPrev = true
-		}
-		if db.Zrscan(tb, sdb.I2b(lastKey), sdb.I2b(lastScore), 1).KvLen() > 0 {
+			return true
+		})
+		_ = db.ZRScanFunc(tx, tb, mdb.I2b(lastKey), lastScore, 0, 1, func(_ []byte, _ uint64) bool {
 			hasNext = true
-		}
+			return true
+		})
 	}
 
 	return TopicPageInfo{
@@ -417,64 +433,61 @@ func GetTopicList(db *sdb.DB, cmd, tb, key, score string, limit int) TopicPageIn
 
 // GetTopicListArchives 分页获取归档页：分类页、tag 的帖子
 // 兼容接口，score 忽略
-func GetTopicListArchives(db *sdb.DB, cmd, tb, key string, limit int) TopicPageInfo {
+func GetTopicListArchives(db *mdb.DB, tx *bbolt.Tx, cmd, tb, key string, limit int) TopicPageInfo {
 	var items []TopicLstLi
 	var keys [][]byte
 	var hasPrev, hasNext bool
 	var firstKey, firstScore, lastKey, lastScore uint64
 
-	keyStart := sdb.DS2b(key)
+	keyStart := mdb.DS2b(key)
 	if cmd == "zrscan" {
-		rs := db.Hrscan(tb, keyStart, limit)
-		if rs.KvLen() > 0 {
-			// i := 0; i < (len(rs.Data) - 1); i += 2
-			for i := 0; i < (len(rs.Data) - 1); i += 2 {
-				keys = append(keys, rs.Data[i].Bytes())
-			}
-		}
+		_ = db.HRScanFunc(tx, tb, keyStart, limit, func(key, val []byte) bool {
+			keys = append(keys, key)
+			return true
+		})
 	} else if cmd == "zscan" {
-		rs := db.Hscan(tb, keyStart, limit)
-		if rs.KvLen() > 0 {
-			// i := len(rs.Data) - 2; i >= 0; i -= 2
-			for i := len(rs.Data) - 2; i >= 0; i -= 2 {
-				keys = append(keys, rs.Data[i].Bytes())
-			}
-		}
+		_ = db.HScanFunc(tx, tb, keyStart, limit, func(key, val []byte) bool {
+			keys = append(keys, key)
+			return true
+		})
+		// 倒转 keys
+		slices.Reverse(keys)
 	}
 
 	if len(keys) > 0 {
 		// 评论数
-		commentsMap := CommentGetNumByKeys(db, keys)
+		commentsMap := CommentGetNumByKeys(db, tx, keys)
 
 		var aitems []Topic
 		userNameMap := map[uint64]string{}
 		nodeNameMap := map[uint64]string{}
 
-		rs := db.Hmget(TopicTbName, keys)
-		if rs.KvLen() > 0 {
-			for i := 0; i < (len(rs.Data) - 1); i += 2 {
-				item := Topic{}
-				_ = json.Unmarshal(rs.Data[i+1].Bytes(), &item)
-				item.Comments, _ = commentsMap[item.ID]
-				aitems = append(aitems, item)
-				userNameMap[item.UserId] = ""
-				nodeNameMap[item.NodeId] = ""
+		_ = db.HMGetFunc(tx, TopicTbName, keys, func(key, val []byte) error {
+			if len(val) == 0 {
+				return nil
 			}
-		}
+			item := Topic{}
+			_ = json.Unmarshal(val, &item)
+			item.Comments, _ = commentsMap[item.ID]
+			aitems = append(aitems, item)
+			userNameMap[item.UserId] = ""
+			nodeNameMap[item.NodeId] = ""
+			return nil
+		})
 
 		// 获取用户信息
 		userIds := make([]uint64, 0, len(userNameMap))
 		for k := range userNameMap {
 			userIds = append(userIds, k)
 		}
-		userNameMap = UserGetNamesByIds(db, userIds)
+		userNameMap = UserGetNamesByIds(db, tx, userIds)
 
 		// 获取分类信息
 		nodeIds := make([]uint64, 0, len(nodeNameMap))
 		for k := range nodeNameMap {
 			nodeIds = append(nodeIds, k)
 		}
-		nodeNameMap = NodeGetNamesByIds(db, nodeIds)
+		nodeNameMap = NodeGetNamesByIds(db, tx, nodeIds)
 
 		addYearMap := map[string]struct{}{}
 		for _, article := range aitems {
@@ -503,12 +516,14 @@ func GetTopicListArchives(db *sdb.DB, cmd, tb, key string, limit int) TopicPageI
 			lastKey = item.ID
 		}
 
-		if db.Hscan(tb, sdb.I2b(firstKey), 1).KvLen() > 0 {
+		_ = db.HScanFunc(tx, tb, mdb.I2b(firstKey), 1, func(_, _ []byte) bool {
 			hasPrev = true
-		}
-		if db.Hrscan(tb, sdb.I2b(lastKey), 1).KvLen() > 0 {
+			return true
+		})
+		_ = db.HRScanFunc(tx, tb, mdb.I2b(lastKey), 1, func(_, _ []byte) bool {
 			hasNext = true
-		}
+			return true
+		})
 	}
 
 	return TopicPageInfo{
@@ -523,7 +538,7 @@ func GetTopicListArchives(db *sdb.DB, cmd, tb, key string, limit int) TopicPageI
 }
 
 // SearchTopicList 搜索
-func SearchTopicList(mc *fastcache.Cache, db *sdb.DB, q string, limit int) (tInfo TopicPageInfo) {
+func SearchTopicList(mc *fastcache.Cache, db *mdb.DB, tx *bbolt.Tx, q string, limit int) (tInfo TopicPageInfo) {
 	qInContent := strings.HasPrefix(q, "c:")
 	if qInContent {
 		q = strings.TrimSpace(q[2:])
@@ -554,54 +569,53 @@ func SearchTopicList(mc *fastcache.Cache, db *sdb.DB, q string, limit int) (tInf
 
 	var keyStart []byte
 	for {
-		if rs := db.Hrscan(TopicTbName, keyStart, 20); rs.OK() {
-			rs.KvEach(func(key, value sdb.BS) {
-				keyStart = key.Bytes()
-				obj := Topic{}
-				err := json.Unmarshal(value.Bytes(), &obj)
-				if err != nil {
-					return
-				}
-				var getIt bool
-				if qInContent {
-					if strings.Contains(strings.ToLower(obj.Content), qLow) {
-						getIt = true
-					}
-				} else {
-					if strings.Contains(strings.ToLower(obj.Title), qLow) {
-						getIt = true
-					}
-				}
-				if getIt && len(aitems) < limit {
-					keys = append(keys, key.Bytes())
-					aitems = append(aitems, obj)
-					userNameMap[obj.UserId] = ""
-					nodeNameMap[obj.NodeId] = ""
-				}
-			})
-			if len(aitems) >= limit {
-				break
+		var ok bool
+		_ = db.HRScanFunc(tx, TopicTbName, keyStart, 20, func(key, val []byte) bool {
+			keyStart = key
+			obj := Topic{}
+			err := json.Unmarshal(val, &obj)
+			if err != nil {
+				return true
 			}
-		} else {
+			var getIt bool
+			if qInContent {
+				if strings.Contains(strings.ToLower(obj.Content), qLow) {
+					getIt = true
+				}
+			} else {
+				if strings.Contains(strings.ToLower(obj.Title), qLow) {
+					getIt = true
+				}
+			}
+			if getIt && len(aitems) < limit {
+				keys = append(keys, key)
+				aitems = append(aitems, obj)
+				userNameMap[obj.UserId] = ""
+				nodeNameMap[obj.NodeId] = ""
+			}
+			ok = true
+			return true
+		})
+		if !ok || len(aitems) >= limit {
 			break
 		}
 	}
 
 	// 评论数
-	commentsMap := CommentGetNumByKeys(db, keys)
+	commentsMap := CommentGetNumByKeys(db, tx, keys)
 	// 获取用户信息
 	userIds := make([]uint64, 0, len(userNameMap))
 	for k := range userNameMap {
 		userIds = append(userIds, k)
 	}
-	userNameMap = UserGetNamesByIds(db, userIds)
+	userNameMap = UserGetNamesByIds(db, tx, userIds)
 
 	// 获取分类信息
 	nodeIds := make([]uint64, 0, len(nodeNameMap))
 	for k := range nodeNameMap {
 		nodeIds = append(nodeIds, k)
 	}
-	nodeNameMap = NodeGetNamesByIds(db, nodeIds)
+	nodeNameMap = NodeGetNamesByIds(db, tx, nodeIds)
 
 	addYearMap := map[string]struct{}{}
 	for _, article := range aitems {
@@ -652,7 +666,7 @@ func SearchTopicList(mc *fastcache.Cache, db *sdb.DB, q string, limit int) (tInf
 }
 
 // GetMsgTopicList 站内信息帖子列表
-func GetMsgTopicList(db *sdb.DB, uid uint64) (tpi TopicPageInfoMsg) {
+func GetMsgTopicList(db *mdb.DB, tx *bbolt.Tx, uid uint64) (tpi TopicPageInfoMsg) {
 	limit := 10 // 只取最早10条
 
 	var items []TopicLstLiMsg
@@ -660,14 +674,16 @@ func GetMsgTopicList(db *sdb.DB, uid uint64) (tpi TopicPageInfoMsg) {
 
 	tb := "user_msg:" + strconv.FormatUint(uid, 10)
 	tidMsgMap := map[uint64]Msg{}
-	db.Hscan(tb, nil, limit).KvEach(func(key, value sdb.BS) {
+
+	_ = db.HScanFunc(tx, tb, nil, limit, func(key, val []byte) bool {
 		obj := Msg{}
-		err := json.Unmarshal(value.Bytes(), &obj)
+		err := json.Unmarshal(val, &obj)
 		if err != nil {
-			return
+			return true
 		}
 		tidMsgMap[obj.TopicId] = obj
 		keys = append(keys, key)
+		return true
 	})
 
 	if len(keys) == 0 {
@@ -678,33 +694,34 @@ func GetMsgTopicList(db *sdb.DB, uid uint64) (tpi TopicPageInfoMsg) {
 	userNameMap := map[uint64]string{}
 	nodeNameMap := map[uint64]string{}
 
-	rs := db.Hmget(TopicTbName, keys)
-	if rs.KvLen() > 0 {
-		for i := 0; i < (len(rs.Data) - 1); i += 2 {
-			topic := Topic{}
-			_ = json.Unmarshal(rs.Data[i+1].Bytes(), &topic)
-			topicMap[topic.ID] = topic
-			userNameMap[topic.UserId] = ""
-			nodeNameMap[topic.NodeId] = ""
+	_ = db.HMGetFunc(tx, TopicTbName, keys, func(_, val []byte) error {
+		if len(val) == 0 {
+			return nil
 		}
-	}
+		topic := Topic{}
+		_ = json.Unmarshal(val, &topic)
+		topicMap[topic.ID] = topic
+		userNameMap[topic.UserId] = ""
+		nodeNameMap[topic.NodeId] = ""
+		return nil
+	})
 
 	// 评论数
-	commentsMap := CommentGetNumByKeys(db, keys)
+	commentsMap := CommentGetNumByKeys(db, tx, keys)
 
 	// 获取用户信息
 	userIds := make([]uint64, 0, len(userNameMap))
 	for k := range userNameMap {
 		userIds = append(userIds, k)
 	}
-	userNameMap = UserGetNamesByIds(db, userIds)
+	userNameMap = UserGetNamesByIds(db, tx, userIds)
 
 	// 获取分类信息
 	nodeIds := make([]uint64, 0, len(nodeNameMap))
 	for k := range nodeNameMap {
 		nodeIds = append(nodeIds, k)
 	}
-	nodeNameMap = NodeGetNamesByIds(db, nodeIds)
+	nodeNameMap = NodeGetNamesByIds(db, tx, nodeIds)
 
 	// 对 topicId 排序，按 Msg.AddTime 排序
 	type kv struct {
@@ -748,22 +765,29 @@ func GetMsgTopicList(db *sdb.DB, uid uint64) (tpi TopicPageInfoMsg) {
 }
 
 // TopicGetV2ReviewNum 获取用户待审核帖子列表条数
-func TopicGetV2ReviewNum(db *sdb.DB, uid uint64) int {
+func TopicGetV2ReviewNum(db *mdb.DB, tx *bbolt.Tx, uid uint64) int {
 	// 限制 10 条，若有10条未审核的则不允许再发
-	return db.Hscan("review_topic:"+strconv.FormatUint(uid, 10), nil, 10).KvLen()
+	var n int
+	_ = db.HScanFunc(tx, "review_topic:"+strconv.FormatUint(uid, 10), nil, 10, func(_, _ []byte) bool {
+		n++
+		return true
+	})
+	return n
 }
 
 // TopicGetV2Review 获取用户待审核帖子列表
-func TopicGetV2Review(db *sdb.DB, uid uint64) (objLst []TopicRecForm) {
+func TopicGetV2Review(db *mdb.DB, tx *bbolt.Tx, uid uint64) (objLst []TopicRecForm) {
 	var ids [][]byte
 	var keyStart []byte
 	for {
-		if rs := db.Hrscan("review_topic:"+strconv.FormatUint(uid, 10), keyStart, 10); rs.OK() {
-			rs.KvEach(func(key, _ sdb.BS) {
-				keyStart = key
-				ids = append(ids, key)
-			})
-		} else {
+		var ok bool
+		_ = db.HRScanFunc(tx, "review_topic:"+strconv.FormatUint(uid, 10), keyStart, 10, func(key, _ []byte) bool {
+			ok = true
+			keyStart = key
+			ids = append(ids, key)
+			return true
+		})
+		if !ok {
 			break
 		}
 	}
@@ -772,52 +796,58 @@ func TopicGetV2Review(db *sdb.DB, uid uint64) (objLst []TopicRecForm) {
 		return
 	}
 
-	db.Hmget(TopicReviewTbName, ids).KvEach(func(_, value sdb.BS) {
+	_ = db.HMGetFunc(tx, TopicReviewTbName, ids, func(_, val []byte) error {
 		obj := TopicRecForm{}
-		err := json.Unmarshal(value, &obj)
+		err := json.Unmarshal(val, &obj)
 		if err != nil {
-			return
+			return nil
 		}
 		obj.AddTimeFmt = util.TimeFmt(obj.AddTime, "2006-01-02 15:04")
 		objLst = append(objLst, obj)
+		return nil
 	})
 
 	return
 }
 
 // CheckHasTopic2Review 检查有没有待审核帖子
-func CheckHasTopic2Review(db *sdb.DB) bool {
-	if db.Hscan(TopicReviewTbName, nil, 1).OK() {
+func CheckHasTopic2Review(db *mdb.DB, tx *bbolt.Tx) bool {
+	var ok bool
+	_ = db.HScanFunc(tx, TopicReviewTbName, nil, 1, func(key, val []byte) bool {
+		ok = true
 		return true
-	}
-	return false
+	})
+	return ok
 }
 
 // TopicGetForFeed 为 feed 取帖子
-func TopicGetForFeed(db *sdb.DB, limit int) (objLst []TopicFeed) {
-	db.Hrscan(TopicTbName, nil, limit).KvEach(func(_, value sdb.BS) {
+func TopicGetForFeed(db *mdb.DB, tx *bbolt.Tx, limit int) (objLst []TopicFeed) {
+	_ = db.HRScanFunc(tx, TopicTbName, nil, limit, func(_, val []byte) bool {
 		obj := TopicFeed{}
-		err := json.Unmarshal(value, &obj)
+		err := json.Unmarshal(val, &obj)
 		if err != nil {
-			return
+			return true
 		}
 		obj.Title = html.EscapeString(obj.Title)
 		obj.AddTimeFmt = util.TimeFmt(obj.AddTime, time.RFC3339)
 		obj.EditTimeFmt = util.TimeFmt(obj.EditTime, time.RFC3339)
 		obj.Des = html.EscapeString(util.GetDesc(obj.Content))
 		objLst = append(objLst, obj)
+		return true
 	})
 	return
 }
 
 // ArticleGetNearby 获取相邻文章
-func ArticleGetNearby(db *sdb.DB, tid uint64) (oldObj, newObj TopicLi) {
-	key := sdb.I2b(tid)
-	if rs := db.Hrscan(TopicTbName, key, 1); rs.OK() {
-		_ = json.Unmarshal(rs.Data[1].Bytes(), &oldObj)
-	}
-	if rs := db.Hscan(TopicTbName, key, 1); rs.OK() {
-		_ = json.Unmarshal(rs.Data[1].Bytes(), &newObj)
-	}
+func ArticleGetNearby(db *mdb.DB, tx *bbolt.Tx, tid uint64) (oldObj, newObj TopicLi) {
+	key := mdb.I2b(tid)
+	_ = db.HRScanFunc(tx, TopicTbName, key, 1, func(_, val []byte) bool {
+		_ = json.Unmarshal(val, &oldObj)
+		return true
+	})
+	_ = db.HScanFunc(tx, TopicTbName, key, 1, func(_, val []byte) bool {
+		_ = json.Unmarshal(val, &newObj)
+		return true
+	})
 	return
 }

@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"go.etcd.io/bbolt"
 )
 
 func (h *BaseHandler) MyMsgPage(c *gin.Context) {
@@ -23,14 +24,17 @@ func (h *BaseHandler) MyMsgPage(c *gin.Context) {
 	evn.SiteCf = scf
 	evn.Title = "未读信息"
 
-	evn.HasMsg = model.MsgCheckHasOne(db, curUser.ID)
-	evn.TopicPageInfo = model.GetMsgTopicList(db, curUser.ID)
+	_ = db.View(func(tx *bbolt.Tx) error {
+		evn.HasMsg = model.MsgCheckHasOne(db, tx, curUser.ID)
+		evn.TopicPageInfo = model.GetMsgTopicList(db, tx, curUser.ID)
 
-	evn.HasMsg = model.MsgCheckHasOne(db, curUser.ID)
-	if curUser.Flag >= model.FlagAdmin {
-		evn.HasTopicReview = model.CheckHasTopic2Review(db)
-		evn.HasReplyReview = model.CheckHasComment2Review(db)
-	}
+		evn.HasMsg = model.MsgCheckHasOne(db, tx, curUser.ID)
+		if curUser.Flag >= model.FlagAdmin {
+			evn.HasTopicReview = model.CheckHasTopic2Review(db, tx)
+			evn.HasReplyReview = model.CheckHasComment2Review(db, tx)
+		}
+		return nil
+	})
 
 	c.Header("Content-Type", "text/html; charset=utf-8")
 	c.Status(http.StatusOK)

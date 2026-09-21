@@ -20,8 +20,6 @@ type (
 		ShowPostTopAd bool
 		ShowPostBotAd bool
 		ShowSideAd    bool
-		//TopRate       []model.ArticleSimple
-		//RecentLst     []model.ArticleSimple
 		CloseSidebar  bool          // 关闭边栏
 		TagCloud      []TagFontSize // 边栏 tag cloud
 		JsonLd        string

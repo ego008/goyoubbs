@@ -8,7 +8,7 @@ const (
 	TbnSitemapIndex = "sm_i"         // key: indexStr, value: time
 	TbnPostUpdate   = "topic_update" // key: topicId, value: addTime
 	TbnPostReply    = "topic_reply:" // name: topic_reply:topicId, key: userId, value: nil
-	TbnDbImg        = "dbi"          // 上传图片 key: sdb.I2b(imgHashValue), value: img data
+	TbnDbImg        = "dbi"          // 上传图片 key: mdb.I2b(imgHashValue), value: img data
 	TbnIpInfo       = "ip"           // user ip info
 	TbnSetting      = "setting"      // key: settingKey, value: setting value
 	TbnV2DecMp4     = "v2dec_mp4"    // key: saveFullPath, value: nil

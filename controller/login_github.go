@@ -10,10 +10,11 @@ import (
 	"time"
 
 	"github.com/ego008/goutils/json"
-	"github.com/ego008/sdb"
+	"github.com/ego008/mdb"
 	"github.com/gin-gonic/gin"
 	"github.com/google/go-github/github"
 	"github.com/rs/xid"
+	"go.etcd.io/bbolt"
 	"golang.org/x/oauth2"
 	githuboauth "golang.org/x/oauth2/github"
 )
@@ -87,81 +88,86 @@ func (h *BaseHandler) GithubOauthCallback(c *gin.Context) {
 	timeStamp := uint64(time.Now().UTC().Unix())
 
 	db := h.App.Db
-	jb, _ := json.Marshal(githubUser)
-	_ = db.Hset("github_user_info", []byte(githubIdStr), jb)
 
-	next := h.GetCookie(c, "next")
+	_ = db.Update(func(tx *bbolt.Tx) error {
+		jb, _ := json.Marshal(githubUser)
+		_ = db.HSet(tx, "github_user_info", []byte(githubIdStr), jb)
 
-	authorKey := "gh:" + githubIdStr
-	rs := db.Hget("oauth2user", []byte(authorKey))
-	if rs.OK() {
-		// login
-		log.Print("authorKey ok", rs.String())
-		obj := model.AuthInfo{}
-		_ = json.Unmarshal(rs.Data[0], &obj)
-		if obj.Uid > 0 {
-			// 已绑定用户名则直接登录
-			uObj, _ := model.UserGetById(db, obj.Uid)
-			if uObj.ID == 0 {
-				c.String(200, "uid not found")
-				return
+		next := h.GetCookie(c, "next")
+
+		authorKey := "gh:" + githubIdStr
+		val := db.HGet(tx, "oauth2user", []byte(authorKey))
+		if len(val) > 0 {
+			// login
+			log.Print("authorKey ok", string(val))
+			obj := model.AuthInfo{}
+			_ = json.Unmarshal(val, &obj)
+			if obj.Uid > 0 {
+				// 已绑定用户名则直接登录
+				uObj, _ := model.UserGetById(db, tx, obj.Uid)
+				if uObj.ID == 0 {
+					c.String(200, "uid not found")
+					return nil
+				}
+				sessionId := xid.New().String()
+				uObj.LastLoginTime = timeStamp
+				uObj.Session = sessionId
+				jb, _ := json.Marshal(uObj)
+				_ = db.HSet(tx, model.UserTbName, mdb.I2b(uObj.ID), jb)
+				_ = h.SetCookie(c, "SessionID", strconv.FormatUint(uObj.ID, 10)+":"+sessionId, 365)
+
+				if len(next) > 0 {
+					h.DelCookie(c, "next")
+					c.Redirect(302, scf.MainDomain+next)
+					return nil
+				}
+				c.Redirect(302, scf.MainDomain+"/")
+				return nil
 			}
-			sessionId := xid.New().String()
-			uObj.LastLoginTime = timeStamp
-			uObj.Session = sessionId
-			jb, _ := json.Marshal(uObj)
-			_ = db.Hset(model.UserTbName, sdb.I2b(uObj.ID), jb)
-			_ = h.SetCookie(c, "SessionID", strconv.FormatUint(uObj.ID, 10)+":"+sessionId, 365)
+		} else {
+			log.Println("oauth2user", authorKey, "not exist - go to reg")
+		}
 
-			if len(next) > 0 {
-				h.DelCookie(c, "next")
-				c.Redirect(302, scf.MainDomain+next)
-				return
+		jb, _ = json.Marshal(model.AuthInfo{Openid: githubIdStr})
+		_ = db.HSet(tx, "oauth2user", mdb.S2b(authorKey), jb)
+
+		// 绑定用户名，跳到注册页面，填写默认登录名
+
+		if scf.CloseReg {
+			c.String(200, `stop to new register`)
+			return nil
+		}
+
+		// 保存 openid ，以便在 注册 时取出可用登录名及注册成功后自动获取头像
+		_ = h.SetCookie(c, "openid", authorKey, 1)
+
+		// 获取用户名和头像
+		name := util.RemoveCharacter(*githubUser.Login)
+		name = strings.TrimSpace(strings.Replace(name, " ", "", -1))
+		if len(name) > 0 {
+			nameLow := strings.ToLower(name)
+			if db.HKeyExist(tx, "user_name2uid", []byte(nameLow)) {
+				name = ""
 			}
-			c.Redirect(302, scf.MainDomain+"/")
-			return
 		}
-	} else {
-		log.Println("oauth2user", authorKey, "not exist - go to reg")
-	}
 
-	jb, _ = json.Marshal(model.AuthInfo{Openid: githubIdStr})
-	_ = db.Hset("oauth2user", sdb.S2b(authorKey), jb)
-
-	// 绑定用户名，跳到注册页面，填写默认登录名
-
-	if scf.CloseReg {
-		c.String(200, `stop to new register`)
-		return
-	}
-
-	// 保存 openid ，以便在 注册 时取出可用登录名及注册成功后自动获取头像
-	_ = h.SetCookie(c, "openid", authorKey, 1)
-
-	// 获取用户名和头像
-	name := util.RemoveCharacter(*githubUser.Login)
-	name = strings.TrimSpace(strings.Replace(name, " ", "", -1))
-	if len(name) > 0 {
-		nameLow := strings.ToLower(name)
-		if db.Hget("user_name2uid", []byte(nameLow)).OK() {
-			name = ""
+		uUrl := *githubUser.HTMLURL
+		if len(*githubUser.Blog) > 0 {
+			uUrl = *githubUser.Blog
 		}
-	}
+		jb, _ = json.Marshal(model.AuthProfileInfo{
+			LoginBy: "github",
+			OpenId:  githubIdStr,
+			Name:    name,
+			Avatar:  *githubUser.AvatarURL,
+			Agent:   c.Request.UserAgent(),
+			About:   "",
+			Url:     uUrl,
+		})
+		_ = db.HSet(tx, "oauth_tmp_info", mdb.S2b(authorKey), jb)
 
-	uUrl := *githubUser.HTMLURL
-	if len(*githubUser.Blog) > 0 {
-		uUrl = *githubUser.Blog
-	}
-	jb, _ = json.Marshal(model.AuthProfileInfo{
-		LoginBy: "github",
-		OpenId:  githubIdStr,
-		Name:    name,
-		Avatar:  *githubUser.AvatarURL,
-		Agent:   c.Request.UserAgent(),
-		About:   "",
-		Url:     uUrl,
+		return nil
 	})
-	_ = db.Hset("oauth_tmp_info", sdb.S2b(authorKey), jb)
 
 	c.Redirect(302, scf.MainDomain+"/register")
 }

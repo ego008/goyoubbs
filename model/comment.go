@@ -1,12 +1,15 @@
 package model
 
 import (
-	"github.com/VictoriaMetrics/fastcache"
-	"github.com/ego008/goutils/json"
-	"github.com/ego008/sdb"
+	"bytes"
 	"goyoubbs/util"
 	"strconv"
 	"time"
+
+	"github.com/VictoriaMetrics/fastcache"
+	"github.com/ego008/goutils/json"
+	"github.com/ego008/mdb"
+	"go.etcd.io/bbolt"
 )
 
 const (
@@ -41,43 +44,41 @@ type CommentReview struct {
 	ContentFmt string
 }
 
-func CommentGetById(db *sdb.DB, tid, cid uint64) (obj Comment) {
-	if rs := db.Hget(CommentTbName+strconv.FormatUint(tid, 10), sdb.I2b(cid)); rs.OK() {
-		err := json.Unmarshal(rs.Bytes(), &obj)
-		if err != nil {
-			return
-		}
-	}
+func CommentGetById(db *mdb.DB, tx *bbolt.Tx, tid, cid uint64) (obj Comment) {
+	_ = db.HGetFunc(tx, CommentTbName+strconv.FormatUint(tid, 10), mdb.I2b(cid), func(val []byte) error {
+		_ = json.Unmarshal(val, &obj)
+		return nil
+	})
 	return
 }
 
 // CommentSet 编辑评论，只修改Content
-func CommentSet(db *sdb.DB, obj Comment) Comment {
+func CommentSet(db *mdb.DB, tx *bbolt.Tx, obj Comment) Comment {
 	jb, _ := json.Marshal(obj)
-	_ = db.Hset(CommentTbName+strconv.FormatUint(obj.TopicId, 10), sdb.I2b(obj.ID), jb)
+	_ = db.HSet(tx, CommentTbName+strconv.FormatUint(obj.TopicId, 10), mdb.I2b(obj.ID), jb)
 	return obj
 }
 
 // CommentAdd 添加评论
-func CommentAdd(mc *fastcache.Cache, db *sdb.DB, obj Comment) Comment {
-	_, _ = db.Hincr(CountTb, []byte("comment"), 1)                  // 总评论数
-	newId, _ := db.Hincr(CommentNumTbName, sdb.I2b(obj.TopicId), 1) // 帖子评论数
+func CommentAdd(mc *fastcache.Cache, db *mdb.DB, tx *bbolt.Tx, obj Comment) Comment {
+	_, _ = db.HIncr(tx, CountTb, []byte("comment"), 1)                  // 总评论数
+	newId, _ := db.HIncr(tx, CommentNumTbName, mdb.I2b(obj.TopicId), 1) // 帖子评论数
 	obj.ID = newId
 	jb, _ := json.Marshal(obj)
-	_ = db.Hset(CommentTbName+strconv.FormatUint(obj.TopicId, 10), sdb.I2b(newId), jb)
+	_ = db.HSet(tx, CommentTbName+strconv.FormatUint(obj.TopicId, 10), mdb.I2b(newId), jb)
 	// 更新 topic 相关时间线
-	topic := TopicGetById(db, obj.TopicId)
+	topic := TopicGetById(db, tx, obj.TopicId)
 	// 首页
-	_ = db.Zset(TbnPostUpdate, sdb.I2b(obj.TopicId), uint64(obj.AddTime))
+	_ = db.ZSet(tx, TbnPostUpdate, mdb.I2b(obj.TopicId), uint64(obj.AddTime))
 	// 分类页
-	_ = db.Zset("topic_update:"+strconv.FormatUint(topic.NodeId, 10), sdb.I2b(obj.TopicId), uint64(obj.AddTime))
+	_ = db.ZSet(tx, "topic_update:"+strconv.FormatUint(topic.NodeId, 10), mdb.I2b(obj.TopicId), uint64(obj.AddTime))
 	// 个人回复的帖子
-	_ = db.Zset("user_comment:"+strconv.FormatUint(obj.UserId, 10), sdb.I2b(obj.TopicId), uint64(obj.AddTime))
+	_ = db.ZSet(tx, "user_comment:"+strconv.FormatUint(obj.UserId, 10), mdb.I2b(obj.TopicId), uint64(obj.AddTime))
 	// 最近回复内容
 	k := []byte(strconv.FormatInt(obj.AddTime, 10) + "_" + strconv.FormatUint(obj.TopicId, 10))
-	_ = db.Hset("recent_comment", k, sdb.I2b(obj.ID))
+	_ = db.HSet(tx, "recent_comment", k, mdb.I2b(obj.ID))
 	// topic 回复者，浏览权限
-	_ = db.Hset(TbnPostReply+strconv.FormatUint(obj.TopicId, 10), sdb.I2b(obj.UserId), nil)
+	_ = db.HSet(tx, TbnPostReply+strconv.FormatUint(obj.TopicId, 10), mdb.I2b(obj.UserId), nil)
 	// 删缓存
 	mc.Del([]byte("CommentGetRecent"))
 	mc.Del([]byte("TopicGetRelative:" + strconv.FormatUint(obj.TopicId, 10)))
@@ -91,12 +92,16 @@ func CommentAdd(mc *fastcache.Cache, db *sdb.DB, obj Comment) Comment {
 		toNoteUserIdLst = append(toNoteUserIdLst, topic.UserId)
 	}
 	if len(userNameLst) > 0 {
-		db.Hmget("user_name2uid", userNameLst).KvEach(func(_, value sdb.BS) {
-			uid := sdb.B2i(value)
+		_ = db.HMGetFunc(tx, "user_name2uid", userNameLst, func(key, val []byte) error {
+			if len(val) == 0 {
+				return nil
+			}
+			uid := mdb.B2i(val)
 			if uid != obj.UserId && uid != topic.UserId {
 				// 排除 @ 自己 与 主贴作者
 				toNoteUserIdLst = append(toNoteUserIdLst, uid)
 			}
+			return nil
 		})
 	}
 
@@ -108,7 +113,7 @@ func CommentAdd(mc *fastcache.Cache, db *sdb.DB, obj Comment) Comment {
 		}
 		jb, _ = json.Marshal(msg)
 		for _, uid := range toNoteUserIdLst {
-			_ = db.Hset("user_msg:"+strconv.FormatUint(uid, 10), sdb.I2b(topic.ID), jb)
+			_ = db.HSet(tx, "user_msg:"+strconv.FormatUint(uid, 10), mdb.I2b(topic.ID), jb)
 			time.Sleep(2 * time.Microsecond)
 		}
 	}
@@ -118,7 +123,7 @@ func CommentAdd(mc *fastcache.Cache, db *sdb.DB, obj Comment) Comment {
 	return obj
 }
 
-func GetAllTopicComment(mc *fastcache.Cache, db *sdb.DB, topic Topic, isPublic, canRead bool) (objLst []CommentFmt) {
+func GetAllTopicComment(mc *fastcache.Cache, db *mdb.DB, tx *bbolt.Tx, topic Topic, isPublic, canRead bool) (objLst []CommentFmt) {
 	tbName := CommentTbName + strconv.FormatUint(topic.ID, 10)
 	mcKey := []byte(tbName)
 	if isPublic {
@@ -129,11 +134,11 @@ func GetAllTopicComment(mc *fastcache.Cache, db *sdb.DB, topic Topic, isPublic, 
 
 	userMap := map[uint64]User{}
 
-	db.Hscan(tbName, nil, int(topic.Comments)).KvEach(func(_, value sdb.BS) {
+	_ = db.HScanFunc(tx, tbName, nil, int(topic.Comments), func(key, val []byte) bool {
 		obj := CommentFmt{}
-		err := json.Unmarshal(value.Bytes(), &obj)
+		err := json.Unmarshal(val, &obj)
 		if err != nil {
-			return
+			return true
 		}
 		obj.AddTimeFmt = util.TimeFmt(obj.AddTime, "2006-01-02 15:04")
 		if isPublic {
@@ -152,6 +157,7 @@ func GetAllTopicComment(mc *fastcache.Cache, db *sdb.DB, topic Topic, isPublic, 
 		obj.Link = "/t/" + strconv.FormatUint(obj.TopicId, 10) + "#r" + strconv.FormatUint(obj.ID, 10)
 		objLst = append(objLst, obj)
 		userMap[obj.UserId] = User{}
+		return true
 	})
 
 	// 获取用户信息
@@ -159,7 +165,7 @@ func GetAllTopicComment(mc *fastcache.Cache, db *sdb.DB, topic Topic, isPublic, 
 	for k := range userMap {
 		userIds = append(userIds, k)
 	}
-	for _, obj := range UserGetByIds(db, userIds) {
+	for _, obj := range UserGetByIds(db, tx, userIds) {
 		userMap[obj.ID] = obj
 	}
 	// 设置comment name
@@ -178,24 +184,30 @@ func GetAllTopicComment(mc *fastcache.Cache, db *sdb.DB, topic Topic, isPublic, 
 }
 
 // CheckHasComment2Review 检查有没有待审核评论
-func CheckHasComment2Review(db *sdb.DB) bool {
-	if db.Hscan(CommentReviewTbName, nil, 1).OK() {
+func CheckHasComment2Review(db *mdb.DB, tx *bbolt.Tx) bool {
+	var ok bool
+	_ = db.HScanFunc(tx, CommentReviewTbName, nil, 1, func(_, _ []byte) bool {
+		ok = true
 		return true
-	}
-	return false
+	})
+	return ok
 }
 
 // CommentGetNumByKeys 通过 []idByte 取评论数
-func CommentGetNumByKeys(db *sdb.DB, keys [][]byte) map[uint64]uint64 {
+func CommentGetNumByKeys(db *mdb.DB, tx *bbolt.Tx, keys [][]byte) map[uint64]uint64 {
 	commentsMap := map[uint64]uint64{}
-	db.Hmget(CommentNumTbName, keys).KvEach(func(key, value sdb.BS) {
-		commentsMap[sdb.B2i(key)] = sdb.B2i(value)
+	_ = db.HMGetFunc(tx, CommentNumTbName, keys, func(key, val []byte) error {
+		if len(val) == 0 {
+			return nil
+		}
+		commentsMap[mdb.B2i(key)] = mdb.B2i(val)
+		return nil
 	})
 	return commentsMap
 }
 
 // CommentGetRecent 取最近评论
-func CommentGetRecent(mc *fastcache.Cache, db *sdb.DB, limit int) (objLst []CommentFmt) {
+func CommentGetRecent(mc *fastcache.Cache, db *mdb.DB, tx *bbolt.Tx, limit int) (objLst []CommentFmt) {
 	// get from mc
 	mcKey := []byte("CommentGetRecent")
 	if _, exist := util.ObjCachedGet(mc, mcKey, &objLst, false); exist {
@@ -205,12 +217,14 @@ func CommentGetRecent(mc *fastcache.Cache, db *sdb.DB, limit int) (objLst []Comm
 	var sortKeyLst []string                  // 记录顺序 []tidCid
 	commentMap := map[string]Comment{}       // tidCid:Comment
 	topicCommentMap := map[string][][]byte{} // topicIdStr: [][]byte(commentId) // 无序
-	db.Hrscan("recent_comment", nil, limit).KvEach(func(key, value sdb.BS) {
-		tidStr := util.StringSplit(key.String(), "_")[1]
+
+	_ = db.HRScanFunc(tx, "recent_comment", nil, limit, func(key, val []byte) bool {
+		tidStr := util.StringSplit(string(key), "_")[1]
 		k := CommentTbName + tidStr
-		tidCid := tidStr + "_" + strconv.FormatUint(sdb.B2i(value.Bytes()), 10)
+		tidCid := tidStr + "_" + strconv.FormatUint(mdb.B2i(val), 10)
 		sortKeyLst = append(sortKeyLst, tidCid)
-		topicCommentMap[k] = append(topicCommentMap[k], value.Bytes()) // 一个帖子多条回复
+		topicCommentMap[k] = append(topicCommentMap[k], bytes.Clone(val)) // 一个帖子多条回复
+		return true
 	})
 
 	if len(sortKeyLst) == 0 {
@@ -220,11 +234,11 @@ func CommentGetRecent(mc *fastcache.Cache, db *sdb.DB, limit int) (objLst []Comm
 	uidMap := map[uint64]struct{}{}
 	var userIds []uint64
 	for k := range topicCommentMap {
-		db.Hmget(k, topicCommentMap[k]).KvEach(func(key, value sdb.BS) {
+		_ = db.HMGetFunc(tx, k, topicCommentMap[k], func(key, val []byte) error {
 			obj := Comment{}
-			err := json.Unmarshal(value.Bytes(), &obj)
+			err := json.Unmarshal(val, &obj)
 			if err != nil {
-				return
+				return nil
 			}
 			tidCid := strconv.FormatUint(obj.TopicId, 10) + "_" + strconv.FormatUint(obj.ID, 10)
 			commentMap[tidCid] = obj
@@ -232,11 +246,12 @@ func CommentGetRecent(mc *fastcache.Cache, db *sdb.DB, limit int) (objLst []Comm
 				uidMap[obj.UserId] = struct{}{}
 				userIds = append(userIds, obj.UserId)
 			}
+			return nil
 		})
 	}
 
 	// get user name
-	userNameMap := UserGetNamesByIds(db, userIds)
+	userNameMap := UserGetNamesByIds(db, tx, userIds)
 	// out put
 	for _, k := range sortKeyLst {
 		obj, _ := commentMap[k]
@@ -258,24 +273,31 @@ func CommentGetRecent(mc *fastcache.Cache, db *sdb.DB, limit int) (objLst []Comm
 }
 
 // CommentGetReviewNum 取个人待审核评论条数
-func CommentGetReviewNum(db *sdb.DB, uid uint64) int {
+func CommentGetReviewNum(db *mdb.DB, tx *bbolt.Tx, uid uint64) int {
 	// 限制 10 条，若有10条未审核的则不允许再发
-	return db.Hscan(CommentReviewTbName+":"+strconv.FormatUint(uid, 10), nil, 10).KvLen()
+	n := 0
+	_ = db.HScanFunc(tx, CommentReviewTbName+":"+strconv.FormatUint(uid, 10), nil, 10, func(_, _ []byte) bool {
+		n++
+		return true
+	})
+	return n
 }
 
 // CommentGetReview 取个人待审核评论
-func CommentGetReview(db *sdb.DB, uid uint64) (objLst []CommentReview) {
+func CommentGetReview(db *mdb.DB, tx *bbolt.Tx, uid uint64) (objLst []CommentReview) {
 	var topicIds []uint64
 	var ids [][]byte
 	var keyStart []byte
 
 	for {
-		if rs := db.Hrscan(CommentReviewTbName+":"+strconv.FormatUint(uid, 10), keyStart, 10); rs.OK() {
-			rs.KvEach(func(key, _ sdb.BS) {
-				keyStart = key
-				ids = append(ids, key)
-			})
-		} else {
+		var ok bool
+		_ = db.HRScanFunc(tx, CommentReviewTbName+":"+strconv.FormatUint(uid, 10), keyStart, 10, func(key, val []byte) bool {
+			keyStart = key
+			ids = append(ids, key)
+			ok = true
+			return true
+		})
+		if !ok {
 			break
 		}
 	}
@@ -285,18 +307,19 @@ func CommentGetReview(db *sdb.DB, uid uint64) (objLst []CommentReview) {
 	}
 
 	commentMap := map[string]Comment{}
-	db.Hmget(CommentReviewTbName, ids).KvEach(func(key, value sdb.BS) {
+	_ = db.HMGetFunc(tx, CommentReviewTbName, ids, func(key, val []byte) error {
 		obj := Comment{}
-		err := json.Unmarshal(value, &obj)
+		err := json.Unmarshal(val, &obj)
 		if err != nil {
-			return
+			return nil
 		}
-		commentMap[key.String()] = obj
+		commentMap[string(key)] = obj
 		topicIds = append(topicIds, obj.TopicId)
+		return nil
 	})
 
 	// get topic title
-	topicTitleMap := TopicGetTitlesByIds(db, topicIds)
+	topicTitleMap := TopicGetTitlesByIds(db, tx, topicIds)
 
 	for _, v := range ids {
 		vStr := string(v)

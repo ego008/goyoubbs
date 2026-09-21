@@ -7,7 +7,7 @@ import (
 	"github.com/alecthomas/chroma/formatters/html"
 	"github.com/alecthomas/chroma/lexers"
 	"github.com/alecthomas/chroma/styles"
-	"github.com/ego008/sdb"
+	"github.com/ego008/mdb"
 	"github.com/yuin/goldmark"
 	"github.com/yuin/goldmark/extension"
 	gmhtml "github.com/yuin/goldmark/renderer/html"
@@ -146,7 +146,7 @@ func ContentFmt(input string) string {
 	// 处理 md
 	var md string
 	var buf bytes.Buffer
-	if err := mdp.Convert(sdb.S2b(input), &buf); err == nil {
+	if err := mdp.Convert(mdb.S2b(input), &buf); err == nil {
 		md = buf.String()
 	} else {
 		log.Println(err)
@@ -250,7 +250,7 @@ func GetMention(input string, notInclude []string) [][]byte {
 		if _, ok := notIncludeMap[sb]; ok {
 			continue
 		}
-		sbMap[sb] = sdb.S2b(sb)
+		sbMap[sb] = mdb.S2b(sb)
 	}
 	if len(sbMap) > 0 {
 		sb := make([][]byte, len(sbMap))

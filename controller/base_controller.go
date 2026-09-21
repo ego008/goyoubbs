@@ -11,8 +11,9 @@ import (
 	"goyoubbs/util"
 
 	"github.com/ego008/goutils/json"
-	"github.com/ego008/sdb"
+	"github.com/ego008/mdb"
 	"github.com/gin-gonic/gin"
+	"go.etcd.io/bbolt"
 )
 
 var rangeTopicLst []model.TopicLi // 边栏显示最近被浏览的文章
@@ -83,15 +84,19 @@ func (h *BaseHandler) CurrentUser(c *gin.Context) (*model.User, error) {
 	user, ok = model.UserMap[uId]
 	model.UserMapMux.RUnlock()
 	if !ok {
-		rs := h.App.Db.Hget(model.UserTbName, sdb.I2b(uId))
-		if rs.OK() {
-			_ = json.Unmarshal(rs.Data[0], &user)
-			if user.ID > 0 {
-				model.UserMapMux.Lock()
-				model.UserMap[uId] = user
-				model.UserMapMux.Unlock()
-			}
-		}
+		// 用户有缓存，很少触发
+		_ = h.App.Db.View(func(tx *bbolt.Tx) error {
+			_ = h.App.Db.HGetFunc(tx, model.UserTbName, mdb.I2b(uId), func(val []byte) error {
+				_ = json.Unmarshal(val, &user)
+				if user.ID > 0 {
+					model.UserMapMux.Lock()
+					model.UserMap[uId] = user
+					model.UserMapMux.Unlock()
+				}
+				return nil
+			})
+			return nil
+		})
 	}
 	if user != nil {
 		_ = h.SetCookie(c, "SessionID", ssValue, 365)

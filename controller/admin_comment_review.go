@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"bytes"
 	"goyoubbs/model"
 	"goyoubbs/util"
 	"goyoubbs/views/admin"
@@ -9,8 +10,8 @@ import (
 	"strings"
 
 	"github.com/ego008/goutils/json"
-	"github.com/ego008/sdb"
 	"github.com/gin-gonic/gin"
+	"go.etcd.io/bbolt"
 )
 
 func (h *BaseHandler) AdminCommentReviewPage(c *gin.Context) {
@@ -33,48 +34,55 @@ func (h *BaseHandler) AdminCommentReviewPage(c *gin.Context) {
 	var delKey []byte // 待删除的key
 	// 取待审核信息
 	var rec model.Comment
-	rs := db.Hscan(model.CommentReviewTbName, nil, 1)
-	if rs.OK() {
-		rs.KvEach(func(key, value sdb.BS) {
-			delKey = key
-			err := json.Unmarshal(value, &rec)
-			if err != nil {
-				return
-			}
+
+	_ = db.View(func(tx *bbolt.Tx) error {
+		_ = db.HScanFunc(tx, model.CommentReviewTbName, nil, 1, func(key, val []byte) bool {
+			delKey = bytes.Clone(key)
+			_ = json.Unmarshal(val, &rec)
+			return true
 		})
-	}
+		return nil
+	})
 
 	if act == "del" {
-		// 删掉管理员列表
-		_ = db.Hdel(model.CommentReviewTbName, delKey)
-		// 删掉个人待审核列表
-		_ = db.Hdel("review_comment:"+strconv.FormatUint(rec.UserId, 10), delKey)
+		_ = db.Update(func(tx *bbolt.Tx) error {
+			// 删掉管理员列表
+			_ = db.HDel(tx, model.CommentReviewTbName, delKey)
+			// 删掉个人待审核列表
+			_ = db.HDel(tx, "review_comment:"+strconv.FormatUint(rec.UserId, 10), delKey)
+			return nil
+		})
 		c.Redirect(302, "/admin/comment/review")
 		return
 	}
 
 	var author model.User
-	if rec.UserId > 0 {
-		author, _ = model.UserGetById(db, rec.UserId)
-	}
-	if author.ID == 0 {
-		author = evn.CurrentUser
-	}
 
-	evn.ReadMoreBreak = model.ReadMoreBreak
-	evn.NodeLst = model.NodeGetAll(h.App.Mc, h.App.Db)
-	evn.DefaultTopic = model.TopicGetById(db, rec.TopicId)
-	evn.DefaultComment = model.CommentFmt{
-		Comment:    rec,
-		Name:       author.Name,
-		AddTimeFmt: util.TimeFmt(rec.AddTime, ""),
-		ContentFmt: rec.Content,
-	}
-	evn.DefaultUser = author
+	_ = db.View(func(tx *bbolt.Tx) error {
+		if rec.UserId > 0 {
+			author, _ = model.UserGetById(db, tx, rec.UserId)
+		}
+		if author.ID == 0 {
+			author = evn.CurrentUser
+		}
 
-	evn.HasMsg = model.MsgCheckHasOne(db, curUser.ID)
-	evn.HasTopicReview = model.CheckHasTopic2Review(h.App.Db)
-	evn.HasReplyReview = model.CheckHasComment2Review(h.App.Db)
+		evn.ReadMoreBreak = model.ReadMoreBreak
+		evn.NodeLst = model.NodeGetAll(h.App.Mc, h.App.Db, tx)
+		evn.DefaultTopic = model.TopicGetById(db, tx, rec.TopicId)
+		evn.DefaultComment = model.CommentFmt{
+			Comment:    rec,
+			Name:       author.Name,
+			AddTimeFmt: util.TimeFmt(rec.AddTime, ""),
+			ContentFmt: rec.Content,
+		}
+		evn.DefaultUser = author
+
+		evn.HasMsg = model.MsgCheckHasOne(db, tx, curUser.ID)
+		evn.HasTopicReview = model.CheckHasTopic2Review(h.App.Db, tx)
+		evn.HasReplyReview = model.CheckHasComment2Review(h.App.Db, tx)
+
+		return nil
+	})
 
 	c.Header("Content-Type", "text/html; charset=utf-8")
 	c.Status(http.StatusOK)
@@ -112,24 +120,6 @@ func (h *BaseHandler) AdminCommentReviewPost(c *gin.Context) {
 		isEdit = true
 	}
 
-	var comment model.Comment
-	if isEdit {
-		comment = model.CommentGetById(db, rec.TopicId, rec.ID)
-		if comment.ID == 0 {
-			c.String(200, `{"Code":400,"Msg":"该 id 不存在"}`)
-			return
-		}
-		comment.Content = rec.Content
-		model.CommentSet(db, comment)
-		// 删缓存
-		h.App.Mc.Del([]byte("CommentGetRecent"))
-		h.App.Mc.Del([]byte(model.CommentTbName + strconv.FormatUint(rec.TopicId, 10)))
-		c.String(200, `{"Code":200,"Msg":"成功编辑"}`)
-		return
-	}
-
-	comment = rec
-
 	type response struct {
 		model.NormalRsp
 		Tid uint64
@@ -137,16 +127,38 @@ func (h *BaseHandler) AdminCommentReviewPost(c *gin.Context) {
 
 	rsp := response{}
 	rsp.Code = 200
-	// 保存(通过审核)
-	comment = model.CommentAdd(h.App.Mc, db, comment)
-	rsp.Tid = comment.ID
 
-	// 删除
-	reviewKey := []byte(strconv.FormatInt(comment.AddTime, 10) + "_" + strconv.FormatUint(comment.TopicId, 10))
-	// 管理员
-	_ = db.Hdel(model.CommentReviewTbName, reviewKey)
-	// 发表者
-	_ = db.Hdel(model.CommentReviewTbName+":"+strconv.FormatUint(comment.UserId, 10), reviewKey)
+	_ = db.Update(func(tx *bbolt.Tx) error {
+		var comment model.Comment
+		if isEdit {
+			comment = model.CommentGetById(db, tx, rec.TopicId, rec.ID)
+			if comment.ID == 0 {
+				c.String(200, `{"Code":400,"Msg":"该 id 不存在"}`)
+				return nil
+			}
+			comment.Content = rec.Content
+			model.CommentSet(db, tx, comment)
+			// 删缓存
+			h.App.Mc.Del([]byte("CommentGetRecent"))
+			h.App.Mc.Del([]byte(model.CommentTbName + strconv.FormatUint(rec.TopicId, 10)))
+			c.String(200, `{"Code":200,"Msg":"成功编辑"}`)
+			return nil
+		}
+
+		comment = rec
+
+		// 保存(通过审核)
+		comment = model.CommentAdd(h.App.Mc, db, tx, comment)
+		rsp.Tid = comment.ID
+
+		// 删除
+		reviewKey := []byte(strconv.FormatInt(comment.AddTime, 10) + "_" + strconv.FormatUint(comment.TopicId, 10))
+		// 管理员
+		_ = db.HDel(tx, model.CommentReviewTbName, reviewKey)
+		// 发表者
+		_ = db.HDel(tx, model.CommentReviewTbName+":"+strconv.FormatUint(comment.UserId, 10), reviewKey)
+		return nil
+	})
 
 	_ = json.NewEncoder(c.Writer).Encode(rsp)
 }

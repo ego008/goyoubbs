@@ -2,7 +2,8 @@ package model
 
 import (
 	"github.com/ego008/goutils/json"
-	"github.com/ego008/sdb"
+	"github.com/ego008/mdb"
+	"go.etcd.io/bbolt"
 )
 
 type IpInfo struct {
@@ -12,22 +13,20 @@ type IpInfo struct {
 	UpTime  int64 // last update time
 }
 
-func IpInfoGetByKeyStart(db *sdb.DB, keyStart string, limit int) (items []IpInfo) {
+func IpInfoGetByKeyStart(db *mdb.DB, tx *bbolt.Tx, keyStart string, limit int) (items []IpInfo) {
 	var kst []byte
 	if len(keyStart) > 0 {
-		kst = sdb.S2b(keyStart)
+		kst = mdb.S2b(keyStart)
 	}
-	rs := db.Hscan(TbnIpInfo, kst, limit)
-	if !rs.OK() {
-		return
-	}
-	rs.KvEach(func(_, value sdb.BS) {
+
+	_ = db.HScanFunc(tx, TbnIpInfo, kst, limit, func(key, val []byte) bool {
 		item := IpInfo{}
-		err := json.Unmarshal(value, &item)
+		err := json.Unmarshal(val, &item)
 		if err != nil {
-			return
+			return true
 		}
 		items = append(items, item)
+		return true
 	})
 
 	return

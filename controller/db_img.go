@@ -1,13 +1,15 @@
 package controller
 
 import (
+	"bytes"
 	"goyoubbs/model"
 	"net/http"
 	"strconv"
 	"strings"
 
-	"github.com/ego008/sdb"
+	"github.com/ego008/mdb"
 	"github.com/gin-gonic/gin"
+	"go.etcd.io/bbolt"
 )
 
 func (h *BaseHandler) DbImageHandle(c *gin.Context) {
@@ -33,15 +35,22 @@ func (h *BaseHandler) DbImageHandle(c *gin.Context) {
 		c.Status(http.StatusNotFound)
 		return
 	}
-	rs := h.App.Db.Hget(model.TbnDbImg, sdb.I2b(uidInt))
-	if !rs.OK() {
+
+	var imgData []byte
+	_ = h.App.Db.View(func(tx *bbolt.Tx) error {
+		val := h.App.Db.HGet(tx, model.TbnDbImg, mdb.I2b(uidInt))
+		if len(val) > 0 {
+			imgData = bytes.Clone(val)
+		}
+		return nil
+	})
+	if len(imgData) == 0 {
 		c.Status(http.StatusNotFound)
 		return
 	}
 
 	c.Header("Content-Type", "image/"+exn)
 
-	imgData := rs.Bytes()
 	etag := key
 	c.Header("Etag", `"`+etag+`"`)
 	// private public

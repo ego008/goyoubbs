@@ -4,10 +4,6 @@ import (
 	"bytes"
 	"crypto/sha512"
 	"encoding/hex"
-	"github.com/ego008/sdb"
-	"github.com/golang/freetype"
-	"github.com/golang/freetype/truetype"
-	"golang.org/x/image/font"
 	"image"
 	"image/color"
 	"image/png"
@@ -17,6 +13,12 @@ import (
 	"os"
 	"regexp"
 	"strings"
+
+	"github.com/ego008/mdb"
+	"github.com/golang/freetype"
+	"github.com/golang/freetype/truetype"
+	"go.etcd.io/bbolt"
+	"golang.org/x/image/font"
 )
 
 const (
@@ -29,7 +31,7 @@ var (
 	fontSize  = math.Min(float64(imgWidth), float64(imgHeight)) * 0.6
 )
 
-func GenAvatar(db *sdb.DB, uid uint64, text string) error {
+func GenAvatar(db *mdb.DB, tx *bbolt.Tx, uid uint64, text string) error {
 
 	upLeft := image.Point{X: 0, Y: 0}
 	lowRight := image.Point{X: imgWidth, Y: imgHeight}
@@ -114,17 +116,7 @@ func GenAvatar(db *sdb.DB, uid uint64, text string) error {
 	if err != nil {
 		return err
 	}
-	return db.Hset("user_avatar", sdb.I2b(uid), buf.Bytes())
-
-	// save to local
-	/*
-		f, _ := os.Create(avatarDir + "/" + strconv.FormatUint(uid, 10) + ".jpg")
-		defer func() {
-			_ = f.Close()
-		}()
-		return png.Encode(f, dst)
-	*/
-
+	return db.HSet(tx, "user_avatar", mdb.I2b(uid), buf.Bytes())
 }
 
 // 获取字符集，仅调用一次

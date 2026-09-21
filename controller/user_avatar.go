@@ -1,13 +1,15 @@
 package controller
 
 import (
+	"bytes"
 	"goyoubbs/util"
 	"net/http"
 	"strconv"
 	"strings"
 
-	"github.com/ego008/sdb"
+	"github.com/ego008/mdb"
 	"github.com/gin-gonic/gin"
+	"go.etcd.io/bbolt"
 )
 
 func (h *BaseHandler) UserAvatarHandle(c *gin.Context) {
@@ -24,13 +26,21 @@ func (h *BaseHandler) UserAvatarHandle(c *gin.Context) {
 		c.Status(http.StatusNotFound)
 		return
 	}
-	rs := h.App.Db.Hget("user_avatar", sdb.I2b(uidInt))
-	if !rs.OK() {
+	var imgData []byte
+
+	_ = h.App.Db.View(func(tx *bbolt.Tx) error {
+		_ = h.App.Db.HGetFunc(tx, "user_avatar", mdb.I2b(uidInt), func(val []byte) error {
+			imgData = bytes.Clone(val)
+			return nil
+		})
+		return nil
+	})
+
+	if len(imgData) == 0 {
 		c.Status(http.StatusNotFound)
 		return
 	}
 
-	imgData := rs.Bytes()
 	etag := strconv.FormatUint(util.Xxhash(imgData), 10)
 	c.Header("Etag", `"`+etag+`"`)
 	// private public

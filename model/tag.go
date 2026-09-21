@@ -2,7 +2,9 @@ package model
 
 import (
 	"github.com/VictoriaMetrics/fastcache"
-	"github.com/ego008/sdb"
+	"github.com/ego008/mdb"
+	"go.etcd.io/bbolt"
+
 	"goyoubbs/util"
 )
 
@@ -13,19 +15,17 @@ type TagFontSize struct {
 	Size int
 }
 
-func GetTagsForSide(mc *fastcache.Cache, db *sdb.DB, limit int) (tagLst []TagFontSize) {
+func GetTagsForSide(mc *fastcache.Cache, db *mdb.DB, tx *bbolt.Tx, limit int) (tagLst []TagFontSize) {
 	mcKey := []byte("GetTagsForSide")
 	if _, exist := util.ObjCachedGet(mc, mcKey, &tagLst, false); exist {
 		return
 	}
 
-	db.Zrscan("tag_article_num", nil, nil, limit).KvEach(func(key, value sdb.BS) {
-		num := sdb.B2i(value)
-		//fontSize := math.Ceil(3*math.Log(float64(num+1)) + tagBaseFontSize)
-		tag := key.String()
+	_ = db.ZRScanFunc(tx, "tag_article_num", nil, 0, 0, limit, func(key []byte, score uint64) bool {
 		tagLst = append(tagLst, TagFontSize{
-			Name: tag,
-			Size: int(num)})
+			Name: string(key),
+			Size: int(score)})
+		return true
 	})
 
 	// set to mc

@@ -8,6 +8,7 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"go.etcd.io/bbolt"
 )
 
 func (h *BaseHandler) AdminCommentEditPage(c *gin.Context) {
@@ -32,38 +33,41 @@ func (h *BaseHandler) AdminCommentEditPage(c *gin.Context) {
 		return
 	}
 
-	comment := model.CommentGetById(db, tidI, cidI)
-
 	evn := &admin.CommentEdit{}
 	evn.CurrentUser = *curUser
 	evn.SiteCf = scf
 	evn.Title = "评论修改"
 	evn.PageName = "admin_comment_edit"
 
-	author, _ := model.UserGetById(db, comment.UserId)
+	_ = db.View(func(tx *bbolt.Tx) error {
+		comment := model.CommentGetById(db, tx, tidI, cidI)
+		author, _ := model.UserGetById(db, tx, comment.UserId)
 
-	if author.ID == 0 {
-		author = evn.CurrentUser
-	}
+		if author.ID == 0 {
+			author = evn.CurrentUser
+		}
 
-	evn.ReadMoreBreak = model.ReadMoreBreak
-	evn.NodeLst = model.NodeGetAll(h.App.Mc, h.App.Db)
-	evn.DefaultTopic = model.TopicGetById(db, comment.TopicId)
-	evn.DefaultComment = model.CommentFmt{
-		Comment:    comment,
-		Name:       author.Name,
-		AddTimeFmt: util.TimeFmt(comment.AddTime, ""),
-		ContentFmt: comment.Content,
-	}
-	evn.DefaultUser = author
+		evn.ReadMoreBreak = model.ReadMoreBreak
+		evn.NodeLst = model.NodeGetAll(h.App.Mc, h.App.Db, tx)
+		evn.DefaultTopic = model.TopicGetById(db, tx, comment.TopicId)
+		evn.DefaultComment = model.CommentFmt{
+			Comment:    comment,
+			Name:       author.Name,
+			AddTimeFmt: util.TimeFmt(comment.AddTime, ""),
+			ContentFmt: comment.Content,
+		}
+		evn.DefaultUser = author
 
-	if len(c.Query("back")) > 0 {
-		evn.GoBack = true
-	}
+		if len(c.Query("back")) > 0 {
+			evn.GoBack = true
+		}
 
-	evn.HasMsg = model.MsgCheckHasOne(db, curUser.ID)
-	evn.HasTopicReview = model.CheckHasTopic2Review(h.App.Db)
-	evn.HasReplyReview = model.CheckHasComment2Review(h.App.Db)
+		evn.HasMsg = model.MsgCheckHasOne(db, tx, curUser.ID)
+		evn.HasTopicReview = model.CheckHasTopic2Review(h.App.Db, tx)
+		evn.HasReplyReview = model.CheckHasComment2Review(h.App.Db, tx)
+
+		return nil
+	})
 
 	c.Header("Content-Type", "text/html; charset=utf-8")
 	c.Status(http.StatusOK)

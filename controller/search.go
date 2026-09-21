@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
+	"go.etcd.io/bbolt"
 )
 
 func (h *BaseHandler) SearchPage(c *gin.Context) {
@@ -51,31 +52,36 @@ func (h *BaseHandler) SearchPage(c *gin.Context) {
 
 	var pageInfo model.TopicPageInfo
 	mcKey := []byte("search:" + where + ":" + qLow)
-	if _, exist := util.ObjCachedGet(h.App.Mc, mcKey, &pageInfo, false); !exist {
-		pageInfo = model.SearchTopicList(h.App.Mc, db, q, scf.PageShowNum)
-		// set to mc
-		util.ObjCachedSet(h.App.Mc, mcKey, pageInfo)
-	}
 
 	evn := &ybs.SearchPage{}
-	evn.SiteCf = scf
-	evn.Title = "搜索: " + q + " - " + scf.Name
-	evn.CurrentUser = *curUser
-
-	evn.Q = q
-	evn.NodeLst = model.NodeGetAll(h.App.Mc, db)
-	evn.TopicPageInfo = pageInfo
-	evn.TagCloud = model.GetTagsForSide(h.App.Mc, db, showTagNum)
-	evn.RangeTopicLst = rangeTopicLst[:]
-	evn.RecentComment = model.CommentGetRecent(h.App.Mc, db, scf.RecentCommentNum)
-
-	if curUser.ID > 0 {
-		evn.HasMsg = model.MsgCheckHasOne(db, curUser.ID)
-		if curUser.Flag >= model.FlagAdmin {
-			evn.HasTopicReview = model.CheckHasTopic2Review(h.App.Db)
-			evn.HasReplyReview = model.CheckHasComment2Review(h.App.Db)
+	_ = db.View(func(tx *bbolt.Tx) error {
+		if _, exist := util.ObjCachedGet(h.App.Mc, mcKey, &pageInfo, false); !exist {
+			pageInfo = model.SearchTopicList(h.App.Mc, db, tx, q, scf.PageShowNum)
+			// set to mc
+			util.ObjCachedSet(h.App.Mc, mcKey, pageInfo)
 		}
-	}
+
+		evn.SiteCf = scf
+		evn.Title = "搜索: " + q + " - " + scf.Name
+		evn.CurrentUser = *curUser
+
+		evn.Q = q
+		evn.NodeLst = model.NodeGetAll(h.App.Mc, db, tx)
+		evn.TopicPageInfo = pageInfo
+		evn.TagCloud = model.GetTagsForSide(h.App.Mc, db, tx, showTagNum)
+		evn.RangeTopicLst = rangeTopicLst[:]
+		evn.RecentComment = model.CommentGetRecent(h.App.Mc, db, tx, scf.RecentCommentNum)
+
+		if curUser.ID > 0 {
+			evn.HasMsg = model.MsgCheckHasOne(db, tx, curUser.ID)
+			if curUser.Flag >= model.FlagAdmin {
+				evn.HasTopicReview = model.CheckHasTopic2Review(h.App.Db, tx)
+				evn.HasReplyReview = model.CheckHasComment2Review(h.App.Db, tx)
+			}
+		}
+
+		return nil
+	})
 
 	c.Header("Content-Type", "text/html; charset=utf-8")
 	c.Status(http.StatusOK)

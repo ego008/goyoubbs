@@ -1,8 +1,9 @@
 package model
 
 import (
-	"github.com/ego008/goutils/json"
-	"github.com/ego008/sdb"
+	"github.com/ego008/mdb"
+	"go.etcd.io/bbolt"
+
 	"goyoubbs/util"
 	"strconv"
 	"time"
@@ -19,7 +20,7 @@ type SiteInfo struct {
 	ReplyNum uint64 // 回复数
 }
 
-func GetSiteInfo(db *sdb.DB) (si SiteInfo) {
+func GetSiteInfo(db *mdb.DB, tx *bbolt.Tx) (si SiteInfo) {
 	commentTb := "comment"
 	siteCreateTb := "site_create_time"
 
@@ -32,38 +33,36 @@ func GetSiteInfo(db *sdb.DB) (si SiteInfo) {
 		[]byte(siteCreateTb),
 	}
 
-	tmpMap := db.Hmget(CountTb, keys).Dict()
+	tmpMap := map[string][]byte{}
+
+	_ = db.HMGetFunc(tx, CountTb, keys, func(k []byte, v []byte) error {
+		tmpMap[string(k)] = v
+		return nil
+	})
 
 	if v, ok := tmpMap[UserTbName]; ok {
-		si.UserNum = sdb.B2i(v)
+		si.UserNum = mdb.B2i(v)
 	}
 
 	if v, ok := tmpMap[NodeTbName]; ok {
-		si.NodeNum = sdb.B2i(v)
+		si.NodeNum = mdb.B2i(v)
 	}
 	if v, ok := tmpMap[TagTbName]; ok {
-		si.TagNum = sdb.B2i(v)
+		si.TagNum = mdb.B2i(v)
 	}
 	if v, ok := tmpMap[TopicTbName]; ok {
-		si.PostNum = sdb.B2i(v)
+		si.PostNum = mdb.B2i(v)
 	}
 	if v, ok := tmpMap[commentTb]; ok {
-		si.ReplyNum = sdb.B2i(v)
+		si.ReplyNum = mdb.B2i(v)
 	}
 
 	var siteCreateTime uint64
 	if v, ok := tmpMap[siteCreateTb]; ok {
-		siteCreateTime = sdb.B2i(v)
+		siteCreateTime = mdb.B2i(v)
 	} else {
-		rs2 := db.Hscan(UserTbName, []byte(""), 1)
-		if rs2.State == "ok" {
-			user := User{}
-			_ = json.Unmarshal(rs2.Data[1], &user)
-			siteCreateTime = user.RegTime
-		} else {
-			siteCreateTime = uint64(time.Now().UTC().Unix())
-		}
-		_ = db.Hset(CountTb, []byte(siteCreateTb), sdb.I2b(siteCreateTime))
+		// 冗余，一般不会发生
+		siteCreateTime = uint64(time.Now().UTC().Unix())
 	}
 
 	///
@@ -80,27 +79,6 @@ func GetSiteInfo(db *sdb.DB) (si SiteInfo) {
 	}
 	if si.Days == "" {
 		si.Days = "1天"
-	}
-
-	// fix for new site
-	if si.NodeNum == 0 {
-		newCid, err2 := db.Hincr(CountTb, []byte(NodeTbName), 1)
-		if err2 == nil {
-			obj := Node{
-				ID:    newCid,
-				Name:  "默认分类",
-				About: "默认第一个分类",
-			}
-			jb, _ := json.Marshal(obj)
-			_ = db.Hset(NodeTbName, sdb.I2b(obj.ID), jb)
-			si.NodeNum = 1
-		}
-		// link
-		LinkSet(db, Link{
-			Name:  "youBBS",
-			Url:   "https://youbbs.org",
-			Score: 100,
-		})
 	}
 
 	t := time.Now().UTC().Add(TimeOffSet)

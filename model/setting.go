@@ -1,7 +1,9 @@
 package model
 
 import (
-	"github.com/ego008/sdb"
+	"github.com/ego008/mdb"
+	"go.etcd.io/bbolt"
+
 	"goyoubbs/util"
 	"strings"
 )
@@ -11,31 +13,25 @@ type SettingKv struct {
 	Value string
 }
 
-func SettingGetByKey(db *sdb.DB, key string) (item SettingKv) {
-	item.Key = key
-	rs := db.Hget(TbnSetting, sdb.S2b(key))
-	if !rs.OK() {
-		return
-	}
-	item.Value = rs.String()
-	return
-}
-
-func SettingGetByKeys(db *sdb.DB, keySs []string) (items []SettingKv) {
+func SettingGetByKeys(db *mdb.DB, tx *bbolt.Tx, keySs []string) (items []SettingKv) {
 	kvm := map[string]struct{}{}
 	var keyBs [][]byte
 	for _, v := range keySs {
-		keyBs = append(keyBs, sdb.S2b(v))
+		keyBs = append(keyBs, mdb.S2b(v))
 		kvm[v] = struct{}{}
 	}
 
-	db.Hmget(TbnSetting, keyBs).KvEach(func(key, value sdb.BS) {
-		keyStr := sdb.B2s(key)
+	_ = db.HMGetFunc(tx, TbnSetting, keyBs, func(key, val []byte) error {
+		if len(val) == 0 {
+			return nil
+		}
+		keyStr := string(key)
 		items = append(items, SettingKv{
 			Key:   keyStr,
-			Value: string(value),
+			Value: string(val),
 		})
 		delete(kvm, keyStr)
+		return nil
 	})
 
 	if len(kvm) > 0 {
@@ -47,11 +43,14 @@ func SettingGetByKeys(db *sdb.DB, keySs []string) (items []SettingKv) {
 	return
 }
 
-func UpdateBadBotName(db *sdb.DB) {
+func UpdateBadBotName(db *mdb.DB, tx *bbolt.Tx) {
 	// BadBotNameMap
-	if rs := db.Hget(TbnSetting, sdb.S2b(SettingKeyBadBot)); rs.OK() {
+	_ = db.HGetFunc(tx, TbnSetting, []byte(SettingKeyBadBot), func(val []byte) error {
+		if len(val) == 0 {
+			return nil
+		}
 		curMap := Map{}
-		for _, line := range util.StringSplit(string(rs.Data[0]), ",") {
+		for _, line := range util.StringSplit(string(val), ",") {
 			line = strings.TrimSpace(line)
 			if len(line) == 0 {
 				continue
@@ -62,15 +61,19 @@ func UpdateBadBotName(db *sdb.DB) {
 		cm := BadBotNameMap.Load().(Map)
 		cm.Update(curMap)
 		BadBotNameMap.Store(cm)
-	}
+		return nil
+	})
 }
 
-func UpdateBadIpPrefix(db *sdb.DB) {
+func UpdateBadIpPrefix(db *mdb.DB, tx *bbolt.Tx) {
 	// BadIpPrefixLst
-	if rs := db.Hget(TbnSetting, sdb.S2b(SettingKeyBadIp)); rs.OK() {
+	_ = db.HGetFunc(tx, TbnSetting, []byte(SettingKeyBadIp), func(val []byte) error {
+		if len(val) == 0 {
+			return nil
+		}
 		var tmpLst []string
 		kMap := map[string]struct{}{}
-		for _, line := range util.StringSplit(string(rs.Data[0]), ",") {
+		for _, line := range util.StringSplit(string(val), ",") {
 			line = strings.TrimSpace(line)
 			if len(line) == 0 {
 				continue
@@ -81,15 +84,16 @@ func UpdateBadIpPrefix(db *sdb.DB) {
 			tmpLst = append(tmpLst, line)
 		}
 		BadIpPrefixLst.Copy(tmpLst)
-	}
+		return nil
+	})
 }
 
-func UpdateAllowIpPrefix(db *sdb.DB) {
+func UpdateAllowIpPrefix(db *mdb.DB, tx *bbolt.Tx) {
 	// AllowIpPrefixLst
-	if rs := db.Hget(TbnSetting, sdb.S2b(SettingKeyAllowIp)); rs.OK() {
+	_ = db.HGetFunc(tx, TbnSetting, []byte(SettingKeyAllowIp), func(val []byte) error {
 		var tmpLst []string
 		kMap := map[string]struct{}{}
-		for _, line := range util.StringSplit(string(rs.Data[0]), ",") {
+		for _, line := range util.StringSplit(string(val), ",") {
 			line = strings.TrimSpace(line)
 			if len(line) == 0 {
 				continue
@@ -100,5 +104,6 @@ func UpdateAllowIpPrefix(db *sdb.DB) {
 			tmpLst = append(tmpLst, line)
 		}
 		AllowIpPrefixLst.Copy(tmpLst)
-	}
+		return nil
+	})
 }

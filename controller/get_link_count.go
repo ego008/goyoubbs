@@ -7,8 +7,9 @@ import (
 	"time"
 
 	"github.com/ego008/goutils/json"
-	"github.com/ego008/sdb"
+	"github.com/ego008/mdb"
 	"github.com/gin-gonic/gin"
+	"go.etcd.io/bbolt"
 )
 
 const linkCountTbName = "link_click_count"
@@ -46,55 +47,70 @@ func (h *BaseHandler) GetLinkCount(c *gin.Context) {
 
 	rsp := response{}
 	rsp.Code = 201
-	if rec.Act == "set" {
-		// 点击
-		enLinkI64 := util.Xxhash(sdb.S2b(rec.Items[0]))
-		clickTbName := "article_detail_token" // 点击限制，24小时只能计数一次，后台任务需要清除过期数据
-		clickKey := sdb.S2b(token + ":click:" + strconv.FormatUint(enLinkI64, 10))
-		if db.Zget(clickTbName, clickKey) > 0 {
-			c.String(200, `{"Code":403, "Msg": "click count 1/day"}`)
-			return
-		}
-		num, err := db.Hincr(linkCountTbName, sdb.I2b(enLinkI64), 1)
-		if err != nil {
-			c.String(200, `{"Code":500, "Msg": "计数失败"}`)
-			return
-		}
-		_ = db.Zset(clickTbName, clickKey, uint64(time.Now().UTC().Unix())) // 计时限制
 
-		rsp.Num = strconv.FormatUint(num, 10)
-		rsp.Code = 200
-
-		_ = json.NewEncoder(c.Writer).Encode(rsp)
-		return
-	}
-
-	// 获取
-	u64ToLink := map[uint64]string{}
 	info := map[string]string{}
-	var keys [][]byte
 
-	// fix for old md5 data
-	hasMd5Data := db.Hscan("url_md5_click", nil, 1).OK()
+	_ = db.Update(func(tx *bbolt.Tx) error {
 
-	for _, v := range rec.Items {
-		enLinkI64 := util.Xxhash(sdb.S2b(v))
-		u64ToLink[enLinkI64] = v
-		keys = append(keys, sdb.I2b(enLinkI64))
+		if rec.Act == "set" {
+			// 点击
+			enLinkI64 := util.Xxhash(mdb.S2b(rec.Items[0]))
+			clickTbName := "article_detail_token" // 点击限制，24小时只能计数一次，后台任务需要清除过期数据
+			clickKey := mdb.S2b(token + ":click:" + strconv.FormatUint(enLinkI64, 10))
+			if db.ZGetInt(tx, clickTbName, clickKey) > 0 {
+				c.String(200, `{"Code":403, "Msg": "click count 1/day"}`)
+				return nil
+			}
+			num, err := db.HIncr(tx, linkCountTbName, mdb.I2b(enLinkI64), 1)
+			if err != nil {
+				c.String(200, `{"Code":500, "Msg": "计数失败"}`)
+				return nil
+			}
+			_ = db.ZSet(tx, clickTbName, clickKey, uint64(time.Now().UTC().Unix())) // 计时限制
 
-		// fix md5,遍历后删除
-		if hasMd5Data {
-			urlMd5 := util.Md5(v)
-			if rs := db.HgetInt("url_md5_click", []byte(urlMd5)); rs > 0 {
-				_ = db.Hset(linkCountTbName, sdb.I2b(enLinkI64), sdb.I2b(rs))
-				_ = db.Hdel("url_md5_click", []byte(urlMd5))
+			rsp.Num = strconv.FormatUint(num, 10)
+			rsp.Code = 200
+
+			_ = json.NewEncoder(c.Writer).Encode(rsp)
+			return nil
+		}
+
+		// 获取
+		u64ToLink := map[uint64]string{}
+
+		var keys [][]byte
+
+		// fix for old md5 data
+		var hasMd5Data bool
+		_ = db.HScanFunc(tx, "url_md5_click", nil, 1, func(key, val []byte) bool {
+			hasMd5Data = true
+			return true
+		})
+
+		for _, v := range rec.Items {
+			enLinkI64 := util.Xxhash(mdb.S2b(v))
+			u64ToLink[enLinkI64] = v
+			keys = append(keys, mdb.I2b(enLinkI64))
+
+			// fix md5,遍历后删除
+			if hasMd5Data {
+				urlMd5 := util.Md5(v)
+				if rs := db.HGetInt(tx, "url_md5_click", []byte(urlMd5)); rs > 0 {
+					_ = db.HSet(tx, linkCountTbName, mdb.I2b(enLinkI64), mdb.I2b(rs))
+					_ = db.HDel(tx, "url_md5_click", []byte(urlMd5))
+				}
 			}
 		}
-	}
 
-	db.Hmget(linkCountTbName, keys).KvEach(func(key, value sdb.BS) {
-		enLinkI64 := sdb.B2i(key)
-		info[u64ToLink[enLinkI64]] = strconv.FormatUint(sdb.B2i(value), 10)
+		_ = db.HMGetFunc(tx, linkCountTbName, keys, func(key, val []byte) error {
+			if len(val) == 0 {
+				return nil
+			}
+			enLinkI64 := mdb.B2i(key)
+			info[u64ToLink[enLinkI64]] = strconv.FormatUint(mdb.B2i(val), 10)
+			return nil
+		})
+		return nil
 	})
 
 	rsp.Code = 200

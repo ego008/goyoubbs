@@ -5,6 +5,7 @@ import (
 	"html/template"
 
 	"github.com/gin-gonic/gin"
+	"go.etcd.io/bbolt"
 )
 
 func (h *BaseHandler) FeedHandler(c *gin.Context) {
@@ -39,7 +40,11 @@ func (h *BaseHandler) FeedHandler(c *gin.Context) {
 
 	db := h.App.Db
 
-	items := model.TopicGetForFeed(db, 20)
+	var items []model.TopicFeed
+	_ = db.View(func(tx *bbolt.Tx) error {
+		items = model.TopicGetForFeed(db, tx, 20)
+		return nil
+	})
 
 	var upDate string
 	if len(items) > 0 {

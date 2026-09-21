@@ -2,11 +2,13 @@ package weiboOAuth
 
 import (
 	"errors"
-	"github.com/ego008/goutils/json"
 	"io"
 	"log"
 	"net/http"
 	"net/url"
+	"time"
+
+	"github.com/ego008/goutils/json"
 )
 
 var Logging bool
@@ -78,7 +80,8 @@ func (oauth *OAuth) GetAccessToken(code string) (*OAuthToken, error) {
 	if Logging {
 		logReq("POST: " + AccessTokenURL)
 	}
-	resp, err := http.PostForm(AccessTokenURL,
+	hc := &http.Client{Timeout: 10 * time.Second}
+	resp, err := hc.PostForm(AccessTokenURL,
 		url.Values{"client_id": {oauth.ClientID},
 			"client_secret": {oauth.ClientSecret},
 			"grant_type":    {"authorization_code"},

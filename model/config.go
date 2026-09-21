@@ -2,7 +2,9 @@ package model
 
 import (
 	"github.com/ego008/goutils/json"
-	"github.com/ego008/sdb"
+	"github.com/ego008/mdb"
+	"go.etcd.io/bbolt"
+
 	"time"
 )
 
@@ -69,11 +71,14 @@ type SiteConf struct {
 	SendToEmail        string // 发到通知邮箱
 }
 
-func SiteConfLoad(scf *SiteConf, db *sdb.DB) {
-	rs := db.Hget(KeyValueTb, siteConfKeyName)
-	if rs.OK() {
-		_ = json.Unmarshal(rs.Bytes(), &scf)
-	} else {
+func SiteConfLoad(scf *SiteConf, db *mdb.DB, tx *bbolt.Tx) {
+	var ok bool
+	_ = db.HGetFunc(tx, KeyValueTb, siteConfKeyName, func(val []byte) error {
+		_ = json.Unmarshal(val, &scf)
+		ok = true
+		return nil
+	})
+	if !ok {
 		// 设置一些必要的默认值
 		scf.Name = "GoYouBBS"
 		scf.MainDomain = "http://127.0.0.1:8080"
@@ -102,19 +107,21 @@ func SiteConfLoad(scf *SiteConf, db *sdb.DB) {
 
 		// 保存
 		jb, _ := json.Marshal(scf)
-		_ = db.Hset(KeyValueTb, siteConfKeyName, jb)
+		_ = db.HSet(tx, KeyValueTb, siteConfKeyName, jb)
 
 		TimeOffSet = time.Duration(scf.TimeZone) * time.Hour
 	}
 }
 
-func ConfLoad2MC(db *sdb.DB) {
-	obj := SiteConf{}
-	rs := db.Hget(KeyValueTb, []byte("site_config"))
-	if !rs.OK() {
-		return
-	}
-	_ = json.Unmarshal(rs.Bytes(), &obj)
-	RateLimitDay = obj.RateLimitDay
-	RateLimitHour = obj.RateLimitHour
+func ConfLoad2MC(db *mdb.DB, tx *bbolt.Tx) {
+	_ = db.HGetFunc(tx, KeyValueTb, []byte("site_config"), func(val []byte) error {
+		if len(val) == 0 {
+			return nil
+		}
+		obj := SiteConf{}
+		_ = json.Unmarshal(val, &obj)
+		RateLimitDay = obj.RateLimitDay
+		RateLimitHour = obj.RateLimitHour
+		return nil
+	})
 }

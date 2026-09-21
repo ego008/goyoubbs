@@ -11,9 +11,10 @@ import (
 	"strings"
 
 	"github.com/ego008/goutils/json"
-	"github.com/ego008/sdb"
+	"github.com/ego008/mdb"
 	"github.com/gin-gonic/gin"
 	"github.com/segmentio/fasthash/fnv1a"
+	"go.etcd.io/bbolt"
 )
 
 func (h *BaseHandler) AdminTopicAddPage(c *gin.Context) {
@@ -38,16 +39,22 @@ func (h *BaseHandler) AdminTopicAddPage(c *gin.Context) {
 		UserId: curUser.ID,
 	}
 	evn.DefaultUser = evn.CurrentUser
-	evn.HasMsg = model.MsgCheckHasOne(db, curUser.ID)
-	// evn.DefaultNode, _ = model.NodeGetById(h.App.Db, evn.DefaultTopic.NodeId)
-	// evn.DefaultNode = model.Node{}
-	evn.NodeLst = model.NodeGetAll(h.App.Mc, db)
-	evn.HasMsg = model.MsgCheckHasOne(db, curUser.ID)
-	if curUser.Flag >= model.FlagAdmin {
-		evn.UserLst = model.UserGetAllAdmin(db)
-		evn.HasTopicReview = model.CheckHasTopic2Review(db)
-		evn.HasReplyReview = model.CheckHasComment2Review(db)
-	}
+
+	_ = h.App.Db.View(func(tx *bbolt.Tx) error {
+
+		evn.HasMsg = model.MsgCheckHasOne(db, tx, curUser.ID)
+		// evn.DefaultNode, _ = model.NodeGetById(h.App.Db, evn.DefaultTopic.NodeId)
+		// evn.DefaultNode = model.Node{}
+		evn.NodeLst = model.NodeGetAll(h.App.Mc, db, tx)
+		evn.HasMsg = model.MsgCheckHasOne(db, tx, curUser.ID)
+		if curUser.Flag >= model.FlagAdmin {
+			evn.UserLst = model.UserGetAllAdmin(db, tx)
+			evn.HasTopicReview = model.CheckHasTopic2Review(db, tx)
+			evn.HasReplyReview = model.CheckHasComment2Review(db, tx)
+		}
+
+		return nil
+	})
 
 	c.Header("Content-Type", "text/html; charset=utf-8")
 	c.Status(http.StatusOK)
@@ -102,52 +109,6 @@ func (h *BaseHandler) AdminTopicAddPost(c *gin.Context) {
 		isEdit = true
 	}
 
-	// check title
-	titleMd5 := fnv1a.HashString64(rec.Title)
-	if rs := db.Hget("title_fnv1a", sdb.I2b(titleMd5)); rs.OK() {
-		if rec.ID != sdb.B2i(rs.Bytes()) {
-			c.String(200, `{"Code":400,"Msg":"相同的文章标题已存在，请修改"}`)
-			return
-		}
-	}
-
-	var topic model.Topic
-	if isEdit {
-		topic = model.TopicGetById(db, rec.ID)
-		if topic.ID == 0 {
-			c.String(200, `{"Code":400,"Msg":"该 id 帖子不存在"}`)
-			return
-		}
-		oldTopic = topic
-	}
-
-	topic.NodeId = rec.NodeId
-	topic.UserId = rec.UserId // curUser.ID
-	topic.Title = rec.Title
-	topic.Content = rec.Content
-	topic.AddTime = rec.AddTime // util.GetCNTM()
-	topic.ReadAuthed = rec.ReadAuthed
-	topic.ReadReply = rec.ReadReply
-
-	// may fix
-	if topic.UserId == 0 {
-		topic.UserId = curUser.ID
-	}
-	if topic.AddTime == 0 {
-		topic.AddTime = util.GetCNTM(model.TimeOffSet)
-	}
-	topic.EditTime = topic.AddTime
-
-	// 审核发帖删掉信息
-	if !isEdit {
-		if rec.AddTime > 0 {
-			// 删掉管理员列表
-			_ = db.Hdel(model.TopicReviewTbName, sdb.I2b(uint64(rec.AddTime)))
-			// 删掉个人待审核列表
-			_ = db.Hdel("review_topic:"+strconv.FormatUint(rec.UserId, 10), sdb.I2b(uint64(rec.AddTime)))
-		}
-	}
-
 	type response struct {
 		model.NormalRsp
 		Tid uint64
@@ -156,72 +117,140 @@ func (h *BaseHandler) AdminTopicAddPost(c *gin.Context) {
 	rsp := response{}
 	rsp.Code = 200
 
-	// 编辑
-	if isEdit {
-		if curUser.Flag < model.FlagAdmin {
-			c.String(200, `{"Code":403,"Msg":"权限限制"}`)
-			return
+	var showStr string
+
+	_ = db.Update(func(tx *bbolt.Tx) error {
+		// check title
+		titleMd5 := fnv1a.HashString64(rec.Title)
+		_ = db.HGetFunc(tx, "title_fnv1a", mdb.I2b(titleMd5), func(val []byte) error {
+			if rec.ID != mdb.B2i(val) {
+				showStr = `{"Code":400,"Msg":"相同的文章标题已存在，请修改"}`
+			}
+			return nil
+		})
+		if len(showStr) > 0 {
+			return nil
 		}
-		if oldTopic.Title != topic.Title || oldTopic.Content != topic.Content {
-			topic.EditTime = util.GetCNTM(model.TimeOffSet)
+		_ = db.HGetFunc(tx, "title_fnv1a", mdb.I2b(titleMd5), func(val []byte) error {
+			if rec.ID != mdb.B2i(val) {
+				showStr = `{"Code":400,"Msg":"相同的文章标题已存在，请修改"}`
+			}
+			return nil
+		})
+		if len(showStr) > 0 {
+			return nil
 		}
-		// 直接更新
-		model.TopicSet(db, topic)
-		// 分类、title 变化
-		if oldTopic.NodeId != topic.NodeId {
-			_ = db.Zset("topic_update:"+strconv.FormatUint(topic.NodeId, 10), sdb.I2b(topic.ID), uint64(topic.AddTime))
-			_ = db.Zdel("topic_update:"+strconv.FormatUint(oldTopic.NodeId, 10), sdb.I2b(topic.ID))
-			// 该分类的文章数
-			_, _ = db.Hincr(model.NodeTopicNumTbName, sdb.I2b(topic.NodeId), 1)
-			_, _ = db.Hincr(model.NodeTopicNumTbName, sdb.I2b(oldTopic.NodeId), -1)
-			// 删除分类缓存
-			h.App.Mc.Del([]byte("NodeGetAll"))
+
+		var topic model.Topic
+		if isEdit {
+			topic = model.TopicGetById(db, tx, rec.ID)
+			if topic.ID == 0 {
+				showStr = `{"Code":400,"Msg":"该 id 帖子不存在"}`
+				return nil
+			}
+			oldTopic = topic
 		}
-		if oldTopic.Title != topic.Title {
-			_ = db.Hdel("title_fnv1a", sdb.I2b(fnv1a.HashString64(oldTopic.Title)))
-			_ = db.Hset("title_fnv1a", sdb.I2b(titleMd5), sdb.I2b(topic.ID))
-			// 自动从标题里提取标签
-			log.Println("scf.GetTagApi2", scf.GetTagApi, "h.App.Cf.Site2", h.App.Cf.Site.GetTagApi)
-			if len(scf.GetTagApi) > 0 {
-				_ = db.Hset("task_to_get_tag", sdb.I2b(topic.ID), sdb.S2b(topic.Title))
+
+		topic.NodeId = rec.NodeId
+		topic.UserId = rec.UserId // curUser.ID
+		topic.Title = rec.Title
+		topic.Content = rec.Content
+		topic.AddTime = rec.AddTime // util.GetCNTM()
+		topic.ReadAuthed = rec.ReadAuthed
+		topic.ReadReply = rec.ReadReply
+
+		// may fix
+		if topic.UserId == 0 {
+			topic.UserId = curUser.ID
+		}
+		if topic.AddTime == 0 {
+			topic.AddTime = util.GetCNTM(model.TimeOffSet)
+		}
+		topic.EditTime = topic.AddTime
+
+		// 审核发帖删掉信息
+		if !isEdit {
+			if rec.AddTime > 0 {
+				// 删掉管理员列表
+				_ = db.HDel(tx, model.TopicReviewTbName, mdb.I2b(uint64(rec.AddTime)))
+				// 删掉个人待审核列表
+				_ = db.HDel(tx, "review_topic:"+strconv.FormatUint(rec.UserId, 10), mdb.I2b(uint64(rec.AddTime)))
 			}
 		}
+
+		// 编辑
+		if isEdit {
+			if curUser.Flag < model.FlagAdmin {
+				showStr = `{"Code":403,"Msg":"权限限制"}`
+				return nil
+			}
+			if oldTopic.Title != topic.Title || oldTopic.Content != topic.Content {
+				topic.EditTime = util.GetCNTM(model.TimeOffSet)
+			}
+			// 直接更新
+			model.TopicSet(db, tx, topic)
+			// 分类、title 变化
+			if oldTopic.NodeId != topic.NodeId {
+				_ = db.ZSet(tx, "topic_update:"+strconv.FormatUint(topic.NodeId, 10), mdb.I2b(topic.ID), uint64(topic.AddTime))
+				_ = db.ZDel(tx, "topic_update:"+strconv.FormatUint(oldTopic.NodeId, 10), mdb.I2b(topic.ID))
+				// 该分类的文章数
+				_, _ = db.HIncr(tx, model.NodeTopicNumTbName, mdb.I2b(topic.NodeId), 1)
+				_, _ = db.HIncr(tx, model.NodeTopicNumTbName, mdb.I2b(oldTopic.NodeId), -1)
+				// 删除分类缓存
+				h.App.Mc.Del([]byte("NodeGetAll"))
+			}
+			if oldTopic.Title != topic.Title {
+				_ = db.HDel(tx, "title_fnv1a", mdb.I2b(fnv1a.HashString64(oldTopic.Title)))
+				_ = db.HSet(tx, "title_fnv1a", mdb.I2b(titleMd5), mdb.I2b(topic.ID))
+				// 自动从标题里提取标签
+				log.Println("scf.GetTagApi2", scf.GetTagApi, "h.App.Cf.Site2", h.App.Cf.Site.GetTagApi)
+				if len(scf.GetTagApi) > 0 {
+					_ = db.HSet(tx, "task_to_get_tag", mdb.I2b(topic.ID), mdb.S2b(topic.Title))
+				}
+			}
+			rsp.Tid = topic.ID
+			_ = json.NewEncoder(c.Writer).Encode(rsp)
+
+			// 删除缓存
+			h.App.Mc.Del([]byte("ContentFmt:" + strconv.FormatUint(topic.ID, 10)))
+
+			return nil
+		}
+
+		// 以下是添加或审核
+		if curUser.Flag < model.FlagAdmin && scf.PostReview {
+			// 非管理员+开启审核
+			// 把jb 内容暂存到审核列表
+			jb, _ := json.Marshal(topic)
+			// 给管理员看
+			_ = db.HSet(tx, model.TopicReviewTbName, mdb.I2b(uint64(topic.AddTime)), jb)
+			// 把key 放到个人的列表
+			_ = db.HSet(tx, "review_topic:"+strconv.FormatUint(topic.UserId, 10), mdb.I2b(uint64(topic.AddTime)), nil)
+			rsp.Code = 200 // 201
+			rsp.Msg = "* 您的帖子已经提交，系统开启了发帖审核，请耐心等管理员审核"
+			return nil
+		}
+
+		// 直接保存
+		topic = model.TopicAdd(h.App.Mc, db, tx, topic)
 		rsp.Tid = topic.ID
+
+		// 自动从标题里提取标签
+		log.Println("scf.GetTagApi", scf.GetTagApi, "h.App.Cf.Site", h.App.Cf.Site.GetTagApi)
+		if len(scf.GetTagApi) > 0 {
+			_ = db.HSet(tx, "task_to_get_tag", mdb.I2b(topic.ID), mdb.S2b(topic.Title))
+		}
+
+		// 记录标题md5
+		_ = db.HSet(tx, "title_fnv1a", mdb.I2b(titleMd5), mdb.I2b(topic.ID))
+
+		if len(showStr) > 0 {
+			c.String(200, showStr)
+			return nil
+		}
+
 		_ = json.NewEncoder(c.Writer).Encode(rsp)
 
-		// 删除缓存
-		h.App.Mc.Del([]byte("ContentFmt:" + strconv.FormatUint(topic.ID, 10)))
-
-		return
-	}
-
-	// 以下是添加或审核
-	if curUser.Flag < model.FlagAdmin && scf.PostReview {
-		// 非管理员+开启审核
-		// 把jb 内容暂存到审核列表
-		jb, _ := json.Marshal(topic)
-		// 给管理员看
-		_ = db.Hset(model.TopicReviewTbName, sdb.I2b(uint64(topic.AddTime)), jb)
-		// 把key 放到个人的列表
-		_ = db.Hset("review_topic:"+strconv.FormatUint(topic.UserId, 10), sdb.I2b(uint64(topic.AddTime)), nil)
-		rsp.Code = 200 // 201
-		rsp.Msg = "* 您的帖子已经提交，系统开启了发帖审核，请耐心等管理员审核"
-		_ = json.NewEncoder(c.Writer).Encode(rsp)
-		return
-	}
-
-	// 直接保存
-	topic = model.TopicAdd(h.App.Mc, db, topic)
-	rsp.Tid = topic.ID
-
-	// 自动从标题里提取标签
-	log.Println("scf.GetTagApi", scf.GetTagApi, "h.App.Cf.Site", h.App.Cf.Site.GetTagApi)
-	if len(scf.GetTagApi) > 0 {
-		_ = db.Hset("task_to_get_tag", sdb.I2b(topic.ID), sdb.S2b(topic.Title))
-	}
-
-	// 记录标题md5
-	_ = db.Hset("title_fnv1a", sdb.I2b(titleMd5), sdb.I2b(topic.ID))
-
-	_ = json.NewEncoder(c.Writer).Encode(rsp)
+		return nil
+	})
 }

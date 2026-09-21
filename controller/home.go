@@ -7,6 +7,7 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"go.etcd.io/bbolt"
 )
 
 func (h *BaseHandler) HomePage(c *gin.Context) {
@@ -45,30 +46,35 @@ func (h *BaseHandler) HomePage(c *gin.Context) {
 	db := h.App.Db
 	scf := h.App.Cf.Site
 
-	topicPageInfo := model.GetTopicList(db, cmd, model.TbnPostUpdate, key, score, scf.PageShowNum)
-	//topicPageInfo := model.GetTopicListSortById(db, cmd, model.TbnPostUpdate, key, score, scf.PageShowNum)
-
 	evn := &ybs.HomePage{}
-	evn.SiteCf = scf
-	evn.Title = scf.Name
-	evn.CurrentUser = *curUser
 
-	evn.SiteInfo = model.GetSiteInfo(db)
-	evn.DefaultNode = model.Node{ID: 1}
-	evn.NodeLst = model.NodeGetAll(h.App.Mc, db)
-	evn.TopicPageInfo = topicPageInfo
-	evn.TagCloud = model.GetTagsForSide(h.App.Mc, db, showTagNum)
-	evn.RangeTopicLst = rangeTopicLst[:]
-	evn.RecentComment = model.CommentGetRecent(h.App.Mc, db, scf.RecentCommentNum)
-	evn.LinkLst = model.LinkList(h.App.Mc, h.App.Db, false)
+	_ = db.View(func(tx *bbolt.Tx) error {
 
-	if curUser.ID > 0 {
-		evn.HasMsg = model.MsgCheckHasOne(db, curUser.ID)
-		if curUser.Flag >= model.FlagAdmin {
-			evn.HasTopicReview = model.CheckHasTopic2Review(h.App.Db)
-			evn.HasReplyReview = model.CheckHasComment2Review(h.App.Db)
+		topicPageInfo := model.GetTopicList(db, tx, cmd, model.TbnPostUpdate, key, score, scf.PageShowNum)
+
+		evn.SiteCf = scf
+		evn.Title = scf.Name
+		evn.CurrentUser = *curUser
+
+		evn.SiteInfo = model.GetSiteInfo(db, tx)
+		evn.DefaultNode = model.Node{ID: 1}
+		evn.NodeLst = model.NodeGetAll(h.App.Mc, db, tx)
+		evn.TopicPageInfo = topicPageInfo
+		evn.TagCloud = model.GetTagsForSide(h.App.Mc, db, tx, showTagNum)
+		evn.RangeTopicLst = rangeTopicLst[:]
+		evn.RecentComment = model.CommentGetRecent(h.App.Mc, db, tx, scf.RecentCommentNum)
+		evn.LinkLst = model.LinkList(h.App.Mc, h.App.Db, tx, false)
+
+		if curUser.ID > 0 {
+			evn.HasMsg = model.MsgCheckHasOne(db, tx, curUser.ID)
+			if curUser.Flag >= model.FlagAdmin {
+				evn.HasTopicReview = model.CheckHasTopic2Review(h.App.Db, tx)
+				evn.HasReplyReview = model.CheckHasComment2Review(h.App.Db, tx)
+			}
 		}
-	}
+
+		return nil
+	})
 
 	c.Header("Content-Type", "text/html; charset=utf-8")
 	c.Status(http.StatusOK)

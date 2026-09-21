@@ -3,7 +3,9 @@ package model
 import (
 	"github.com/VictoriaMetrics/fastcache"
 	"github.com/ego008/goutils/json"
-	"github.com/ego008/sdb"
+	"github.com/ego008/mdb"
+	"go.etcd.io/bbolt"
+
 	"goyoubbs/util"
 	"sort"
 )
@@ -15,30 +17,31 @@ type Link struct {
 	Score int
 }
 
-func LinkGetById(db *sdb.DB, lid string) Link {
+func LinkGetById(db *mdb.DB, tx *bbolt.Tx, lid string) Link {
 	var item Link
-	rs := db.Hget("link", sdb.DS2b(lid))
-	if rs.State == "ok" {
-		_ = json.Unmarshal(rs.Data[0], &item)
-	}
+	_ = db.HGetFunc(tx, "link", mdb.DS2b(lid), func(val []byte) error {
+		_ = json.Unmarshal(val, &item)
+		return nil
+	})
 	return item
 }
 
-func LinkSet(db *sdb.DB, obj Link) {
+func LinkSet(db *mdb.DB, tx *bbolt.Tx, obj Link) {
 	if obj.ID == 0 {
 		// add
 		var newId uint64
-		db.Hrscan("link", nil, 1).KvEach(func(key, value sdb.BS) {
-			newId = sdb.B2i(key.Bytes())
+		_ = db.HRScanFunc(tx, "link", nil, 1, func(key, _ []byte) bool {
+			newId = mdb.B2i(key)
+			return true
 		})
 		newId++
 		obj.ID = newId
 	}
 	jb, _ := json.Marshal(obj)
-	_ = db.Hset("link", sdb.I2b(obj.ID), jb)
+	_ = db.HSet(tx, "link", mdb.I2b(obj.ID), jb)
 }
 
-func LinkList(mc *fastcache.Cache, db *sdb.DB, getAll bool) (objLst []Link) {
+func LinkList(mc *fastcache.Cache, db *mdb.DB, tx *bbolt.Tx, getAll bool) (objLst []Link) {
 	mcKey := []byte("LinkList")
 	if !getAll {
 		if _, exist := util.ObjCachedGet(mc, mcKey, &objLst, false); exist {
@@ -51,22 +54,23 @@ func LinkList(mc *fastcache.Cache, db *sdb.DB, getAll bool) (objLst []Link) {
 	startKey := []byte("")
 
 	for {
-		rs := db.Hscan("link", startKey, 20)
-		if rs.State == "ok" {
-			for i := 0; i < len(rs.Data)-1; i += 2 {
-				startKey = rs.Data[i]
-				item := Link{}
-				_ = json.Unmarshal(rs.Data[i+1], &item)
-				if getAll {
-					// included score == 0
-					itemMap[sdb.B2i(rs.Data[i])] = item
-				} else {
-					if item.Score > 0 {
-						itemMap[sdb.B2i(rs.Data[i])] = item
-					}
+		var ok bool
+		_ = db.HScanFunc(tx, "link", startKey, 20, func(key, val []byte) bool {
+			startKey = key
+			item := Link{}
+			_ = json.Unmarshal(val, &item)
+			if getAll {
+				// included score == 0
+				itemMap[mdb.B2i(key)] = item
+			} else {
+				if item.Score > 0 {
+					itemMap[mdb.B2i(key)] = item
 				}
 			}
-		} else {
+			ok = true
+			return true
+		})
+		if !ok {
 			break
 		}
 	}

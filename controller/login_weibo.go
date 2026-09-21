@@ -9,9 +9,10 @@ import (
 	"time"
 
 	"github.com/ego008/goutils/json"
-	"github.com/ego008/sdb"
+	"github.com/ego008/mdb"
 	"github.com/gin-gonic/gin"
 	"github.com/rs/xid"
+	"go.etcd.io/bbolt"
 )
 
 func (h *BaseHandler) WeiboOauthHandler(c *gin.Context) {
@@ -76,70 +77,75 @@ func (h *BaseHandler) WeiboOauthCallback(c *gin.Context) {
 
 	db := h.App.Db
 	authorKey := "wb:" + wbUserID
-	rs := db.Hget("oauth2user", []byte(authorKey))
-	if rs.OK() {
-		// login
-		obj := model.AuthInfo{}
-		_ = json.Unmarshal(rs.Data[0], &obj)
-		if obj.Uid > 0 {
-			// 已绑定用户名则直接登录
-			uObj, _ := model.UserGetById(db, obj.Uid)
-			if uObj.ID == 0 {
-				c.String(200, "uid not found")
-				return
-			}
-			sessionId := xid.New().String()
-			uObj.LastLoginTime = timeStamp
-			uObj.Session = sessionId
-			jb, _ := json.Marshal(uObj)
-			_ = db.Hset(model.UserTbName, sdb.I2b(uObj.ID), jb)
-			_ = h.SetCookie(c, "SessionID", strconv.FormatUint(uObj.ID, 10)+":"+sessionId, 365)
 
-			if len(next) > 0 {
-				h.DelCookie(c, "next")
-				c.Redirect(302, scf.MainDomain+next)
-				return
-			}
-			c.Redirect(302, scf.MainDomain+"/")
-			return
-		}
-	}
+	_ = db.Update(func(tx *bbolt.Tx) error {
 
-	jb, _ := json.Marshal(model.AuthInfo{Openid: wbUserID})
-	_ = db.Hset("oauth2user", sdb.S2b(authorKey), jb)
-	// 绑定用户名，跳到注册页面，填写默认登录名
+		val := db.HGet(tx, "oauth2user", []byte(authorKey))
+		if len(val) > 0 {
+			// login
+			obj := model.AuthInfo{}
+			_ = json.Unmarshal(val, &obj)
+			if obj.Uid > 0 {
+				// 已绑定用户名则直接登录
+				uObj, _ := model.UserGetById(db, tx, obj.Uid)
+				if uObj.ID == 0 {
+					c.String(200, "uid not found")
+					return nil
+				}
+				sessionId := xid.New().String()
+				uObj.LastLoginTime = timeStamp
+				uObj.Session = sessionId
+				jb, _ := json.Marshal(uObj)
+				_ = db.HSet(tx, model.UserTbName, mdb.I2b(uObj.ID), jb)
+				_ = h.SetCookie(c, "SessionID", strconv.FormatUint(uObj.ID, 10)+":"+sessionId, 365)
 
-	if scf.CloseReg {
-		c.String(200, `stop to new register`)
-		return
-	}
-
-	// 保存 openid ，以便在 注册 时取出可用登录名及注册成功后自动获取头像
-	_ = h.SetCookie(c, "openid", authorKey, 1)
-
-	// 获取用户名和头像
-	profile, err := weibo.GetUserInfo(token.AccessToken, wbUserID)
-	if err == nil {
-		name := util.RemoveCharacter(profile.Name)
-		name = strings.TrimSpace(strings.Replace(name, " ", "", -1))
-		if len(name) > 0 {
-			nameLow := strings.ToLower(name)
-			if db.Hget("user_name2uid", []byte(nameLow)).OK() {
-				name = ""
+				if len(next) > 0 {
+					h.DelCookie(c, "next")
+					c.Redirect(302, scf.MainDomain+next)
+					return nil
+				}
+				c.Redirect(302, scf.MainDomain+"/")
+				return nil
 			}
 		}
 
-		jb, _ := json.Marshal(model.AuthProfileInfo{
-			LoginBy: "weibo",
-			OpenId:  wbUserID,
-			Name:    name,
-			Avatar:  profile.Avatar,
-			Agent:   c.Request.UserAgent(),
-			About:   profile.Description,
-			Url:     profile.URL,
-		})
-		_ = db.Hset("oauth_tmp_info", sdb.S2b(authorKey), jb)
-	}
+		jb, _ := json.Marshal(model.AuthInfo{Openid: wbUserID})
+		_ = db.HSet(tx, "oauth2user", mdb.S2b(authorKey), jb)
+		// 绑定用户名，跳到注册页面，填写默认登录名
+
+		if scf.CloseReg {
+			c.String(200, `stop to new register`)
+			return nil
+		}
+
+		// 保存 openid ，以便在 注册 时取出可用登录名及注册成功后自动获取头像
+		_ = h.SetCookie(c, "openid", authorKey, 1)
+
+		// 获取用户名和头像
+		profile, err := weibo.GetUserInfo(token.AccessToken, wbUserID)
+		if err == nil {
+			name := util.RemoveCharacter(profile.Name)
+			name = strings.TrimSpace(strings.Replace(name, " ", "", -1))
+			if len(name) > 0 {
+				nameLow := strings.ToLower(name)
+				if db.HKeyExist(tx, "user_name2uid", []byte(nameLow)) {
+					name = ""
+				}
+			}
+
+			jb, _ := json.Marshal(model.AuthProfileInfo{
+				LoginBy: "weibo",
+				OpenId:  wbUserID,
+				Name:    name,
+				Avatar:  profile.Avatar,
+				Agent:   c.Request.UserAgent(),
+				About:   profile.Description,
+				Url:     profile.URL,
+			})
+			_ = db.HSet(tx, "oauth_tmp_info", mdb.S2b(authorKey), jb)
+		}
+		return nil
+	})
 
 	c.Redirect(302, scf.MainDomain+"/register")
 }

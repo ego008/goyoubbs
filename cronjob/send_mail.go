@@ -3,8 +3,11 @@ package cronjob
 import (
 	"crypto/tls"
 	"fmt"
+
 	"github.com/ego008/goutils/json"
-	"github.com/ego008/sdb"
+	"github.com/ego008/mdb"
+	"go.etcd.io/bbolt"
+
 	"goyoubbs/model"
 	"goyoubbs/util"
 	"log"
@@ -12,70 +15,78 @@ import (
 	"net/smtp"
 )
 
-func sendMail(db *sdb.DB, scf *model.SiteConf) {
+func sendMail(db *mdb.DB, scf *model.SiteConf) {
+	_ = db.Update(func(tx *bbolt.Tx) error {
 
-	rs := db.Hscan("mail_queue", nil, 1)
-	if !rs.OK() {
-		return
-	}
-	queueKey := sdb.B2i(rs.Data[0])
-	queueBody := rs.Data[1]
+		var queueKey uint64
+		var queueBody []byte
+		_ = db.HScanFunc(tx, "mail_queue", nil, 1, func(key, val []byte) bool {
+			queueKey = mdb.B2i(key)
+			queueBody = val
+			return true
+		})
 
-	// subject body
-	obj := model.EmailInfo{}
-	err := json.Unmarshal(queueBody, &obj)
-	if err != nil {
-		_ = db.Hdel("mail_queue", sdb.I2b(queueKey)) // 删除
-		return
-	}
-	subject := obj.Subject
-	body := obj.Body
+		if queueKey == 0 {
+			return nil
+		}
 
-	host := scf.SmtpHost       //
-	port := scf.SmtpPort       //
-	email := scf.SmtpEmail     //
-	pwd := scf.SmtpPassword    // 这里填你的授权码
-	toEmail := scf.SendToEmail // 目标地址
+		// subject body
+		obj := model.EmailInfo{}
+		err := json.Unmarshal(queueBody, &obj)
+		if err != nil {
+			_ = db.HDel(tx, "mail_queue", mdb.I2b(queueKey)) // 删除
+			return nil
+		}
+		subject := obj.Subject
+		body := obj.Body
 
-	header := make(map[string]string)
+		host := scf.SmtpHost       //
+		port := scf.SmtpPort       //
+		email := scf.SmtpEmail     //
+		pwd := scf.SmtpPassword    // 这里填你的授权码
+		toEmail := scf.SendToEmail // 目标地址
 
-	fromName := util.StringSplit(email, "@")[0]
-	header["From"] = fromName + "<" + email + ">"
-	header["To"] = toEmail
-	header["Subject"] = subject
-	header["Content-Type"] = "text/html;chartset=UTF-8"
+		header := make(map[string]string)
 
-	//body := `当您遇到客户端无法收发信 https://www.youbbs.org/ ，报错无网络连接这是一封golang 发来的邮件，云南人证核验访客机实名认证登记稳定,为了<a href="https://www.youbbs.org/">保障您</a>客户端使用的顺畅，建议您将客户端自动收取的间隔时间设置长一些；如果您的邮箱多人同时使用`
+		fromName := util.StringSplit(email, "@")[0]
+		header["From"] = fromName + "<" + email + ">"
+		header["To"] = toEmail
+		header["Subject"] = subject
+		header["Content-Type"] = "text/html;chartset=UTF-8"
 
-	message := ""
+		//body := `当您遇到客户端无法收发信 https://www.youbbs.org/ ，报错无网络连接这是一封golang 发来的邮件，云南人证核验访客机实名认证登记稳定,为了<a href="https://www.youbbs.org/">保障您</a>客户端使用的顺畅，建议您将客户端自动收取的间隔时间设置长一些；如果您的邮箱多人同时使用`
 
-	for k, v := range header {
-		message += fmt.Sprintf("%s:%s\r\n", k, v)
-	}
+		message := ""
 
-	message += "\r\n" + body
+		for k, v := range header {
+			message += fmt.Sprintf("%s:%s\r\n", k, v)
+		}
 
-	auth := smtp.PlainAuth(
-		"",
-		email,
-		pwd,
-		host,
-	)
+		message += "\r\n" + body
 
-	err = SendMailUsingTLS(
-		fmt.Sprintf("%s:%d", host, port),
-		auth,
-		email,
-		[]string{toEmail},
-		[]byte(message),
-	)
+		auth := smtp.PlainAuth(
+			"",
+			email,
+			pwd,
+			host,
+		)
 
-	if err != nil {
-		log.Println(err)
-		return
-	}
+		err = SendMailUsingTLS(
+			fmt.Sprintf("%s:%d", host, port),
+			auth,
+			email,
+			[]string{toEmail},
+			[]byte(message),
+		)
 
-	_ = db.Hdel("mail_queue", sdb.I2b(queueKey)) // 删除
+		if err != nil {
+			log.Println(err)
+			return err
+		}
+
+		_ = db.HDel(tx, "mail_queue", mdb.I2b(queueKey)) // 删除
+		return nil
+	})
 
 }
 

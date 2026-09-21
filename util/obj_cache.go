@@ -3,7 +3,7 @@ package util
 import (
 	"github.com/VictoriaMetrics/fastcache"
 	"github.com/ego008/goutils/json"
-	"github.com/ego008/sdb"
+	"github.com/ego008/mdb"
 )
 
 // ObjCachedSet 存缓存
@@ -11,7 +11,7 @@ import (
 func ObjCachedSet(mc *fastcache.Cache, k []byte, v interface{}) {
 	switch v2 := v.(type) {
 	case string:
-		mc.Set(k, sdb.S2b(v2))
+		mc.Set(k, mdb.S2b(v2))
 	case []byte:
 		mc.Set(k, v2)
 	default:
@@ -24,7 +24,7 @@ func ObjCachedSet(mc *fastcache.Cache, k []byte, v interface{}) {
 func ObjCachedSetBig(mc *fastcache.Cache, k []byte, v interface{}) {
 	switch v2 := v.(type) {
 	case string:
-		mc.SetBig(k, sdb.S2b(v2))
+		mc.SetBig(k, mdb.S2b(v2))
 	case []byte:
 		mc.SetBig(k, v2)
 	default:

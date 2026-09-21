@@ -2,7 +2,9 @@ package cronjob
 
 import (
 	"github.com/ego008/goutils/json"
-	"github.com/ego008/sdb"
+	"github.com/ego008/mdb"
+	"go.etcd.io/bbolt"
+
 	"goyoubbs/model"
 	"goyoubbs/util"
 	"log"
@@ -16,18 +18,24 @@ import (
 var whiteDnsKws = []string{".petalsearch.com", ".search.msn.com", ".applebot.apple.com",
 	".googleusercontent.com", ".googlebot.com", ".google.com", ".yandex.com"}
 
-func spiderIpCheck(db *sdb.DB) {
+func spiderIpCheck(db *mdb.DB) {
 	v := model.IpQue.Dequeue()
 	if v == nil {
 		return
 	}
 	uip := v.(string)
-	uipByte := sdb.S2b(uip)
+	uipByte := []byte(uip)
 
 	obj := model.IpInfo{}
-	if rs := db.Hget(model.TbnIpInfo, uipByte); rs.OK() {
-		_ = json.Unmarshal(rs.Bytes(), &obj)
-	}
+	_ = db.View(func(tx *bbolt.Tx) error {
+		_ = db.HGetFunc(tx, model.TbnIpInfo, uipByte, func(val []byte) error {
+			if len(val) > 0 {
+				_ = json.Unmarshal(val, &obj)
+			}
+			return nil
+		})
+		return nil
+	})
 
 	tm := time.Now().UTC().Unix()
 	if obj.AddTime == 0 {
@@ -88,39 +96,48 @@ func spiderIpCheck(db *sdb.DB) {
 		}
 	}
 
-	wkeyB := sdb.S2b(model.SettingKeyAllowIp)
+	wkeyB := []byte(model.SettingKeyAllowIp)
 	addPrefixToWhite := true
 	jb, _ := json.Marshal(obj)
 
-	if len(prefix) > 0 {
-		// auto add prefix to AllowIpPrefixLst
-		ips := util.StringSplit(db.Hget(model.TbnSetting, wkeyB).String(), ",")
-		for _, ip := range ips {
-			if strings.HasPrefix(ip, prefix) {
-				addPrefixToWhite = false
-				break
+	_ = db.Update(func(tx *bbolt.Tx) error {
+		if len(prefix) > 0 {
+			// auto add prefix to AllowIpPrefixLst
+			var ipsRaw string
+			_ = db.HGetFunc(tx, model.TbnSetting, wkeyB, func(val []byte) error {
+				ipsRaw = string(val)
+				return nil
+			})
+			ips := util.StringSplit(ipsRaw, ",")
+			for _, ip := range ips {
+				if strings.HasPrefix(ip, prefix) {
+					addPrefixToWhite = false
+					break
+				}
+			}
+			if addPrefixToWhite {
+				if len(ips) == 1 && ips[0] == "" {
+					ips[0] = prefix
+				} else {
+					ips = append(ips, prefix)
+				}
+				sort.Strings(ips)
+				_ = db.HSet(tx, model.TbnSetting, wkeyB, []byte(strings.Join(ips, ",")))
+				// update
+				// model.AllowIpPrefixLst.Copy(ips[:])
+				log.Println("auto add prefix to white list", prefix)
 			}
 		}
-		if addPrefixToWhite {
-			if len(ips) == 1 && ips[0] == "" {
-				ips[0] = prefix
-			} else {
-				ips = append(ips, prefix)
-			}
-			sort.Strings(ips)
-			_ = db.Hset(model.TbnSetting, wkeyB, sdb.S2b(strings.Join(ips, ",")))
-			// update
-			// model.AllowIpPrefixLst.Copy(ips[:])
-			log.Println("auto add prefix to white list", prefix)
-		}
-	}
-	_ = db.Hset(model.TbnIpInfo, uipByte, jb)
+		_ = db.HSet(tx, model.TbnIpInfo, uipByte, jb)
 
-	// update
-	if addPrefixToWhite && len(prefix) > 0 {
-		model.UpdateAllowIpPrefix(db)
-		log.Println("fresh ip white list", prefix)
-	}
+		// update
+		if addPrefixToWhite && len(prefix) > 0 {
+			model.UpdateAllowIpPrefix(db, tx)
+			log.Println("fresh ip white list", prefix)
+		}
+
+		return nil
+	})
 
 	log.Println("save ok", uip, obj.Names)
 }

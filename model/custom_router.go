@@ -2,7 +2,8 @@ package model
 
 import (
 	"github.com/ego008/goutils/json"
-	"github.com/ego008/sdb"
+	"github.com/ego008/mdb"
+	"go.etcd.io/bbolt"
 )
 
 type CustomRouter struct {
@@ -11,33 +12,34 @@ type CustomRouter struct {
 	Content  string
 }
 
-func CustomRouterGetAll(db *sdb.DB) (objLst []CustomRouter) {
+func CustomRouterGetAll(db *mdb.DB, tx *bbolt.Tx) (objLst []CustomRouter) {
 	var keyStart []byte
 	for {
-		rs := db.Hscan("custom_router", keyStart, 20)
-		if !rs.OK() {
-			break
-		}
-		rs.KvEach(func(key, value sdb.BS) {
+		var ok bool
+		_ = db.HScanFunc(tx, "custom_router", keyStart, 20, func(key, val []byte) bool {
 			keyStart = key
 			obj := CustomRouter{}
-			_ = json.Unmarshal(value, &obj)
+			_ = json.Unmarshal(val, &obj)
 			objLst = append(objLst, obj)
+			ok = true
+			return true
 		})
+		if !ok {
+			break
+		}
 	}
 	return
 }
 
-func CustomRouterSet(db *sdb.DB, obj CustomRouter) {
+func CustomRouterSet(db *mdb.DB, tx *bbolt.Tx, obj CustomRouter) {
 	jb, _ := json.Marshal(obj)
-	_ = db.Hset("custom_router", []byte(obj.Router), jb)
+	_ = db.HSet(tx, "custom_router", []byte(obj.Router), jb)
 }
 
-func CustomRouterGetByKey(db *sdb.DB, key []byte) (obj CustomRouter) {
-	rs := db.Hget("custom_router", key)
-	if !rs.OK() {
-		return
-	}
-	_ = json.Unmarshal(rs.Bytes(), &obj)
+func CustomRouterGetByKey(db *mdb.DB, tx *bbolt.Tx, key []byte) (obj CustomRouter) {
+	_ = db.HGetFunc(tx, "custom_router", key, func(val []byte) error {
+		_ = json.Unmarshal(val, &obj)
+		return nil
+	})
 	return
 }

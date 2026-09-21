@@ -6,7 +6,8 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/ego008/sdb"
+	"github.com/ego008/mdb"
+	"go.etcd.io/bbolt"
 )
 
 type BaseHandler struct {
@@ -21,7 +22,7 @@ func (h *BaseHandler) MainCronJob() {
 	loadDb2Mc(db)
 
 	if h.App.Cf.Site.AutoDecodeMp4 && util.CmdExists("ffmpeg") {
-		go func(db *sdb.DB) {
+		go func(db *mdb.DB) {
 			tickA := time.Tick(3 * time.Minute)
 			for {
 				select {
@@ -59,23 +60,23 @@ func (h *BaseHandler) MainCronJob() {
 				// 做一些清理工作
 				limit := 10
 				timeBefore := uint64(time.Now().UTC().Unix() - daySecond)
-				scoreStartB := sdb.I2b(timeBefore)
 				zbnList := []string{
 					"article_detail_token",
 					// "user_login_token", // 登录出错限制，未实现
 				}
-				for _, bn := range zbnList {
-					rs := db.Zrscan(bn, nil, scoreStartB, limit)
-					if rs.OK() {
-						keys := make([][]byte, len(rs.Data)/2)
-						j := 0
-						for i := 0; i < (len(rs.Data) - 1); i += 2 {
-							keys[j] = rs.Data[i]
-							j++
+				_ = db.Update(func(tx *bbolt.Tx) error {
+					for _, bn := range zbnList {
+						var keys [][]byte
+						_ = db.ZRScanFunc(tx, bn, nil, timeBefore, 0, limit, func(k []byte, s uint64) bool {
+							keys = append(keys, k)
+							return true
+						})
+						if len(keys) > 0 {
+							_ = db.ZMDel(tx, bn, keys)
 						}
-						_ = db.Zmdel(bn, keys)
 					}
-				}
+					return nil
+				})
 				lk.UnLock()
 			}
 		case <-tick3:
@@ -121,8 +122,6 @@ func (h *BaseHandler) MainCronJob() {
 					lk.UnLock()
 				}
 			}
-		default:
-			time.Sleep(time.Second)
 		}
 	}
 }

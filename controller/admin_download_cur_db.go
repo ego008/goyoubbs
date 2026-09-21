@@ -10,13 +10,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ego008/sdb"
 	"github.com/gin-gonic/gin"
 	"github.com/klauspost/compress/zip"
-	"github.com/syndtr/goleveldb/leveldb"
-	"github.com/syndtr/goleveldb/leveldb/filter"
-	"github.com/syndtr/goleveldb/leveldb/opt"
-	ldbUtil "github.com/syndtr/goleveldb/leveldb/util"
 )
 
 func (h *BaseHandler) AdminCurDbPage(c *gin.Context) {
@@ -26,74 +21,7 @@ func (h *BaseHandler) AdminCurDbPage(c *gin.Context) {
 		return
 	}
 
-	dir, err := os.MkdirTemp("", "sdb")
-	if err != nil {
-		log.Println(err)
-		return
-	}
-	defer func() {
-		_ = os.RemoveAll(dir)
-	}()
-
 	t1 := time.Now()
-	db2, err := sdb.Open(dir, &opt.Options{
-		Filter: filter.NewBloomFilter(10),
-	})
-	if err != nil {
-		log.Println(err)
-		return
-	}
-	defer func() {
-		_ = db2.Close()
-	}()
-
-	batchNum := 500 // 批量写条数
-	iter := h.App.Db.NewIterator(nil, nil)
-	ic := 0
-	ic2 := 0
-	batch := new(leveldb.Batch)
-	for iter.Next() {
-		if batch.Len() > 0 && (ic%batchNum) == 0 {
-			ic2 += batch.Len()
-			err = db2.Write(batch, nil)
-			if err != nil {
-				log.Println(err)
-				return
-			}
-			batch = new(leveldb.Batch)
-		}
-		batch.Put(iter.Key(), iter.Value())
-		ic++
-	}
-	if batch.Len() > 0 {
-		ic2 += batch.Len()
-		err = db2.Write(batch, nil)
-		if err != nil {
-			log.Println(err)
-			return
-		}
-	}
-
-	iter.Release()
-	err = iter.Error()
-	if err != nil {
-		log.Println(err)
-		return
-	}
-
-	err = db2.CompactRange(ldbUtil.Range{})
-	if err != nil {
-		log.Println(err)
-		return
-	}
-
-	err = db2.Close() // !important
-	if err != nil {
-		log.Println(err)
-		return
-	}
-
-	log.Println("cur data copy done", ic, ic2, time.Now().Sub(t1))
 
 	ts := util.TimeFmt(time.Now().Unix(), "20060102150405")
 	zipName := "db_" + ts + ".zip"
@@ -101,11 +29,13 @@ func (h *BaseHandler) AdminCurDbPage(c *gin.Context) {
 		_ = os.Remove(zipName)
 	}()
 
-	err = zipIt(dir, zipName)
+	err := h.App.Db.CompactZip("", zipName)
+
 	if err != nil {
 		log.Println(err)
 		return
 	}
+	log.Println("cur data copy done", time.Now().Sub(t1))
 
 	c.Header("Content-Type", "application/zip")
 

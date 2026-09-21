@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
+	"go.etcd.io/bbolt"
 )
 
 func (h *BaseHandler) AdminRateLimitSetting(c *gin.Context) {
@@ -26,20 +27,25 @@ func (h *BaseHandler) AdminRateLimitSetting(c *gin.Context) {
 	evn.Title = "Rate Limit Setting"
 	evn.PageName = "admin_RateLimitSetting"
 
-	evn.NodeLst = model.NodeGetAll(h.App.Mc, h.App.Db)
-	evn.LinkLst = model.LinkList(h.App.Mc, h.App.Db, true)
-
-	evn.MyIp = ReadUserIP(c)
 	var stLst []model.SettingKv
-	stLst = model.SettingGetByKeys(h.App.Db, model.SettingKeys)
-	sort.Slice(stLst, func(i, j int) bool {
-		return stLst[i].Key < stLst[j].Key
-	})
-	evn.SettingLst = stLst
 
-	evn.HasMsg = model.MsgCheckHasOne(h.App.Db, curUser.ID)
-	evn.HasTopicReview = model.CheckHasTopic2Review(h.App.Db)
-	evn.HasReplyReview = model.CheckHasComment2Review(h.App.Db)
+	_ = h.App.Db.View(func(tx *bbolt.Tx) error {
+		evn.NodeLst = model.NodeGetAll(h.App.Mc, h.App.Db, tx)
+		evn.LinkLst = model.LinkList(h.App.Mc, h.App.Db, tx, true)
+
+		evn.MyIp = ReadUserIP(c)
+
+		stLst = model.SettingGetByKeys(h.App.Db, tx, model.SettingKeys)
+		sort.Slice(stLst, func(i, j int) bool {
+			return stLst[i].Key < stLst[j].Key
+		})
+		evn.SettingLst = stLst
+
+		evn.HasMsg = model.MsgCheckHasOne(h.App.Db, tx, curUser.ID)
+		evn.HasTopicReview = model.CheckHasTopic2Review(h.App.Db, tx)
+		evn.HasReplyReview = model.CheckHasComment2Review(h.App.Db, tx)
+		return nil
+	})
 
 	c.Header("Content-Type", "text/html; charset=utf-8")
 	c.Status(http.StatusOK)
@@ -77,33 +83,35 @@ func (h *BaseHandler) AdminRateLimitSettingPost(c *gin.Context) {
 		return
 	}
 
-	// get old value
-	var stLst []model.SettingKv
-	stLst = model.SettingGetByKeys(h.App.Db, model.SettingKeys)
-	stMpOld := map[string]string{} // old value
-	for i := 0; i < len(stLst); i++ {
-		stMpOld[stLst[i].Key] = stLst[i].Value
-	}
+	_ = h.App.Db.Update(func(tx *bbolt.Tx) error {
+		// get old value
+		var stLst []model.SettingKv
+		stLst = model.SettingGetByKeys(h.App.Db, tx, model.SettingKeys)
+		stMpOld := map[string]string{} // old value
+		for i := 0; i < len(stLst); i++ {
+			stMpOld[stLst[i].Key] = stLst[i].Value
+		}
 
-	if err := h.App.Db.Hmset(model.TbnSetting, kvs...); err != nil {
-		c.Redirect(302, "/admin/ratelimit/setting")
-		return
-	}
+		if err := h.App.Db.HMSet(tx, model.TbnSetting, kvs...); err != nil {
+			return err
+		}
 
-	// update
+		// update
 
-	// BadBotNameMap
-	if stMp[model.SettingKeyBadBot] != stMpOld[model.SettingKeyBadBot] {
-		model.UpdateBadBotName(h.App.Db)
-	}
-	// BadIpPrefixLst
-	if stMp[model.SettingKeyBadIp] != stMpOld[model.SettingKeyBadIp] {
-		model.UpdateBadIpPrefix(h.App.Db)
-	}
-	// AllowIpPrefixLst
-	if stMp[model.SettingKeyAllowIp] != stMpOld[model.SettingKeyAllowIp] {
-		model.UpdateAllowIpPrefix(h.App.Db)
-	}
+		// BadBotNameMap
+		if stMp[model.SettingKeyBadBot] != stMpOld[model.SettingKeyBadBot] {
+			model.UpdateBadBotName(h.App.Db, tx)
+		}
+		// BadIpPrefixLst
+		if stMp[model.SettingKeyBadIp] != stMpOld[model.SettingKeyBadIp] {
+			model.UpdateBadIpPrefix(h.App.Db, tx)
+		}
+		// AllowIpPrefixLst
+		if stMp[model.SettingKeyAllowIp] != stMpOld[model.SettingKeyAllowIp] {
+			model.UpdateAllowIpPrefix(h.App.Db, tx)
+		}
+		return nil
+	})
 
 	c.Redirect(302, "/admin/ratelimit/setting")
 }

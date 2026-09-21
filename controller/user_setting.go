@@ -9,6 +9,7 @@ import (
 
 	"github.com/ego008/goutils/json"
 	"github.com/gin-gonic/gin"
+	"go.etcd.io/bbolt"
 )
 
 func (h *BaseHandler) UserSettingPage(c *gin.Context) {
@@ -32,11 +33,14 @@ func (h *BaseHandler) UserSettingPage(c *gin.Context) {
 	//
 	evn.User = evn.CurrentUser
 
-	evn.NodeLst = model.NodeGetAll(h.App.Mc, h.App.Db)
+	_ = h.App.Db.View(func(tx *bbolt.Tx) error {
+		evn.NodeLst = model.NodeGetAll(h.App.Mc, h.App.Db, tx)
 
-	evn.HasMsg = model.MsgCheckHasOne(h.App.Db, curUser.ID)
-	evn.HasTopicReview = model.CheckHasTopic2Review(h.App.Db)
-	evn.HasReplyReview = model.CheckHasComment2Review(h.App.Db)
+		evn.HasMsg = model.MsgCheckHasOne(h.App.Db, tx, curUser.ID)
+		evn.HasTopicReview = model.CheckHasTopic2Review(h.App.Db, tx)
+		evn.HasReplyReview = model.CheckHasComment2Review(h.App.Db, tx)
+		return nil
+	})
 
 	c.Header("Content-Type", "text/html; charset=utf-8")
 	c.Status(http.StatusOK)
@@ -87,7 +91,10 @@ func (h *BaseHandler) UserSettingPost(c *gin.Context) {
 	obj.Url = rec.Url
 	obj.About = rec.About
 
-	obj = model.UserSet(db, obj)
+	_ = db.Update(func(tx *bbolt.Tx) error {
+		obj = model.UserSet(db, tx, obj)
+		return nil
+	})
 
 	rsp.Code = 200
 	rsp.Msg = "已成功更新"

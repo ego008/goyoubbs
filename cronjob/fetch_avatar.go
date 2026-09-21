@@ -15,11 +15,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ego008/sdb"
+	"github.com/ego008/mdb"
+	"go.etcd.io/bbolt"
 	"golang.org/x/net/proxy"
 )
 
-func FetchAvatar(db *sdb.DB, uid uint64, targetUrl, saveFilePath, ua, sock5Str string) (err error) {
+func FetchAvatar(db *mdb.DB, uid uint64, targetUrl, saveFilePath, ua, sock5Str string) (err error) {
 	//if _, err := os.Stat(saveFilePath); err == nil {
 	//log.Println("saveFilePath exist", saveFilePath)
 	// return nil // !important 否则读取不了
@@ -140,41 +141,13 @@ func FetchAvatar(db *sdb.DB, uid uint64, targetUrl, saveFilePath, ua, sock5Str s
 	if err != nil {
 		return err
 	}
-	err = db.Hset("user_avatar", sdb.I2b(uid), buf.Bytes())
+	err = db.Update(func(tx *bbolt.Tx) error {
+		return db.HSet(tx, "user_avatar", mdb.I2b(uid), buf.Bytes())
+	})
+
 	if err != nil {
 		return err
 	}
 	log.Println("save img to db ok", uid)
 	return nil
-
-	// save to local
-	/*
-		err = os.WriteFile(saveFilePath, body, 0644)
-		if err != nil {
-			log.Println("WriteFile err", err)
-			return err
-		}
-
-		// resize
-
-		dstImg := util.ImageResize(img, 119, 119)
-
-		var f3 *os.File
-		f3, err = os.Create(saveFilePath)
-		if err != nil {
-			log.Println("os.Create err", err)
-			return err
-		}
-		defer func() {
-			_ = f3.Close()
-		}()
-
-		err = jpeg.Encode(f3, dstImg, &jpeg.Options{Quality: 95})
-		if err != nil {
-			return err
-		}
-		log.Println("save img ok", saveFilePath)
-
-		return nil
-	*/
 }

@@ -12,8 +12,9 @@ import (
 	"strings"
 
 	"github.com/ego008/goutils/json"
-	"github.com/ego008/sdb"
+	"github.com/ego008/mdb"
 	"github.com/gin-gonic/gin"
+	"go.etcd.io/bbolt"
 )
 
 const maxUrlInSitemap = 50000
@@ -42,48 +43,62 @@ func (h *BaseHandler) SiteMapHandler(c *gin.Context) {
 	// post index
 	// newest
 	var obj model.TopicLoc
-	db.Hrscan(model.TopicTbName, nil, 1).KvEach(func(_, value sdb.BS) {
-		_ = json.Unmarshal(value, &obj)
-	})
-
-	if obj.Id == 0 {
-		c.String(200, "nil")
-		return
-	}
-
-	// index
 	indexTmMap := map[string]locItem{}
-	var indexByteLst [][]byte
-	maxId := int(obj.Id)
-	maxTm := obj.AddTime
-	for i := 1; i < maxId/maxUrlInSitemap+2; i++ {
-		li := "posts_" + strconv.Itoa(i) + ".xml"
-		indexTmMap[li] = locItem{
-			loc: li,
-			tm:  0,
-			pid: uint64(i * maxUrlInSitemap),
-		}
-		indexByteLst = append(indexByteLst, sdb.S2b(li))
-	}
-	for k := range indexByteLst {
 
-		kByte := indexByteLst[k]
-		kStr := sdb.B2s(kByte)
-		locLi := indexTmMap[kStr]
-		rs := db.Hget(model.TbnSitemapIndex, kByte)
-		if rs.OK() {
-			locLi.tm = rs.Int64()
-		} else {
-			tmI64 := db.Zget(model.TbnPostUpdate, sdb.I2b(locLi.pid))
-			if tmI64 > 0 {
-				locLi.tm = int64(tmI64)
-				_ = db.Hset(model.TbnSitemapIndex, kByte, sdb.I2b(tmI64))
-			} else {
-				locLi.tm = maxTm
-			}
+	_ = db.Update(func(tx *bbolt.Tx) error {
+
+		_ = db.HRScanFunc(tx, model.TopicTbName, nil, 1, func(_, val []byte) bool {
+			_ = json.Unmarshal(val, &obj)
+			return true
+		})
+
+		if obj.Id == 0 {
+			c.String(200, "nil")
+			return nil
 		}
-		indexTmMap[kStr] = locLi
-	}
+
+		// index
+
+		var indexByteLst [][]byte
+		maxId := int(obj.Id)
+		maxTm := obj.AddTime
+		for i := 1; i < maxId/maxUrlInSitemap+2; i++ {
+			li := "posts_" + strconv.Itoa(i) + ".xml"
+			indexTmMap[li] = locItem{
+				loc: li,
+				tm:  0,
+				pid: uint64(i * maxUrlInSitemap),
+			}
+			indexByteLst = append(indexByteLst, mdb.S2b(li))
+		}
+		for k := range indexByteLst {
+
+			kByte := indexByteLst[k]
+			kStr := mdb.B2s(kByte)
+			locLi := indexTmMap[kStr]
+
+			var ok bool
+
+			_ = db.HGetFunc(tx, model.TbnSitemapIndex, kByte, func(val []byte) error {
+				locLi.tm = int64(mdb.B2i(val))
+				ok = true
+				return nil
+			})
+
+			if !ok {
+				tmI64 := db.ZGetInt(tx, model.TbnPostUpdate, mdb.I2b(locLi.pid))
+				if tmI64 > 0 {
+					locLi.tm = int64(tmI64)
+					_ = db.HSet(tx, model.TbnSitemapIndex, kByte, mdb.I2b(tmI64))
+				} else {
+					locLi.tm = maxTm
+				}
+			}
+			indexTmMap[kStr] = locLi
+		}
+
+		return nil
+	})
 
 	// output
 	var buf bytes.Buffer
@@ -135,87 +150,98 @@ func (h *BaseHandler) SitemapIndexHandler(c *gin.Context) {
 	filename := "static/sitemap/" + xmlFile
 	var buf []byte
 	buf, err = os.ReadFile(filename)
-	if err == nil {
-		// get sitemap_x.xml mtime
-		var fileInfo os.FileInfo
-		if fileInfo, err = os.Stat(filename); err != nil {
+
+	_ = h.App.Db.View(func(tx *bbolt.Tx) error {
+
+		if err == nil {
+			// get sitemap_x.xml mtime
+			var fileInfo os.FileInfo
+			if fileInfo, err = os.Stat(filename); err != nil {
+				c.Status(http.StatusInternalServerError)
+				c.String(200, "500: InternalServerError")
+				return nil
+			}
+			modifiedTime := fileInfo.ModTime()
+			//
+			getPidByte := mdb.I2b(indexInt * maxUrlInSitemap)
+			var modifiedTm int64
+			modifiedTmTmp := h.App.Db.ZGetInt(tx, model.TbnPostUpdate, getPidByte)
+			if modifiedTmTmp > 0 {
+				modifiedTm = int64(modifiedTmTmp)
+			} else {
+				_ = h.App.Db.ZRScanFunc(tx, model.TbnPostUpdate, nil, 0, 0, 1, func(key []byte, score uint64) bool {
+					modifiedTm = int64(score)
+					return true
+				})
+			}
+
+			if modifiedTime.UTC().Unix() >= modifiedTm {
+				c.Header("Content-Type", "application/xml; charset=utf-8")
+				c.String(200, string(buf))
+				return nil
+			}
+
+		}
+
+		// write to file
+		// scan
+		var locLst []locItem
+
+		bn := model.TopicTbName
+		if typeStr == "posts" {
+			bn = model.TopicTbName
+		} // other todo
+		fromKeyB, toKeyB := mdb.I2b((indexInt-1)*maxUrlInSitemap), mdb.I2b(indexInt*maxUrlInSitemap)
+
+		keyStart := fromKeyB
+		for {
+			var ok bool
+			_ = h.App.Db.HScanFunc(tx, bn, keyStart, 100, func(key, val []byte) bool {
+				ok = true
+				keyStart = key
+
+				if bytes.Compare(key, toKeyB) > 0 {
+					return true
+				}
+				obj := model.TopicLoc{}
+				err = json.Unmarshal(val, &obj)
+				if err != nil {
+					return true
+				}
+				locLst = append(locLst, locItem{
+					loc: "/t/" + strconv.FormatUint(obj.Id, 10),
+					tm:  obj.AddTime,
+				})
+				return true
+			})
+
+			if !ok {
+				break
+			}
+		}
+
+		if len(locLst) == 0 {
+			c.Status(http.StatusNotFound)
+			return nil
+		}
+
+		err = writeXmlToFile(xmlFile, h.App.Cf.Site.MainDomain, locLst)
+		if err != nil {
 			c.Status(http.StatusInternalServerError)
-			c.String(200, "500: InternalServerError")
-			return
-		}
-		modifiedTime := fileInfo.ModTime()
-		//
-		getPidByte := sdb.I2b(indexInt * maxUrlInSitemap)
-		var modifiedTm int64
-		modifiedTmTmp := h.App.Db.Zget(model.TbnPostUpdate, getPidByte)
-		if modifiedTmTmp > 0 {
-			modifiedTm = int64(modifiedTmTmp)
-		} else {
-			h.App.Db.Zrscan(model.TbnPostUpdate, nil, nil, 1).KvEach(func(_, value sdb.BS) {
-				modifiedTm = value.Int64()
-			})
+			return nil
 		}
 
-		if modifiedTime.UTC().Unix() >= modifiedTm {
-			c.Header("Content-Type", "application/xml; charset=utf-8")
-			c.String(200, string(buf))
-			return
+		buf, err = os.ReadFile("static/sitemap/" + xmlFile)
+		if err != nil {
+			c.Status(http.StatusInternalServerError)
+			return nil
 		}
 
-	}
+		c.Header("Content-Type", "application/xml; charset=utf-8")
+		c.String(200, string(buf))
 
-	// write to file
-	// scan
-	var locLst []locItem
-
-	bn := model.TopicTbName
-	if typeStr == "posts" {
-		bn = model.TopicTbName
-	} // other todo
-	fromKeyB, toKeyB := sdb.I2b((indexInt-1)*maxUrlInSitemap), sdb.I2b(indexInt*maxUrlInSitemap)
-
-	keyStart := fromKeyB
-	for {
-		rs := h.App.Db.Hscan(bn, keyStart, 100)
-		if !rs.OK() {
-			break
-		}
-		keyStart = rs.Data[len(rs.Data)-2]
-		rs.KvEach(func(key, value sdb.BS) {
-			if bytes.Compare(key, toKeyB) > 0 {
-				return
-			}
-			obj := model.TopicLoc{}
-			err = json.Unmarshal(value, &obj)
-			if err != nil {
-				return
-			}
-			locLst = append(locLst, locItem{
-				loc: "/t/" + strconv.FormatUint(obj.Id, 10),
-				tm:  obj.AddTime,
-			})
-		})
-	}
-
-	if len(locLst) == 0 {
-		c.Status(http.StatusNotFound)
-		return
-	}
-
-	err = writeXmlToFile(xmlFile, h.App.Cf.Site.MainDomain, locLst)
-	if err != nil {
-		c.Status(http.StatusInternalServerError)
-		return
-	}
-
-	buf, err = os.ReadFile("static/sitemap/" + xmlFile)
-	if err != nil {
-		c.Status(http.StatusInternalServerError)
-		return
-	}
-
-	c.Header("Content-Type", "application/xml; charset=utf-8")
-	c.String(200, string(buf))
+		return nil
+	})
 }
 
 func writeXmlToFile(fn, domain string, locLst []locItem) error {

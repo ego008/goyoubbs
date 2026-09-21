@@ -7,8 +7,9 @@ import (
 	"time"
 
 	"github.com/ego008/goutils/json"
-	"github.com/ego008/sdb"
+	"github.com/ego008/mdb"
 	"github.com/gin-gonic/gin"
+	"go.etcd.io/bbolt"
 )
 
 func (h *BaseHandler) ApiAdminPrintPost(c *gin.Context) {
@@ -53,24 +54,29 @@ func (h *BaseHandler) ApiAdminPrintPost(c *gin.Context) {
 	offSetSeconds := int64(120)
 	nowTm := time.Now().Unix()
 
-	tbn := "remote_post_client_pw_err"
-	if tm := db.HgetInt(tbn, clientIp); tm > 0 {
-		if nowTm-int64(tm) < offSetSeconds {
-			c.String(200, `{"Code":403,"Msg":"sleep 2 min `+string(clientIp)+`"}`)
-			return
-		}
-		hasDelKey = true
-	}
+	_ = db.Update(func(tx *bbolt.Tx) error {
 
-	// check
-	if remotePostPw != h.App.Cf.Site.RemotePostPw {
-		_ = db.Hset(tbn, clientIp, sdb.I2b(uint64(nowTm)))
-		c.String(200, `{"Code":403,"Msg":"remotePostPw not match"}`)
-		return
-	}
-	if hasDelKey {
-		_ = db.Hdel(tbn, clientIp)
-	}
+		tbn := "remote_post_client_pw_err"
+		if tm := db.HGetInt(tx, tbn, clientIp); tm > 0 {
+			if nowTm-int64(tm) < offSetSeconds {
+				c.String(200, `{"Code":403,"Msg":"sleep 2 min `+string(clientIp)+`"}`)
+				return nil
+			}
+			hasDelKey = true
+		}
+
+		// check
+		if remotePostPw != h.App.Cf.Site.RemotePostPw {
+			_ = db.HSet(tx, tbn, clientIp, mdb.I2b(uint64(nowTm)))
+			c.String(200, `{"Code":403,"Msg":"remotePostPw not match"}`)
+			return nil
+		}
+		if hasDelKey {
+			_ = db.HDel(tx, tbn, clientIp)
+		}
+
+		return nil
+	})
 
 	bodyStr := string(body)
 	bodyStr = strings.Replace(bodyStr, `"pw":"`+rec.Pw+`",`, "", -1)

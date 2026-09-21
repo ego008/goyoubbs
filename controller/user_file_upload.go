@@ -2,6 +2,7 @@ package controller
 
 import (
 	"bytes"
+	"fmt"
 	"goyoubbs/model"
 	"goyoubbs/util"
 	"image"
@@ -11,8 +12,9 @@ import (
 	"strconv"
 
 	"github.com/ego008/goutils/json"
-	"github.com/ego008/sdb"
+	"github.com/ego008/mdb"
 	"github.com/gin-gonic/gin"
+	"go.etcd.io/bbolt"
 )
 
 const (
@@ -36,9 +38,10 @@ func (h *BaseHandler) FileUpload(c *gin.Context) {
 	}
 
 	// 1. 直接获取上传的文件 Header
-	fileHeader, err := c.FormFile("image")
+	fileHeader, err := c.FormFile("file")
 	if err != nil {
 		// 获取失败（如未提供文件或表单解析失败）
+		fmt.Println(err)
 		c.String(200, `{"Code":500,"Msg":"`+err.Error()+`"}`)
 		return
 	}
@@ -75,7 +78,7 @@ func (h *BaseHandler) FileUpload(c *gin.Context) {
 
 	imgHashValue := util.Xxhash(imgData.Bytes())
 	imgKeyS := strconv.FormatUint(imgHashValue, 10)
-	imgKeyB := sdb.I2b(imgHashValue)
+	imgKeyB := mdb.I2b(imgHashValue)
 
 	var fileSuffix, saveName, showPath string
 
@@ -112,101 +115,102 @@ func (h *BaseHandler) FileUpload(c *gin.Context) {
 
 	db := h.App.Db
 
-	if db.Hget("local_upload_md5_key", imgKeyB).OK() {
-		rsp.Code = 200
-		rsp.Url = showPath
-		rsp.Msg = "上传成功"
-		_ = json.NewEncoder(c.Writer).Encode(rsp)
+	var showStr string
 
-		// fix
-		if fileSuffix == ".mp4" {
-			_ = db.Hset(model.TbnV2DecMp4, []byte(saveFullPath), nil)
-		} else if fileSuffix == ".mp3" {
-			model.Mp3InfoSet(db, saveFullPath)
+	_ = db.Update(func(tx *bbolt.Tx) error {
+		if db.HKeyExist(tx, "local_upload_md5_key", imgKeyB) {
+			// fix
+			if fileSuffix == ".mp4" {
+				_ = db.HSet(tx, model.TbnV2DecMp4, []byte(saveFullPath), nil)
+			} else if fileSuffix == ".mp3" {
+				model.Mp3InfoSet(db, tx, saveFullPath)
+			}
+			return nil
 		}
 
-		return
-	}
+		if imgType == "gif" {
+			if h.App.Cf.Site.SaveImg2db {
+				// db
+				if err = db.HSet(tx, model.TbnDbImg, imgKeyB, imgData.Bytes()); err != nil {
+					showStr = `{"Code":400,"Msg":"` + err.Error() + `"}`
+					imgData.Reset()
+					return nil
+				}
+			} else {
+				// local
+				if err = os.WriteFile(saveFullPath, imgData.Bytes(), 0644); err != nil {
+					showStr = `{"Code":400,"Msg":"` + err.Error() + `"}`
+					imgData.Reset()
+					return nil
+				}
+			}
+			imgData.Reset()
 
-	if imgType == "gif" {
-		if h.App.Cf.Site.SaveImg2db {
-			// db
-			if err = db.Hset(model.TbnDbImg, imgKeyB, imgData.Bytes()); err != nil {
-				c.String(200, `{"Code":400,"Msg":"`+err.Error()+`"}`)
-				imgData.Reset()
-				return
+			// 保存hash值
+			_ = db.HSet(tx, "local_upload_md5_key", imgKeyB, mdb.I2b(curUser.ID))
+
+			return nil
+		}
+
+		if fileIsImage {
+			var img image.Image
+			img, err = util.GetImageObj(&imgData)
+			imgData.Reset()
+			if err != nil {
+				showStr = `{"Code":400,"Msg":"` + err.Error() + `"}`
+				return nil
+			}
+
+			dstImg := util.ImageResize(img, imgMaxWidth, 0) // 1024
+
+			buf := new(bytes.Buffer)
+			if err = jpeg.Encode(buf, dstImg, &jpeg.Options{Quality: 95}); err != nil {
+				showStr = `{"Code":400,"Msg":"` + err.Error() + `"}`
+				return nil
+			}
+
+			if h.App.Cf.Site.SaveImg2db {
+				// db
+				if err = db.HSet(tx, model.TbnDbImg, imgKeyB, buf.Bytes()); err != nil {
+					showStr = `{"Code":400,"Msg":"` + err.Error() + `"}`
+					return nil
+				}
+			} else {
+				// local
+				if err = os.WriteFile(saveFullPath, buf.Bytes(), 0644); err != nil {
+					showStr = `{"Code":400,"Msg":"` + err.Error() + `"}`
+					return nil
+				}
 			}
 		} else {
 			// local
 			if err = os.WriteFile(saveFullPath, imgData.Bytes(), 0644); err != nil {
-				c.String(200, `{"Code":400,"Msg":"`+err.Error()+`"}`)
+				showStr = `{"Code":400,"Msg":"` + err.Error() + `"}`
 				imgData.Reset()
-				return
+				return nil
+			}
+			imgData.Reset()
+			if fileSuffix == ".mp4" {
+				_ = db.HSet(tx, model.TbnV2DecMp4, []byte(saveFullPath), nil)
+			} else if fileSuffix == ".mp3" {
+				model.Mp3InfoSet(db, tx, saveFullPath)
 			}
 		}
-		imgData.Reset()
-		rsp.Code = 200
-		rsp.Msg = "上传成功"
-		rsp.Url = showPath
 
 		// 保存hash值
-		_ = db.Hset("local_upload_md5_key", imgKeyB, sdb.I2b(curUser.ID))
+		_ = db.HSet(tx, "local_upload_md5_key", imgKeyB, mdb.I2b(curUser.ID))
 
-		_ = json.NewEncoder(c.Writer).Encode(rsp)
+		return nil
+	})
+
+	if len(showStr) > 0 {
+		c.String(200, showStr)
 		return
-	}
-
-	if fileIsImage {
-		var img image.Image
-		img, err = util.GetImageObj(&imgData)
-		imgData.Reset()
-		if err != nil {
-			c.String(200, `{"Code":400,"Msg":"`+err.Error()+`"}`)
-			return
-		}
-
-		dstImg := util.ImageResize(img, imgMaxWidth, 0) // 1024
-
-		buf := new(bytes.Buffer)
-		if err = jpeg.Encode(buf, dstImg, &jpeg.Options{Quality: 95}); err != nil {
-			c.String(200, `{"Code":400,"Msg":"`+err.Error()+`"}`)
-			return
-		}
-
-		if h.App.Cf.Site.SaveImg2db {
-			// db
-			if err = db.Hset(model.TbnDbImg, imgKeyB, buf.Bytes()); err != nil {
-				c.String(200, `{"Code":400,"Msg":"`+err.Error()+`"}`)
-				return
-			}
-		} else {
-			// local
-			if err = os.WriteFile(saveFullPath, buf.Bytes(), 0644); err != nil {
-				c.String(200, `{"Code":400,"Msg":"`+err.Error()+`"}`)
-				return
-			}
-		}
-	} else {
-		// local
-		if err = os.WriteFile(saveFullPath, imgData.Bytes(), 0644); err != nil {
-			c.String(200, `{"Code":400,"Msg":"`+err.Error()+`"}`)
-			imgData.Reset()
-			return
-		}
-		imgData.Reset()
-		if fileSuffix == ".mp4" {
-			_ = db.Hset(model.TbnV2DecMp4, []byte(saveFullPath), nil)
-		} else if fileSuffix == ".mp3" {
-			model.Mp3InfoSet(db, saveFullPath)
-		}
 	}
 
 	rsp.Code = 200
 	rsp.Msg = "上传成功"
 	rsp.Url = showPath
-
-	// 保存hash值
-	_ = db.Hset("local_upload_md5_key", imgKeyB, sdb.I2b(curUser.ID))
 
 	_ = json.NewEncoder(c.Writer).Encode(rsp)
 }

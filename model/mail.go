@@ -2,7 +2,8 @@ package model
 
 import (
 	"github.com/ego008/goutils/json"
-	"github.com/ego008/sdb"
+	"github.com/ego008/mdb"
+	"go.etcd.io/bbolt"
 )
 
 type EmailInfo struct {
@@ -12,10 +13,10 @@ type EmailInfo struct {
 	Body    string
 }
 
-func EmailInfoUpdate(db *sdb.DB, obj EmailInfo) {
+func EmailInfoUpdate(db *mdb.DB, tx *bbolt.Tx, obj EmailInfo) {
 	jb, err := json.Marshal(obj)
 	if err != nil {
 		return
 	}
-	_ = db.Hset("mail_queue", sdb.I2b(obj.Key), jb)
+	_ = db.HSet(tx, "mail_queue", mdb.I2b(obj.Key), jb)
 }

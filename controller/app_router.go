@@ -12,9 +12,9 @@ import (
 	"goyoubbs/model"
 
 	"github.com/ego008/goutils/json"
-	"github.com/ego008/sdb"
 	"github.com/gin-gonic/gin"
 	"github.com/mileusna/useragent"
+	"go.etcd.io/bbolt"
 )
 
 func RouterReload(ap *model.Application) {
@@ -36,38 +36,51 @@ func MainRouter(ap *model.Application, router *gin.Engine) {
 	// 自定义路径及内容 参见 https://youbbs.org/t/3324
 	// 浏览需登录设置对自定义路由无效
 	var keyStart []byte
-	for {
-		rs := ap.Db.Hscan("custom_router", keyStart, 20)
-		if !rs.OK() {
-			break
-		}
-		rs.KvEach(func(key, value sdb.BS) {
-			keyStart = key
-			obj := model.CustomRouter{}
-			err := json.Unmarshal(value, &obj)
-			if err != nil {
-				return
-			}
-			// 默认 GET
-			router.GET(obj.Router, func(c *gin.Context) {
-				reqKey := c.Request.URL.Path
-				rs2 := ap.Db.Hget("custom_router", []byte(reqKey))
-				if !rs2.OK() {
-					c.String(http.StatusNotFound, "404 page not found")
-					return
+	_ = ap.Db.View(func(tx *bbolt.Tx) error {
+		for {
+			var ok bool
+			_ = ap.Db.HScanFunc(tx, "custom_router", keyStart, 20, func(key, val []byte) bool {
+				ok = true
+
+				keyStart = key
+				obj := model.CustomRouter{}
+				err := json.Unmarshal(val, &obj)
+				if err != nil {
+					return true
 				}
-				obj2 := model.CustomRouter{}
-				_ = json.Unmarshal(rs2.Bytes(), &obj2)
-				if strings.HasPrefix(obj2.Content, "goto:") {
-					// match goto url
-					// goto: https://youbbs.org/
-					c.Redirect(http.StatusFound, strings.TrimSpace(obj2.Content[5:]))
-					return
-				}
-				c.Data(http.StatusOK, obj2.MimeType, []byte(obj2.Content))
+				// 默认 GET
+				router.GET(obj.Router, func(c *gin.Context) {
+					reqKey := c.Request.URL.Path
+					var ok2 bool
+					_ = ap.Db.HGetFunc(tx, "custom_router", []byte(reqKey), func(v []byte) error {
+						ok2 = true
+						obj2 := model.CustomRouter{}
+						_ = json.Unmarshal(v, &obj2)
+						if strings.HasPrefix(obj2.Content, "goto:") {
+							// match goto url
+							// goto: https://youbbs.org/
+							c.Redirect(http.StatusFound, strings.TrimSpace(obj2.Content[5:]))
+							return nil
+						}
+						c.Data(http.StatusOK, obj2.MimeType, []byte(obj2.Content))
+						return nil
+					})
+
+					if !ok2 {
+						c.String(http.StatusNotFound, "404 page not found")
+						return
+					}
+
+				})
+
+				return true
 			})
-		})
-	}
+			if !ok {
+				break
+			}
+		}
+		return nil
+	})
 
 	// https://youbbs.org/avatar/1.jpg
 	// 自定义 avatar handle

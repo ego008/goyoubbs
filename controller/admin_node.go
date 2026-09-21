@@ -7,6 +7,7 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"go.etcd.io/bbolt"
 )
 
 func (h *BaseHandler) AdminNodePage(c *gin.Context) {
@@ -24,25 +25,29 @@ func (h *BaseHandler) AdminNodePage(c *gin.Context) {
 	evn.Title = "分区管理"
 	evn.PageName = "admin_node"
 
-	evn.NodeLst = model.NodeGetAll(h.App.Mc, h.App.Db)
+	_ = h.App.Db.View(func(tx *bbolt.Tx) error {
+		evn.NodeLst = model.NodeGetAll(h.App.Mc, h.App.Db, tx)
 
-	//
-	evn.Act = "添加"
-	evn.Node = model.Node{}
-	_id := c.Query("id")
-	if len(_id) > 0 {
-		idi, _ := strconv.ParseUint(_id, 10, 64)
+		//
+		evn.Act = "添加"
 		evn.Node = model.Node{}
-		node, code := model.NodeGetById(h.App.Db, idi)
-		if code == 1 {
-			evn.Node = node
-			evn.Act = "编辑"
+		_id := c.Query("id")
+		if len(_id) > 0 {
+			idi, _ := strconv.ParseUint(_id, 10, 64)
+			evn.Node = model.Node{}
+			node, code := model.NodeGetById(h.App.Db, tx, idi)
+			if code == 1 {
+				evn.Node = node
+				evn.Act = "编辑"
+			}
 		}
-	}
 
-	evn.HasMsg = model.MsgCheckHasOne(h.App.Db, curUser.ID)
-	evn.HasTopicReview = model.CheckHasTopic2Review(h.App.Db)
-	evn.HasReplyReview = model.CheckHasComment2Review(h.App.Db)
+		evn.HasMsg = model.MsgCheckHasOne(h.App.Db, tx, curUser.ID)
+		evn.HasTopicReview = model.CheckHasTopic2Review(h.App.Db, tx)
+		evn.HasReplyReview = model.CheckHasComment2Review(h.App.Db, tx)
+
+		return nil
+	})
 
 	c.Header("Content-Type", "text/html; charset=utf-8")
 	c.Status(http.StatusOK)
@@ -71,7 +76,10 @@ func (h *BaseHandler) AdminNodePost(c *gin.Context) {
 	obj.Score, _ = strconv.Atoi(c.PostForm("Score"))
 	obj.About = c.PostForm("About")
 
-	_, _ = model.NodeSet(h.App.Db, obj)
+	_ = h.App.Db.Update(func(tx *bbolt.Tx) error {
+		_, _ = model.NodeSet(h.App.Db, tx, obj)
+		return nil
+	})
 
 	// 删除缓存
 	h.App.Mc.Del([]byte("NodeGetAll"))

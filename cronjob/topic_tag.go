@@ -1,6 +1,7 @@
 package cronjob
 
 import (
+	"bytes"
 	"fmt"
 	"goyoubbs/model"
 	"goyoubbs/util"
@@ -8,49 +9,72 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"time"
 
 	"github.com/VictoriaMetrics/fastcache"
 	"github.com/ego008/goutils/json"
-	"github.com/ego008/sdb"
+	"github.com/ego008/mdb"
+	"go.etcd.io/bbolt"
 )
 
 // getTagFromTitle remote
-func getTagFromTitle(db *sdb.DB, apiUrl string) {
-	rs := db.Hscan("task_to_get_tag", nil, 1)
-	if !rs.OK() {
-		return
-	}
-	tid := rs.Data[0].Bytes()
-
-	rs2 := db.Hget("topic", tid)
-	if !rs2.OK() {
-		_ = db.Hdel("task_to_get_tag", tid)
-		return
-	}
+func getTagFromTitle(db *mdb.DB, apiUrl string) {
 	aobj := model.Topic{}
-	err := json.Unmarshal(rs2.Data[0].Bytes(), &aobj)
+
+	var tid, tval []byte
+
+	_ = db.View(func(tx *bbolt.Tx) error {
+		_ = db.HScanFunc(tx, "task_to_get_tag", nil, 1, func(key, val []byte) bool {
+			tid = bytes.Clone(key)
+			tval = bytes.Clone(val)
+			return true
+		})
+		return nil
+	})
+
+	if len(tid) == 0 {
+		return
+	}
+
+	var tVal []byte
+	_ = db.View(func(tx *bbolt.Tx) error {
+		_ = db.HGetFunc(tx, "topic", tid, func(val []byte) error {
+			tVal = bytes.Clone(val)
+			return nil
+		})
+		return nil
+	})
+	if len(tVal) == 0 {
+		_ = db.Update(func(tx *bbolt.Tx) error {
+			return db.HDel(tx, "task_to_get_tag", tid)
+		})
+		return
+	}
+
+	err := json.Unmarshal(tVal, &aobj)
 	if err != nil {
-		_ = db.Hdel("task_to_get_tag", tid)
+		_ = db.Update(func(tx *bbolt.Tx) error {
+			return db.HDel(tx, "task_to_get_tag", tid)
+		})
 		return
 	}
 	if aobj.ID == 0 {
-		_ = db.Hdel("task_to_get_tag", tid)
+		_ = db.Update(func(tx *bbolt.Tx) error {
+			return db.HDel(tx, "task_to_get_tag", tid)
+		})
 		return
 	}
+
 	oldTags := aobj.Tags
-	//if len(oldTags) > 0 {
-	//	_ = db.Hdel("task_to_get_tag", tid)
-	//	return
-	//}
 
 	// 1. 构建 url.Values 参数
 	formData := url.Values{
 		"state": {"ok"},
-		"ms":    {rs.Data[1].String()},
+		"ms":    {string(tval)},
 	}
 
 	// 2. 发送 POST 请求（自动设置 Content-Type 为 application/x-www-form-urlencoded）
-	httpClient := &http.Client{}
+	httpClient := &http.Client{Timeout: 10 * time.Second}
 	res, err := httpClient.PostForm(apiUrl, formData)
 	if err != nil {
 		fmt.Println(err)
@@ -83,20 +107,28 @@ func getTagFromTitle(db *sdb.DB, apiUrl string) {
 	}
 	// log.Println(t.Code, t.Tag)
 	if t.Code == 200 {
-		if len(t.Tag) > 0 {
-			tags := util.StringSplit(t.Tag, ",")
-			if len(tags) > 5 {
-				tags = tags[:5]
-			}
+		_ = db.Update(func(tx *bbolt.Tx) error {
+			if len(t.Tag) > 0 {
+				tags := util.StringSplit(t.Tag, ",")
+				if len(tags) > 5 {
+					tags = tags[:5]
+				}
 
-			// get once more
-			rs2 := db.Hget("topic", sdb.I2b(aobj.ID))
-			if rs2.OK() {
+				// get once more
+				var tv []byte
+				_ = db.HGetFunc(tx, "topic", mdb.I2b(aobj.ID), func(val []byte) error {
+					tv = bytes.Clone(val)
+					return nil
+				})
+				if len(tv) == 0 {
+					return nil
+				}
+
 				aobj := model.Topic{}
-				_ = json.Unmarshal(rs2.Data[0].Bytes(), &aobj)
+				_ = json.Unmarshal(tv, &aobj)
 				aobj.Tags = strings.Join(tags, ",")
 				jb, _ := json.Marshal(aobj)
-				_ = db.Hset("topic", sdb.I2b(aobj.ID), jb)
+				_ = db.HSet(tx, "topic", mdb.I2b(aobj.ID), jb)
 
 				// tag send task work，自动处理tag与文章id
 				at := model.TopicTag{
@@ -105,24 +137,34 @@ func getTagFromTitle(db *sdb.DB, apiUrl string) {
 					NewTags: aobj.Tags,
 				}
 				jb, _ = json.Marshal(at)
-				_ = db.Hset("task_to_set_tag", sdb.I2b(at.ID), jb)
+				_ = db.HSet(tx, "task_to_set_tag", mdb.I2b(at.ID), jb)
+
 			}
-		}
-		_ = db.Hdel("task_to_get_tag", sdb.I2b(aobj.ID))
+			_ = db.HDel(tx, "task_to_get_tag", mdb.I2b(aobj.ID))
+			return nil
+		})
 	}
 	// log.Println("done")
 }
 
-func setArticleTag(mc *fastcache.Cache, db *sdb.DB) {
-	rs := db.Hscan("task_to_set_tag", nil, 1)
-	if rs.OK() {
+func setArticleTag(mc *fastcache.Cache, db *mdb.DB) {
+	_ = db.Update(func(tx *bbolt.Tx) error {
+		var tKey, tVal []byte
+		_ = db.HScanFunc(tx, "task_to_set_tag", nil, 1, func(key, val []byte) bool {
+			tKey = bytes.Clone(key)
+			tVal = bytes.Clone(val)
+			return true
+		})
+		if len(tVal) == 0 {
+			return nil
+		}
+
 		var tagChanged bool
 		info := model.TopicTag{}
-		err := json.Unmarshal(rs.Data[1].Bytes(), &info)
+		err := json.Unmarshal(tVal, &info)
 		if err != nil {
-			return
+			return db.HDel(tx, "task_to_set_tag", tKey)
 		}
-		//log.Println("aid", info.Id)
 
 		// set tag
 		oldTag := util.StringSplit(info.OldTags, ",")
@@ -140,16 +182,21 @@ func setArticleTag(mc *fastcache.Cache, db *sdb.DB) {
 			if !contains {
 				// 删除
 				tagLower := strings.ToLower(tag1)
-				tagLowerB := sdb.S2b(tagLower)
-				_ = db.Hdel("tag:"+tagLower, sdb.I2b(info.ID))
+				tagLowerB := []byte(tagLower)
+				_ = db.HDel(tx, "tag:"+tagLower, tKey)
 
-				if db.Hscan("tag:"+tagLower, nil, 1).OK() {
-					_, _ = db.Zincr("tag_article_num", tagLowerB, -1) // 热门标签排序
-				} else {
+				var ok bool
+				_ = db.HScanFunc(tx, "tag:"+tagLower, nil, 1, func(key, val []byte) bool {
+					_, _ = db.ZIncr(tx, "tag_article_num", tagLowerB, -1) // 热门标签排序
+					ok = true
+					return true
+				})
+
+				if !ok {
 					// 删除
-					_ = db.Zdel("tag_article_num", tagLowerB)
-					_ = db.Hdel(model.TagTbName, tagLowerB)
-					_, _ = db.Hincr(model.CountTb, sdb.S2b(model.TagTbName), -1)
+					_ = db.ZDel(tx, "tag_article_num", tagLowerB)
+					_ = db.HDel(tx, model.TagTbName, tagLowerB)
+					_, _ = db.HIncr(tx, model.CountTb, []byte(model.TagTbName), -1)
 				}
 				tagChanged = true
 			}
@@ -166,24 +213,34 @@ func setArticleTag(mc *fastcache.Cache, db *sdb.DB) {
 			}
 			if !contains {
 				tagLower := strings.ToLower(tag1)
-				tagLowerB := sdb.S2b(tagLower)
-				if !db.Hget(model.TagTbName, tagLowerB).OK() {
-					_ = db.Hset(model.TagTbName, tagLowerB, nil)
-					_, _ = db.Hincr(model.CountTb, sdb.S2b(model.TagTbName), 1)
-				}
+				tagLowerB := mdb.S2b(tagLower)
+
+				_ = db.HGetFunc(tx, model.TagTbName, tagLowerB, func(val []byte) error {
+					_ = db.HSet(tx, model.TagTbName, tagLowerB, nil)
+					_, _ = db.HIncr(tx, model.CountTb, mdb.S2b(model.TagTbName), 1)
+					return nil
+				})
+
 				// check if not exist !important
-				if !db.Hget("tag:"+tagLower, sdb.I2b(info.ID)).OK() {
-					_ = db.Hset("tag:"+tagLower, sdb.I2b(info.ID), nil)
-					_, _ = db.Zincr("tag_article_num", tagLowerB, 1)
+				var ok bool
+				_ = db.HGetFunc(tx, "tag:"+tagLower, tKey, func(val []byte) error {
+					ok = true
+					return nil
+				})
+				if !ok {
+					_ = db.HSet(tx, "tag:"+tagLower, tKey, nil)
+					_, _ = db.ZIncr(tx, "tag_article_num", tagLowerB, 1)
 				}
 				tagChanged = true
 			}
 		}
 
-		_ = db.Hdel("task_to_set_tag", sdb.I2b(info.ID))
+		_ = db.HDel(tx, "task_to_set_tag", tKey)
 
 		if tagChanged {
 			mc.Del([]byte("GetTagsForSide"))
 		}
-	}
+
+		return nil
+	})
 }

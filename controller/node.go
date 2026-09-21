@@ -7,6 +7,7 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"go.etcd.io/bbolt"
 )
 
 func (h *BaseHandler) NodePage(c *gin.Context) {
@@ -30,59 +31,64 @@ func (h *BaseHandler) NodePage(c *gin.Context) {
 		c.Redirect(302, "/")
 		return
 	}
-	node, code := model.NodeGetById(db, nid)
-	if code != 1 {
-		c.Redirect(302, "/")
-		return
-	}
-
-	btn, key, score := c.Query("btn"), c.Query("key"), c.Query("score")
-	if len(key) > 0 {
-		_, err := strconv.ParseUint(key, 10, 64)
-		if err != nil {
-			c.Redirect(302, "/")
-			return
-		}
-	}
-	if len(score) > 0 {
-		_, err := strconv.ParseUint(score, 10, 64)
-		if err != nil {
-			c.Redirect(302, "/")
-			return
-		}
-	}
-
-	cmd := "zrscan"
-	if btn == "prev" {
-		cmd = "zscan"
-	}
-
-	// sort id
-	//topicPageInfo := model.GetTopicListArchives(db, cmd, "topic_node:"+nidStr, key, score, scf.PageShowNum)
-	// sort comment add time
-	topicPageInfo := model.GetTopicList(db, cmd, "topic_update:"+nidStr, key, score, scf.PageShowNum)
-
-	//log.Println(topicPageInfo)
 
 	evn := &ybs.NodePage{}
-	evn.SiteCf = scf
-	evn.Title = "Category: " + node.Name + " - " + scf.Name
-	evn.CurrentUser = *curUser
-
-	evn.DefaultNode = node
-	evn.NodeLst = model.NodeGetAll(h.App.Mc, db)
-	evn.TopicPageInfo = topicPageInfo
-	evn.TagCloud = model.GetTagsForSide(h.App.Mc, db, showTagNum)
-	evn.RangeTopicLst = rangeTopicLst[:]
-	evn.RecentComment = model.CommentGetRecent(h.App.Mc, db, scf.RecentCommentNum)
-
-	if curUser.ID > 0 {
-		evn.HasMsg = model.MsgCheckHasOne(db, curUser.ID)
-		if curUser.Flag >= model.FlagAdmin {
-			evn.HasTopicReview = model.CheckHasTopic2Review(h.App.Db)
-			evn.HasReplyReview = model.CheckHasComment2Review(h.App.Db)
+	_ = db.View(func(tx *bbolt.Tx) error {
+		node, code := model.NodeGetById(db, tx, nid)
+		if code != 1 {
+			c.Redirect(302, "/")
+			return nil
 		}
-	}
+
+		btn, key, score := c.Query("btn"), c.Query("key"), c.Query("score")
+		if len(key) > 0 {
+			_, err := strconv.ParseUint(key, 10, 64)
+			if err != nil {
+				c.Redirect(302, "/")
+				return nil
+			}
+		}
+		if len(score) > 0 {
+			_, err := strconv.ParseUint(score, 10, 64)
+			if err != nil {
+				c.Redirect(302, "/")
+				return nil
+			}
+		}
+
+		cmd := "zrscan"
+		if btn == "prev" {
+			cmd = "zscan"
+		}
+
+		// sort id
+		//topicPageInfo := model.GetTopicListArchives(db, cmd, "topic_node:"+nidStr, key, score, scf.PageShowNum)
+		// sort comment add time
+		topicPageInfo := model.GetTopicList(db, tx, cmd, "topic_update:"+nidStr, key, score, scf.PageShowNum)
+
+		//log.Println(topicPageInfo)
+
+		evn.SiteCf = scf
+		evn.Title = "Category: " + node.Name + " - " + scf.Name
+		evn.CurrentUser = *curUser
+
+		evn.DefaultNode = node
+		evn.NodeLst = model.NodeGetAll(h.App.Mc, db, tx)
+		evn.TopicPageInfo = topicPageInfo
+		evn.TagCloud = model.GetTagsForSide(h.App.Mc, db, tx, showTagNum)
+		evn.RangeTopicLst = rangeTopicLst[:]
+		evn.RecentComment = model.CommentGetRecent(h.App.Mc, db, tx, scf.RecentCommentNum)
+
+		if curUser.ID > 0 {
+			evn.HasMsg = model.MsgCheckHasOne(db, tx, curUser.ID)
+			if curUser.Flag >= model.FlagAdmin {
+				evn.HasTopicReview = model.CheckHasTopic2Review(h.App.Db, tx)
+				evn.HasReplyReview = model.CheckHasComment2Review(h.App.Db, tx)
+			}
+		}
+
+		return nil
+	})
 
 	c.Header("Content-Type", "text/html; charset=utf-8")
 	c.Status(http.StatusOK)

@@ -2,12 +2,14 @@ package qqOAuth
 
 import (
 	"errors"
-	"github.com/ego008/goutils/json"
 	"io"
 	"log"
 	"net/http"
 	"net/url"
 	"regexp"
+	"time"
+
+	"github.com/ego008/goutils/json"
 )
 
 var Logging bool
@@ -97,7 +99,8 @@ func (oauth *OAuth) GetAccessToken(code string) (*OAuthToken, error) {
 		logReq("GET: " + reqURL)
 	}
 
-	resp, err := http.Get(reqURL)
+	hc := &http.Client{Timeout: 10 * time.Second}
+	resp, err := hc.Get(reqURL)
 	if err != nil {
 		return nil, err
 	}
