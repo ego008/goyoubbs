@@ -2,8 +2,6 @@ module goyoubbs
 
 go 1.26.2
 
-replace github.com/ego008/mdb => /Users/wzs/gitapps/mdb
-
 require (
 	github.com/VictoriaMetrics/fastcache v1.12.2
 	github.com/alecthomas/chroma v0.10.0
@@ -11,7 +9,7 @@ require (
 	github.com/disintegration/imaging v1.6.2
 	github.com/ego008/captcha v0.0.0-20210207145536-b16672dce081
 	github.com/ego008/goutils v0.0.0-20240302091331-d7e01b773179
-	github.com/ego008/mdb v0.0.0-20220425030734-1f07301d26a5
+	github.com/ego008/mdb v0.0.0-20260921024527-8060dc1128ab
 	github.com/gin-gonic/gin v1.12.0
 	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0
 	github.com/google/go-github v17.0.0+incompatible

@@ -31,6 +31,8 @@ github.com/ego008/captcha v0.0.0-20210207145536-b16672dce081 h1:MSUxjZc3PsarEY2v
 github.com/ego008/captcha v0.0.0-20210207145536-b16672dce081/go.mod h1:GSehBFD48Qbqw5z6srZ7jBFBlxzVQu7zYxu6J9LvDt0=
 github.com/ego008/goutils v0.0.0-20240302091331-d7e01b773179 h1:3+NQ/4FFSN5pAHoXrwW55YUHKZHAOH4qAleKfFIfeq0=
 github.com/ego008/goutils v0.0.0-20240302091331-d7e01b773179/go.mod h1:Xqj/nUA96FA1J/97/5k6eDN2+eE7AH+/OG1eI44dqfA=
+github.com/ego008/mdb v0.0.0-20260921024527-8060dc1128ab h1:nNNfhcrNfGNGrtz2QChRABHrX5OAreaiBEGyPejggJ0=
+github.com/ego008/mdb v0.0.0-20260921024527-8060dc1128ab/go.mod h1:yG6LMi+uBSBaHXw3u97vtR0hBdqIrRGuTqLpANIUihc=
 github.com/gabriel-vasile/mimetype v1.4.12 h1:e9hWvmLYvtp846tLHam2o++qitpguFiYCKbn0w9jyqw=
 github.com/gabriel-vasile/mimetype v1.4.12/go.mod h1:d+9Oxyo1wTzWdyVUPMmXFvp4F9tea18J8ufA774AB3s=
 github.com/gin-contrib/sse v1.1.0 h1:n0w2GMuUpWDVp7qSpvze6fAu9iRxJY4Hmj6AmBOU05w=
