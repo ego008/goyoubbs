@@ -45,6 +45,7 @@ func (h *BaseHandler) SiteMapHandler(c *gin.Context) {
 	var obj model.TopicLoc
 	indexTmMap := map[string]locItem{}
 
+	var showStr string
 	_ = db.Update(func(tx *bbolt.Tx) error {
 
 		_ = db.HRScanFunc(tx, model.TopicTbName, nil, 1, func(_, val []byte) bool {
@@ -53,7 +54,7 @@ func (h *BaseHandler) SiteMapHandler(c *gin.Context) {
 		})
 
 		if obj.Id == 0 {
-			c.String(200, "nil")
+			showStr = "nil"
 			return nil
 		}
 
@@ -99,6 +100,10 @@ func (h *BaseHandler) SiteMapHandler(c *gin.Context) {
 
 		return nil
 	})
+	if len(showStr) > 0 {
+		c.String(200, showStr)
+		return
+	}
 
 	// output
 	var buf bytes.Buffer

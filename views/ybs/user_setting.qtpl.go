@@ -22,158 +22,237 @@ func (p *UserSetting) StreamMainBody(qw422016 *qt422016.Writer) {
 //line views/ybs/user_setting.qtpl:1
 	qw422016.N().S(`
 <script src="/static/js/md5.min.js" type="text/javascript"></script>
-<div class="index">
-    <h1>`)
-//line views/ybs/user_setting.qtpl:4
-	qw422016.E().S(p.Title)
-//line views/ybs/user_setting.qtpl:4
-	qw422016.N().S(` - <a href="/member/`)
-//line views/ybs/user_setting.qtpl:4
+
+<nav class="wk-breadcrumb">
+    <a href="/">首页</a><span class="sep">/</span>
+    <a href="/member/`)
+//line views/ybs/user_setting.qtpl:6
 	qw422016.N().DUL(p.User.ID)
-//line views/ybs/user_setting.qtpl:4
-	qw422016.N().S(`">个人页面</a></h1>
-    <span id="id-msg"></span>
-    <form action="" method="post" class="pure-form pure-form-stacked" onsubmit="form_post(); return false;">
-        <fieldset>
-            <legend>登录名: `)
-//line views/ybs/user_setting.qtpl:8
+//line views/ybs/user_setting.qtpl:6
+	qw422016.N().S(`">`)
+//line views/ybs/user_setting.qtpl:6
 	qw422016.E().S(p.User.Name)
-//line views/ybs/user_setting.qtpl:8
-	qw422016.N().S(`</legend>
+//line views/ybs/user_setting.qtpl:6
+	qw422016.N().S(`</a><span class="sep">/</span>
+    <span class="current">个人设置</span>
+</nav>
 
-            <img id="img" src="/avatar/`)
-//line views/ybs/user_setting.qtpl:10
-	qw422016.N().DUL(p.User.ID)
-//line views/ybs/user_setting.qtpl:10
-	qw422016.N().S(`.jpg" alt="`)
-//line views/ybs/user_setting.qtpl:10
-	qw422016.E().S(p.User.Name)
-//line views/ybs/user_setting.qtpl:10
-	qw422016.N().S(` avatar" onclick="document.getElementById('file-input').click();" title="点击更换头像" style="cursor: pointer;height: 119px;width: 119px;">
-            <input id="file-input" type="file" accept="image/*" style="display: none;" />
+<header class="wk-page-head" style="display:flex;align-items:flex-start;gap:16px;padding-bottom:20px;border-bottom:1px solid var(--wk-border);margin-bottom:22px;">
+    <div class="ph-icon" style="flex:0 0 auto;width:44px;height:44px;display:grid;place-items:center;border-radius:12px;font-size:20px;background:linear-gradient(135deg,var(--wk-user-soft),var(--wk-tag-soft));border:1px solid var(--wk-border);">⚙</div>
+    <div style="flex:1;min-width:0;">
+        <h1 class="wk-page-title" style="margin:0 0 6px;font-size:24px;font-weight:700;line-height:1.3;color:var(--wk-text);">个人设置</h1>
+        <p style="margin:0;font-size:13.5px;color:var(--wk-text-muted);line-height:1.6;">修改你的头像、密码与个人资料。修改后点击页面底部「保存更改」即可生效。</p>
+    </div>
+</header>
 
-            <div>
-                <div class="pure-u-1 pure-u-sm-1-6">
-                    <label for="Password0">旧密码： </label>
-                    <input id="Password0" class="pure-u-23-24" type="password" value="">
-                </div>
+<div id="id-msg" style="display:none;padding:10px 14px;margin-bottom:18px;border-radius:var(--wk-radius-sm);font-size:13.5px;line-height:1.6;"></div>
 
-                <div class="pure-u-1 pure-u-sm-1-6">
-                    <label for="Password">新密码： </label>
-                    <input id="Password" class="pure-u-23-24" type="password" value="">
-                </div>
+<form action="" method="post" id="setting-form" onsubmit="form_post();return false;">
 
-            </div>
-
-            <div class="pure-g">
-                <div class="pure-u-1 pure-u-sm-1-1">
-                    <input id="id-url" type="text" value="`)
-//line views/ybs/user_setting.qtpl:28
+<section style="border:1px solid var(--wk-border);border-radius:12px;background:var(--wk-bg);overflow:hidden;margin-bottom:18px;">
+    <div style="display:flex;align-items:center;gap:10px;padding:14px 20px;background:var(--wk-bg-soft);border-bottom:1px solid var(--wk-border);">
+        <span style="width:26px;height:26px;display:grid;place-items:center;border-radius:7px;background:var(--wk-bg);border:1px solid var(--wk-border);font-size:13px;flex:0 0 auto;">👤</span>
+        <span style="font-size:14px;font-weight:650;color:var(--wk-text);">个人资料</span>
+        <span style="margin-left:auto;font-size:12px;color:var(--wk-text-muted);">所有访客可见</span>
+    </div>
+    <div style="padding:18px 20px 22px;">
+        <div style="margin-bottom:18px;">
+            <label style="display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--wk-text-muted);margin-bottom:8px;">个人网站 / 主页 <span style="font-weight:500;letter-spacing:0;text-transform:none;font-size:11px;">选填，会显示在你的个人主页</span></label>
+            <div style="display:flex;align-items:stretch;border:1px solid var(--wk-border-strong);border-radius:var(--wk-radius-sm);background:var(--wk-bg);overflow:hidden;">
+                <span style="display:inline-flex;align-items:center;padding:0 12px;background:var(--wk-bg-soft);border-right:1px solid var(--wk-border);color:var(--wk-text-muted);font-size:13px;font-family:var(--wk-mono);white-space:nowrap;">https://</span>
+                <input id="id-url" type="text" value="`)
+//line views/ybs/user_setting.qtpl:33
 	qw422016.E().S(p.User.Url)
-//line views/ybs/user_setting.qtpl:28
-	qw422016.N().S(`" class="pure-input-1" placeholder="URL http(s)://example.com" />
-                    <textarea id="id-about" class="pure-input-1" placeholder="About...">`)
-//line views/ybs/user_setting.qtpl:29
+//line views/ybs/user_setting.qtpl:33
+	qw422016.N().S(`" placeholder="example.com" autocomplete="off" style="flex:1;height:42px;padding:0 13px;border:0;background:transparent;color:var(--wk-text);font-size:14.5px;font-family:var(--wk-mono);outline:none;min-width:0;">
+            </div>
+        </div>
+        <div style="margin-bottom:0;">
+            <label style="display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--wk-text-muted);margin-bottom:8px;">个人简介 <span style="font-weight:500;letter-spacing:0;text-transform:none;font-size:11px;">最多 500 字</span></label>
+            <textarea id="id-about" placeholder="介绍一下你自己，比如：专注 Go 语言与量化交易，偶尔写一些技术笔记…" style="display:block;width:100%;min-height:110px;padding:12px 13px;border:1px solid var(--wk-border-strong);border-radius:var(--wk-radius-sm);background:var(--wk-bg);color:var(--wk-text);font-family:var(--wk-font);font-size:14px;line-height:1.7;resize:vertical;outline:none;">`)
+//line views/ybs/user_setting.qtpl:38
 	qw422016.N().S(p.User.About)
-//line views/ybs/user_setting.qtpl:29
+//line views/ybs/user_setting.qtpl:38
 	qw422016.N().S(`</textarea>
+        </div>
+    </div>
+</section>
+
+<section style="border:1px solid var(--wk-border);border-radius:12px;background:var(--wk-bg);overflow:hidden;margin-bottom:18px;">
+    <div style="display:flex;align-items:center;gap:10px;padding:14px 20px;background:var(--wk-bg-soft);border-bottom:1px solid var(--wk-border);">
+        <span style="width:26px;height:26px;display:grid;place-items:center;border-radius:7px;background:var(--wk-bg);border:1px solid var(--wk-border);font-size:13px;flex:0 0 auto;">🖼</span>
+        <span style="font-size:14px;font-weight:650;color:var(--wk-text);">头像</span>
+        <span style="margin-left:auto;font-size:12px;color:var(--wk-text-muted);">建议 200×200 像素以上</span>
+    </div>
+    <div style="padding:18px 20px 22px;">
+        <div style="display:flex;align-items:center;gap:20px;">
+            <div style="position:relative;flex:0 0 auto;width:88px;height:88px;border-radius:18px;overflow:hidden;border:2px solid var(--wk-bg);box-shadow:0 3px 12px rgba(0,0,0,.08),0 0 0 1px var(--wk-border);background:var(--wk-bg-soft);cursor:pointer;" onclick="document.getElementById('file-input').click();">
+                <img id="img" src="/avatar/`)
+//line views/ybs/user_setting.qtpl:52
+	qw422016.N().DUL(p.User.ID)
+//line views/ybs/user_setting.qtpl:52
+	qw422016.N().S(`.jpg" alt="`)
+//line views/ybs/user_setting.qtpl:52
+	qw422016.E().S(p.User.Name)
+//line views/ybs/user_setting.qtpl:52
+	qw422016.N().S(` avatar" style="width:100%;height:100%;object-fit:cover;display:block;">
+                <span style="position:absolute;inset:0;display:grid;place-items:center;background:rgba(0,0,0,.5);color:#fff;font-size:12px;font-weight:600;opacity:0;transition:opacity .15s;">更换</span>
+            </div>
+            <div style="flex:1;min-width:0;">
+                <p style="margin:0 0 10px;font-size:13px;line-height:1.6;color:var(--wk-text-muted);">支持 JPG / PNG / WebP / GIF 格式。点击左侧预览或下方按钮选择文件。</p>
+                <div style="display:flex;flex-wrap:wrap;gap:8px;">
+                    <button type="button" class="wk-btn-primary" onclick="document.getElementById('file-input').click();" style="height:36px;padding:0 14px;font-size:13px;">选择图片</button>
                 </div>
             </div>
+        </div>
+        <input id="file-input" type="file" accept="image/*" style="display:none;">
+    </div>
+</section>
 
-            <button type="submit" class="pure-button pure-button-primary">提交</button>
-        </fieldset>
-    </form>
+<section style="border:1px solid var(--wk-border);border-radius:12px;background:var(--wk-bg);overflow:hidden;margin-bottom:18px;">
+    <div style="display:flex;align-items:center;gap:10px;padding:14px 20px;background:var(--wk-bg-soft);border-bottom:1px solid var(--wk-border);">
+        <span style="width:26px;height:26px;display:grid;place-items:center;border-radius:7px;background:var(--wk-bg);border:1px solid var(--wk-border);font-size:13px;flex:0 0 auto;">🔒</span>
+        <span style="font-size:14px;font-weight:650;color:var(--wk-text);">修改密码</span>
+        <span style="margin-left:auto;font-size:12px;color:var(--wk-text-muted);">不修改请留空</span>
+    </div>
+    <div style="padding:18px 20px 22px;">
+        <div style="margin-bottom:16px;">
+            <label for="Password0" style="display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--wk-text-muted);margin-bottom:7px;">旧密码</label>
+            <input id="Password0" type="password" placeholder="请输入当前密码" autocomplete="current-password" style="display:block;width:100%;height:44px;padding:0 14px;border:1px solid var(--wk-border-strong);border-radius:var(--wk-radius-sm);background:var(--wk-bg);color:var(--wk-text);font-family:var(--wk-font);font-size:15px;outline:none;">
+        </div>
+        <div style="margin-bottom:0;">
+            <label for="Password" style="display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--wk-text-muted);margin-bottom:7px;">新密码 <span style="font-weight:500;letter-spacing:0;text-transform:none;font-size:11px;">至少 6 位，建议混合数字与字母</span></label>
+            <input id="Password" type="password" placeholder="请输入新密码" autocomplete="new-password" style="display:block;width:100%;height:44px;padding:0 14px;border:1px solid var(--wk-border-strong);border-radius:var(--wk-radius-sm);background:var(--wk-bg);color:var(--wk-text);font-family:var(--wk-font);font-size:15px;outline:none;">
+        </div>
+    </div>
+</section>
 
+<section style="border:1px solid var(--wk-border);border-radius:12px;background:var(--wk-bg);overflow:hidden;margin-bottom:18px;">
+    <div style="display:flex;align-items:center;gap:10px;padding:14px 20px;background:var(--wk-bg-soft);border-bottom:1px solid var(--wk-border);">
+        <span style="width:26px;height:26px;display:grid;place-items:center;border-radius:7px;background:var(--wk-bg);border:1px solid var(--wk-border);font-size:13px;flex:0 0 auto;">🆔</span>
+        <span style="font-size:14px;font-weight:650;color:var(--wk-text);">账号信息</span>
+        <span style="margin-left:auto;font-size:12px;color:var(--wk-text-muted);">只读</span>
+    </div>
+    <div style="padding:18px 20px 22px;display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+        <div><label style="display:block;font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--wk-text-muted);margin-bottom:7px;">登录名</label><input type="text" value="`)
+//line views/ybs/user_setting.qtpl:91
+	qw422016.E().S(p.User.Name)
+//line views/ybs/user_setting.qtpl:91
+	qw422016.N().S(`" readonly style="display:block;width:100%;height:42px;padding:0 13px;border:1px solid var(--wk-border);border-radius:var(--wk-radius-sm);background:var(--wk-bg-soft);color:var(--wk-text);font-size:14.5px;font-family:var(--wk-mono);outline:none;cursor:not-allowed;"></div>
+        <div><label style="display:block;font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--wk-text-muted);margin-bottom:7px;">用户 ID</label><input type="text" value="#`)
+//line views/ybs/user_setting.qtpl:92
+	qw422016.N().DUL(p.User.ID)
+//line views/ybs/user_setting.qtpl:92
+	qw422016.N().S(`" readonly style="display:block;width:100%;height:42px;padding:0 13px;border:1px solid var(--wk-border);border-radius:var(--wk-radius-sm);background:var(--wk-bg-soft);color:var(--wk-text);font-size:14.5px;font-family:var(--wk-mono);outline:none;cursor:not-allowed;"></div>
+    </div>
+</section>
+
+<div style="display:flex;flex-wrap:wrap;align-items:center;gap:10px;padding:18px 20px;background:var(--wk-bg-soft);border-top:1px solid var(--wk-border);">
+    <button type="submit" id="btn-save" class="wk-btn-primary" style="height:38px;padding:0 18px;font-size:13.5px;">保存更改</button>
+    <button type="button" class="wk-btn-ghost" id="btn-reset" style="height:38px;padding:0 18px;font-size:13.5px;">重置表单</button>
 </div>
 
+</form>
+
 <script>
-    let msgEle = document.getElementById("id-msg");
-    const reader = new FileReader();
-    const fileInput = document.getElementById("file-input");
-    const img = document.getElementById("img");
-    let file;
+var msgEle = document.getElementById('id-msg');
+var fileInput = document.getElementById('file-input');
+var img = document.getElementById('img');
 
-    reader.onload = e => {
-        img.src = e.target.result;
-    }
-
-    fileInput.addEventListener('change', e => {
-        const f = e.target.files[0];
-
-        let formData = new FormData();
-        formData.append("UserId", "`)
-//line views/ybs/user_setting.qtpl:54
+if (fileInput) {
+    fileInput.addEventListener('change', function (e) {
+        var f = e.target.files && e.target.files[0];
+        if (!f) return;
+        var formData = new FormData();
+        formData.append('UserId', '`)
+//line views/ybs/user_setting.qtpl:113
 	qw422016.N().DUL(p.User.ID)
-//line views/ybs/user_setting.qtpl:54
-	qw422016.N().S(`");
-        formData.append("file", f);
-
-        msgEle.style.display = "none";
-
-        postAjax("/user/avatar/upload", formData, function(data){
-            var obj = JSON.parse(data)
-            console.log(obj);
-            if(obj.Code === 200) {
+//line views/ybs/user_setting.qtpl:113
+	qw422016.N().S(`');
+        formData.append('file', f);
+        msgEle.style.display = 'none';
+        postAjax('/user/avatar/upload', formData, function (data) {
+            var obj = JSON.parse(data);
+            if (obj.Code === 200) {
+                var reader = new FileReader();
+                reader.onload = function (ev) { img.src = ev.target.result; };
                 reader.readAsDataURL(f);
-                msgEle.innerText = "已成功更新头像";
-                msgEle.style.display = "block";
-                msgEle.style.color = "red";
+                msgEle.className = 'success';
+                msgEle.style.display = 'block';
+                msgEle.innerText = '✓ 头像已成功更新';
+                setTimeout(function () { msgEle.style.display = 'none'; }, 3000);
+            } else {
+                msgEle.className = '';
+                msgEle.style.display = 'block';
+                msgEle.innerText = obj.Msg || '头像上传失败';
             }
         });
+        fileInput.value = '';
     });
+}
 
-    function form_post(){
-        let pw0Ele = document.getElementById('Password0');
-        let pwEle = document.getElementById('Password');
-        let urlVs = document.getElementById('id-url').value.trim();
-        let aboutVs = document.getElementById('id-about').value.trim();
+document.getElementById('btn-reset').addEventListener('click', function () {
+    if (!confirm('确定要清空所有已修改的内容吗？')) return;
+    document.getElementById('Password0').value = '';
+    document.getElementById('Password').value = '';
+    document.getElementById('id-url').value = '';
+    document.getElementById('id-about').value = '';
+    msgEle.style.display = 'none';
+});
 
-        msgEle.style.display = "none";
-
-        let pw0 = pw0Ele.value.trim();
-        if(pw0){
-            pw0 = md5(pw0);
+function form_post() {
+    var pw0Ele = document.getElementById('Password0');
+    var pwEle = document.getElementById('Password');
+    var urlVs = document.getElementById('id-url').value.trim().replace(/^https?:\/\//i, '');
+    var aboutVs = document.getElementById('id-about').value.trim();
+    msgEle.style.display = 'none';
+    var pw0 = pw0Ele.value.trim(); if (pw0) pw0 = md5(pw0);
+    var pw = pwEle.value.trim(); if (pw) pw = md5(pw);
+    var submitBtn = document.getElementById('btn-save');
+    if (submitBtn) submitBtn.setAttribute('disabled', 'disabled');
+    postAjax('/setting', JSON.stringify({ 'Password0': pw0, 'Password': pw, 'Url': urlVs, 'About': aboutVs }), function (data) {
+        var obj = JSON.parse(data);
+        msgEle.style.display = 'block';
+        if (obj.Code === 200) {
+            msgEle.className = 'success';
+            msgEle.innerText = '✓ ' + (obj.Msg || '设置已保存');
+            pw0Ele.value = ''; pwEle.value = '';
+            setTimeout(function () { msgEle.style.display = 'none'; }, 3000);
+        } else {
+            msgEle.className = '';
+            msgEle.innerText = obj.Msg || '保存失败，请稍后重试';
         }
-        let pw = pwEle.value.trim();
-        if(pw){
-            pw = md5(pw);
-        }
-        postAjax("/setting", JSON.stringify({'Password0': pw0,'Password': pw, 'Url': urlVs, 'About': aboutVs}), function(data){
-            let obj = JSON.parse(data)
-            //console.log(obj);
-            msgEle.style.display = "block";
-            msgEle.style.color = "red";
-            msgEle.innerText = obj.Msg;
-        });
-    }
+        if (submitBtn) submitBtn.removeAttribute('disabled');
+    });
+}
 </script>
 
 `)
-//line views/ybs/user_setting.qtpl:97
+//line views/ybs/user_setting.qtpl:172
 }
 
-//line views/ybs/user_setting.qtpl:97
+//line views/ybs/user_setting.qtpl:172
 func (p *UserSetting) WriteMainBody(qq422016 qtio422016.Writer) {
-//line views/ybs/user_setting.qtpl:97
+//line views/ybs/user_setting.qtpl:172
 	qw422016 := qt422016.AcquireWriter(qq422016)
-//line views/ybs/user_setting.qtpl:97
+//line views/ybs/user_setting.qtpl:172
 	p.StreamMainBody(qw422016)
-//line views/ybs/user_setting.qtpl:97
+//line views/ybs/user_setting.qtpl:172
 	qt422016.ReleaseWriter(qw422016)
-//line views/ybs/user_setting.qtpl:97
+//line views/ybs/user_setting.qtpl:172
 }
 
-//line views/ybs/user_setting.qtpl:97
+//line views/ybs/user_setting.qtpl:172
 func (p *UserSetting) MainBody() string {
-//line views/ybs/user_setting.qtpl:97
+//line views/ybs/user_setting.qtpl:172
 	qb422016 := qt422016.AcquireByteBuffer()
-//line views/ybs/user_setting.qtpl:97
+//line views/ybs/user_setting.qtpl:172
 	p.WriteMainBody(qb422016)
-//line views/ybs/user_setting.qtpl:97
+//line views/ybs/user_setting.qtpl:172
 	qs422016 := string(qb422016.B)
-//line views/ybs/user_setting.qtpl:97
+//line views/ybs/user_setting.qtpl:172
 	qt422016.ReleaseByteBuffer(qb422016)
-//line views/ybs/user_setting.qtpl:97
+//line views/ybs/user_setting.qtpl:172
 	return qs422016
-//line views/ybs/user_setting.qtpl:97
+//line views/ybs/user_setting.qtpl:172
 }

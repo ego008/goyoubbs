@@ -19,6 +19,11 @@ type (
 		HasReplyReview bool   // 有评论要审核
 		ShowAutoAd     bool
 
+		// ===== 新增三个数字字段 =====
+		MsgNum         int // 未读消息数量
+		TopicReviewNum int // 待审帖子数量
+		ReplyReviewNum int // 待审评论数量
+
 		ShowPostTopAd bool
 		ShowPostBotAd bool
 		ShowSideAd    bool
@@ -67,6 +72,8 @@ type (
 	MemberPage struct {
 		TopicLstPage
 		UserFmt          model.UserFmt
+		TopicNum         uint64
+		CommentNum       uint64
 		LstType          string
 		TitleText        string
 		CommentReviewLst []model.CommentReview // 待评论信息

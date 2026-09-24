@@ -4,6 +4,7 @@ import (
 	"goyoubbs/model"
 	"goyoubbs/util"
 	"goyoubbs/views/admin"
+	"html"
 	"net/http"
 	"strconv"
 
@@ -50,6 +51,7 @@ func (h *BaseHandler) AdminCommentEditPage(c *gin.Context) {
 		evn.ReadMoreBreak = model.ReadMoreBreak
 		evn.NodeLst = model.NodeGetAll(h.App.Mc, h.App.Db, tx)
 		evn.DefaultTopic = model.TopicGetById(db, tx, comment.TopicId)
+		comment.Content = html.EscapeString(comment.Content) // 转义
 		evn.DefaultComment = model.CommentFmt{
 			Comment:    comment,
 			Name:       author.Name,

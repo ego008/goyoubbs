@@ -165,8 +165,8 @@ func (h *BaseHandler) AdminUserPost(c *gin.Context) {
 			}
 		}
 
+		c.Redirect(302, "/admin/user")
 		return nil
 	})
 
-	c.Redirect(302, "/admin/user")
 }

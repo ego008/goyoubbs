@@ -3,6 +3,7 @@ package controller
 import (
 	"goyoubbs/model"
 	"goyoubbs/views/admin"
+	"html"
 	"net/http"
 	"strconv"
 
@@ -66,6 +67,8 @@ func (h *BaseHandler) AdminTopicEditPage(c *gin.Context) {
 		}
 
 		evn.ReadMoreBreak = model.ReadMoreBreak
+		// 编辑时内容转义
+		rec.Content = html.EscapeString(rec.Content)
 		evn.DefaultTopic = rec
 		if evn.DefaultTopic.NodeId == 0 {
 			evn.DefaultTopic.NodeId = 1

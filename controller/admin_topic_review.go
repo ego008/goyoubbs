@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"goyoubbs/model"
 	"goyoubbs/views/admin"
+	"html"
 	"net/http"
 	"strconv"
 
@@ -60,6 +61,7 @@ func (h *BaseHandler) AdminTopicReviewPage(c *gin.Context) {
 			author = evn.CurrentUser
 		}
 
+		rec.Content = html.EscapeString(rec.Content)
 		evn.DefaultTopic = model.Topic{
 			NodeId:  rec.NodeId,
 			UserId:  author.ID,
@@ -83,10 +85,10 @@ func (h *BaseHandler) AdminTopicReviewPage(c *gin.Context) {
 		evn.HasTopicReview = model.CheckHasTopic2Review(h.App.Db, tx)
 		evn.HasReplyReview = model.CheckHasComment2Review(h.App.Db, tx)
 
+		c.Header("Content-Type", "text/html; charset=utf-8")
+		c.Status(http.StatusOK)
+		admin.WritePageTemplate(c.Writer, evn)
 		return nil
 	})
 
-	c.Header("Content-Type", "text/html; charset=utf-8")
-	c.Status(http.StatusOK)
-	admin.WritePageTemplate(c.Writer, evn)
 }

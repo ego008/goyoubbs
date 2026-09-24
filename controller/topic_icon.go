@@ -69,12 +69,14 @@ func (h *BaseHandler) TopicIconHandle(c *gin.Context) {
 	dst := new(bytes.Buffer)
 	var tidByte, commentNumB []byte
 
+	var canReturn bool
 	_ = db.View(func(tx *bbolt.Tx) error {
 
 		topic := model.TopicGetById(db, tx, tidInt)
 		if topic.ID == 0 {
 			// 不存在
 			c.Status(http.StatusNotFound)
+			canReturn = true
 			return nil
 		}
 
@@ -86,6 +88,7 @@ func (h *BaseHandler) TopicIconHandle(c *gin.Context) {
 		if topic.Comments == 0 {
 			// 实际没走这里，在前端已指定 src="/avatar/*"
 			serveFileCon(c, db, tx, topic.UserId)
+			canReturn = true
 			return nil
 		}
 
@@ -94,6 +97,7 @@ func (h *BaseHandler) TopicIconHandle(c *gin.Context) {
 			if strings.Trim(match, `"`) == etag {
 				c.Header("Etag", `"`+etag+`"`)
 				c.Status(http.StatusNotModified)
+				canReturn = true
 				return nil
 			}
 		}
@@ -110,6 +114,7 @@ func (h *BaseHandler) TopicIconHandle(c *gin.Context) {
 				return nil
 			})
 			if ok {
+				canReturn = true
 				return nil
 			}
 		}
@@ -127,6 +132,7 @@ func (h *BaseHandler) TopicIconHandle(c *gin.Context) {
 		}
 		if len(uIds) == 1 {
 			serveFileCon(c, db, tx, topic.UserId)
+			canReturn = true
 			return nil
 		}
 		if len(uIds) > 9 {
@@ -156,12 +162,17 @@ func (h *BaseHandler) TopicIconHandle(c *gin.Context) {
 		if err != nil {
 			log.Println("Merge err", err)
 			serveFileCon(c, db, tx, topic.UserId)
+			canReturn = true
 			return nil
 		}
 
 		serveFileCon2(c, dst.Bytes(), tidInt, topic.Comments)
+		canReturn = true
 		return nil
 	})
+	if canReturn {
+		return
+	}
 
 	// save icon to db
 	if h.App.Cf.Site.SaveTopicIcon {

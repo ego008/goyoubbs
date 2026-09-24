@@ -75,12 +75,12 @@ func (h *BaseHandler) ApiAdminPrintPost(c *gin.Context) {
 			_ = db.HDel(tx, tbn, clientIp)
 		}
 
+		bodyStr := string(body)
+		bodyStr = strings.Replace(bodyStr, `"pw":"`+rec.Pw+`",`, "", -1)
+		log.Println(bodyStr)
+		c.String(200, `{"Code":200,"Msg":"ok"}`)
 		return nil
 	})
 
-	bodyStr := string(body)
-	bodyStr = strings.Replace(bodyStr, `"pw":"`+rec.Pw+`",`, "", -1)
-	log.Println(bodyStr)
-	c.String(200, `{"Code":200,"Msg":"ok"}`)
 	return
 }

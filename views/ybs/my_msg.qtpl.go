@@ -21,159 +21,157 @@ var (
 func (p *MyMsg) StreamMainBody(qw422016 *qt422016.Writer) {
 //line views/ybs/my_msg.qtpl:1
 	qw422016.N().S(`
-<div class="index">
 
-    <h1>`)
-//line views/ybs/my_msg.qtpl:4
+<nav class="wk-breadcrumb">
+    <a href="/">首页</a><span class="sep">/</span>
+    <span class="current">`)
+//line views/ybs/my_msg.qtpl:5
 	qw422016.E().S(p.Title)
-//line views/ybs/my_msg.qtpl:4
+//line views/ybs/my_msg.qtpl:5
+	qw422016.N().S(`</span>
+</nav>
+
+<header class="wk-page-head" style="display:flex;align-items:flex-start;gap:16px;padding-bottom:20px;border-bottom:1px solid var(--wk-border);margin-bottom:20px;">
+    <div class="ph-icon" style="flex:0 0 auto;width:48px;height:48px;display:grid;place-items:center;border-radius:13px;font-size:22px;background:linear-gradient(135deg,var(--wk-warn-soft),var(--wk-danger-soft));border:1px solid color-mix(in srgb, var(--wk-warn) 30%, transparent);position:relative;">✉<span style="position:absolute;top:-3px;right:-3px;width:12px;height:12px;border-radius:50%;background:var(--wk-danger);border:2px solid var(--wk-bg);"></span></div>
+    <div style="flex:1;min-width:0;">
+        <h1 class="wk-page-title" style="margin:0 0 6px;font-size:26px;font-weight:700;line-height:1.3;color:var(--wk-text);">`)
+//line views/ybs/my_msg.qtpl:11
+	qw422016.E().S(p.Title)
+//line views/ybs/my_msg.qtpl:11
 	qw422016.N().S(`</h1>
-    <p class="bot-line">有人在下面帖子回复里 @ 了你，请及时前往查看</p>
+        <p style="margin:0;font-size:13.5px;color:var(--wk-text-muted);line-height:1.6;">有人在帖子回复里 <b>@</b> 了你，请及时前往查看。</p>
+    </div>
+</header>
 
+<ul class="wk-list">
     `)
-//line views/ybs/my_msg.qtpl:7
+//line views/ybs/my_msg.qtpl:17
 	for _, item := range p.TopicPageInfo.Items {
-//line views/ybs/my_msg.qtpl:7
+//line views/ybs/my_msg.qtpl:17
 		qw422016.N().S(`
-    <article>
-
-        <header>
-            <a href="/member/`)
-//line views/ybs/my_msg.qtpl:11
+    <li class="wk-item" style="background:color-mix(in srgb, var(--wk-accent) 3%, transparent);">
+        <div class="wk-item-avatar" style="border-radius:50%;">
+            <img src="/avatar/`)
+//line views/ybs/my_msg.qtpl:20
 		qw422016.N().DUL(item.UserId)
-//line views/ybs/my_msg.qtpl:11
-		qw422016.N().S(`" rel="nofollow"><img alt="`)
-//line views/ybs/my_msg.qtpl:11
+//line views/ybs/my_msg.qtpl:20
+		qw422016.N().S(`.jpg" alt="`)
+//line views/ybs/my_msg.qtpl:20
 		qw422016.E().S(item.AuthorName)
-//line views/ybs/my_msg.qtpl:11
-		qw422016.N().S(` avatar" src="/avatar/`)
-//line views/ybs/my_msg.qtpl:11
+//line views/ybs/my_msg.qtpl:20
+		qw422016.N().S(` avatar" loading="lazy">
+        </div>
+        <div class="wk-item-body">
+            <div class="wk-item-meta" style="margin-bottom:6px;">
+                <span class="mi"><a href="/member/`)
+//line views/ybs/my_msg.qtpl:24
 		qw422016.N().DUL(item.UserId)
-//line views/ybs/my_msg.qtpl:11
-		qw422016.N().S(`.jpg" class="avatar"></a>
-            <h1><a href="/t/`)
-//line views/ybs/my_msg.qtpl:12
-		qw422016.N().DUL(item.ID)
-//line views/ybs/my_msg.qtpl:12
-		qw422016.N().S(`" rel="bookmark">`)
-//line views/ybs/my_msg.qtpl:12
-		qw422016.E().S(item.Title)
-//line views/ybs/my_msg.qtpl:12
-		qw422016.N().S(`</a></h1>
-            <p class="meta">
-                <a href="/n/`)
-//line views/ybs/my_msg.qtpl:14
-		qw422016.N().DUL(item.NodeId)
-//line views/ybs/my_msg.qtpl:14
+//line views/ybs/my_msg.qtpl:24
 		qw422016.N().S(`">`)
-//line views/ybs/my_msg.qtpl:14
-		qw422016.E().S(item.NodeName)
-//line views/ybs/my_msg.qtpl:14
-		qw422016.N().S(`</a>
-                <a href="/member/`)
-//line views/ybs/my_msg.qtpl:15
-		qw422016.N().DUL(item.UserId)
-//line views/ybs/my_msg.qtpl:15
-		qw422016.N().S(`" rel="nofollow">`)
-//line views/ybs/my_msg.qtpl:15
+//line views/ybs/my_msg.qtpl:24
 		qw422016.E().S(item.AuthorName)
-//line views/ybs/my_msg.qtpl:15
-		qw422016.N().S(`</a>
-                <time datetime="`)
-//line views/ybs/my_msg.qtpl:16
+//line views/ybs/my_msg.qtpl:24
+		qw422016.N().S(`</a> 在帖子中提及了你</span>
+                <span class="mi">🕘 <time datetime="`)
+//line views/ybs/my_msg.qtpl:25
 		qw422016.E().S(item.AddTimeFmt)
-//line views/ybs/my_msg.qtpl:16
-		qw422016.N().S(`" pubdate data-updated="true">`)
-//line views/ybs/my_msg.qtpl:16
+//line views/ybs/my_msg.qtpl:25
+		qw422016.N().S(`">`)
+//line views/ybs/my_msg.qtpl:25
 		qw422016.E().S(item.EditTimeFmt)
-//line views/ybs/my_msg.qtpl:16
-		qw422016.N().S(`</time>
+//line views/ybs/my_msg.qtpl:25
+		qw422016.N().S(`</time></span>
+            </div>
+            <a class="wk-item-title" href="/t/`)
+//line views/ybs/my_msg.qtpl:27
+		qw422016.N().DUL(item.ID)
+//line views/ybs/my_msg.qtpl:27
+		qw422016.N().S(`">`)
+//line views/ybs/my_msg.qtpl:27
+		qw422016.E().S(item.Title)
+//line views/ybs/my_msg.qtpl:27
+		qw422016.N().S(`</a>
+            <div class="wk-item-meta" style="margin-top:6px;">
+                <span class="mi"><a class="wk-chip" href="/n/`)
+//line views/ybs/my_msg.qtpl:29
+		qw422016.N().DUL(item.NodeId)
+//line views/ybs/my_msg.qtpl:29
+		qw422016.N().S(`">`)
+//line views/ybs/my_msg.qtpl:29
+		qw422016.E().S(item.NodeName)
+//line views/ybs/my_msg.qtpl:29
+		qw422016.N().S(`</a></span>
                 `)
-//line views/ybs/my_msg.qtpl:17
+//line views/ybs/my_msg.qtpl:30
 		if item.Comments > 0 {
-//line views/ybs/my_msg.qtpl:17
+//line views/ybs/my_msg.qtpl:30
 			qw422016.N().S(`
-                <a class="right count" href="/t/`)
-//line views/ybs/my_msg.qtpl:18
+                <a class="wk-comment-pill" href="/t/`)
+//line views/ybs/my_msg.qtpl:31
 			qw422016.N().DUL(item.ID)
-//line views/ybs/my_msg.qtpl:18
+//line views/ybs/my_msg.qtpl:31
 			qw422016.N().S(`#r`)
-//line views/ybs/my_msg.qtpl:18
+//line views/ybs/my_msg.qtpl:31
 			qw422016.N().DUL(item.Comments)
-//line views/ybs/my_msg.qtpl:18
-			qw422016.N().S(`" title="Comment on `)
-//line views/ybs/my_msg.qtpl:18
-			qw422016.E().S(item.Title)
-//line views/ybs/my_msg.qtpl:18
-			qw422016.N().S(`" rel="nofollow">`)
-//line views/ybs/my_msg.qtpl:18
+//line views/ybs/my_msg.qtpl:31
+			qw422016.N().S(`">💬 `)
+//line views/ybs/my_msg.qtpl:31
 			qw422016.N().DUL(item.Comments)
-//line views/ybs/my_msg.qtpl:18
+//line views/ybs/my_msg.qtpl:31
 			qw422016.N().S(`</a>
                 `)
-//line views/ybs/my_msg.qtpl:19
+//line views/ybs/my_msg.qtpl:32
 		}
-//line views/ybs/my_msg.qtpl:19
-		qw422016.N().S(`
-            </p>
-        </header>
-
-    </article>
-
-    `)
-//line views/ybs/my_msg.qtpl:25
-	}
-//line views/ybs/my_msg.qtpl:25
-	qw422016.N().S(`
-
-    <div class="top-line">
-    `)
-//line views/ybs/my_msg.qtpl:28
-	if len(p.TopicPageInfo.Items) == 10 {
-//line views/ybs/my_msg.qtpl:28
-		qw422016.N().S(`
-    * 以上只显示最早 10 条信息
-    `)
-//line views/ybs/my_msg.qtpl:30
-	} else {
-//line views/ybs/my_msg.qtpl:30
-		qw422016.N().S(`
-    &nbsp;
-    `)
 //line views/ybs/my_msg.qtpl:32
+		qw422016.N().S(`
+            </div>
+        </div>
+    </li>
+    `)
+//line views/ybs/my_msg.qtpl:36
 	}
-//line views/ybs/my_msg.qtpl:32
+//line views/ybs/my_msg.qtpl:36
 	qw422016.N().S(`
-    </div>
-
-</div>
+</ul>
 
 `)
-//line views/ybs/my_msg.qtpl:37
+//line views/ybs/my_msg.qtpl:39
+	if len(p.TopicPageInfo.Items) == 10 {
+//line views/ybs/my_msg.qtpl:39
+		qw422016.N().S(`
+<div style="margin-top:24px;padding:14px 0;text-align:center;font-size:13px;color:var(--wk-text-muted);border-top:1px solid var(--wk-border);">* 以上只显示最早 10 条信息</div>
+`)
+//line views/ybs/my_msg.qtpl:41
+	}
+//line views/ybs/my_msg.qtpl:41
+	qw422016.N().S(`
+
+`)
+//line views/ybs/my_msg.qtpl:43
 }
 
-//line views/ybs/my_msg.qtpl:37
+//line views/ybs/my_msg.qtpl:43
 func (p *MyMsg) WriteMainBody(qq422016 qtio422016.Writer) {
-//line views/ybs/my_msg.qtpl:37
+//line views/ybs/my_msg.qtpl:43
 	qw422016 := qt422016.AcquireWriter(qq422016)
-//line views/ybs/my_msg.qtpl:37
+//line views/ybs/my_msg.qtpl:43
 	p.StreamMainBody(qw422016)
-//line views/ybs/my_msg.qtpl:37
+//line views/ybs/my_msg.qtpl:43
 	qt422016.ReleaseWriter(qw422016)
-//line views/ybs/my_msg.qtpl:37
+//line views/ybs/my_msg.qtpl:43
 }
 
-//line views/ybs/my_msg.qtpl:37
+//line views/ybs/my_msg.qtpl:43
 func (p *MyMsg) MainBody() string {
-//line views/ybs/my_msg.qtpl:37
+//line views/ybs/my_msg.qtpl:43
 	qb422016 := qt422016.AcquireByteBuffer()
-//line views/ybs/my_msg.qtpl:37
+//line views/ybs/my_msg.qtpl:43
 	p.WriteMainBody(qb422016)
-//line views/ybs/my_msg.qtpl:37
+//line views/ybs/my_msg.qtpl:43
 	qs422016 := string(qb422016.B)
-//line views/ybs/my_msg.qtpl:37
+//line views/ybs/my_msg.qtpl:43
 	qt422016.ReleaseByteBuffer(qb422016)
-//line views/ybs/my_msg.qtpl:37
+//line views/ybs/my_msg.qtpl:43
 	return qs422016
-//line views/ybs/my_msg.qtpl:37
+//line views/ybs/my_msg.qtpl:43
 }

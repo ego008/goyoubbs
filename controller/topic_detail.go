@@ -38,7 +38,6 @@ func (h *BaseHandler) TopicDetailPage(c *gin.Context) {
 	tidInt, err := strconv.ParseUint(tid, 10, 64)
 	if err != nil {
 		c.String(200, tid+" tid not found")
-		//c.Redirect(302, "/")
 		return
 	}
 
@@ -53,12 +52,14 @@ func (h *BaseHandler) TopicDetailPage(c *gin.Context) {
 	var safeTitle string
 	var imgLst []string
 
+	var canReturn bool
 	_ = db.Update(func(tx *bbolt.Tx) error {
 		topic = model.TopicGetById(db, tx, tidInt)
 		if topic.ID == 0 {
 			// 不存在
 			c.Status(http.StatusNotFound)
 			c.Redirect(302, "/")
+			canReturn = true
 			return nil
 		}
 		tidByte := mdb.I2b(topic.ID)
@@ -201,6 +202,9 @@ func (h *BaseHandler) TopicDetailPage(c *gin.Context) {
 		}
 		return nil
 	})
+	if canReturn {
+		return
+	}
 
 	// Json-LD
 	jsArticle := model.JsArticle{

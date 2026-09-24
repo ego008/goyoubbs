@@ -151,8 +151,8 @@ func (h *BaseHandler) QQOauthCallback(c *gin.Context) {
 			}
 		}
 
+		c.Redirect(302, scf.MainDomain+"/register")
 		return nil
 	})
 
-	c.Redirect(302, scf.MainDomain+"/register")
 }

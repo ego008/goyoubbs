@@ -1,84 +1,154 @@
 {% func (p *MemberPage) MainBody() %}
 
-<div class="index">
-    <div class="user-detail bot-line">
-        <img src="/avatar/{%dul p.UserFmt.ID %}.jpg" alt="{%s p.UserFmt.Name %} avatar" class="avatar right" >
-        <h1>
-        会员: {%s p.UserFmt.Name %}
-        {% if p.CurrentUser.Flag >= 99 %}
-        - <a href="/admin/user?id={%dul p.UserFmt.ID %}">Edit</a>
-        {% endif %}
+<nav class="wk-breadcrumb">
+    <a href="/">首页</a><span class="sep">/</span>
+    <a href="/member">会员</a><span class="sep">/</span>
+    <a href="/member/{%dul p.UserFmt.ID %}">{%s p.UserFmt.Name %}</a><span class="sep">/</span>
+    <span class="current">{% if p.LstType == "topic" %}主题{% else %}评论{% endif %}</span>
+</nav>
+
+<section class="wk-user-card" style="display:flex;gap:22px;padding:26px;margin-bottom:22px;border:1px solid var(--wk-border);border-radius:14px;background:radial-gradient(circle at top right,color-mix(in srgb, var(--wk-user) 9%, transparent),transparent 55%),var(--wk-bg);position:relative;overflow:hidden;">
+    <div style="flex:0 0 auto;width:88px;height:88px;border-radius:22px;overflow:hidden;border:2px solid var(--wk-bg);box-shadow:0 4px 14px rgba(0,0,0,.09),0 0 0 1px var(--wk-border);background:var(--wk-bg-soft);">
+        <img src="/avatar/{%dul p.UserFmt.ID %}.jpg" alt="{%s p.UserFmt.Name %} avatar" style="width:100%;height:100%;object-fit:cover;display:block;">
+    </div>
+    <div style="flex:1;min-width:0;">
+        <h1 style="display:flex;align-items:center;flex-wrap:wrap;gap:10px;margin:0 0 4px;font-size:26px;font-weight:700;line-height:1.25;color:var(--wk-text);">
+            {%s p.UserFmt.Name %}
+            {% if p.CurrentUser.Flag >= 99 %}
+            <a href="/admin/user?id={%dul p.UserFmt.ID %}" style="font-size:13px;font-weight:500;color:var(--wk-text-muted);">✎ 编辑</a>
+            {% endif %}
         </h1>
-        <ul class="user-info">
-            <li>注册时间： {%s p.UserFmt.RegTimeFmt %}</li>
-            <li>Web: <a href="{%s p.UserFmt.Url %}" target="_blank">{%s p.UserFmt.Url %}</a></li>
-            <li>About: {%s p.UserFmt.About %}</li>
-        </ul>
-        <div class="pure-button-group">
-            <a class="pure-button {% if p.LstType == "topic" %}pure-button-active{% endif %}" href="?type=topic">主题</a>
-            <a class="pure-button {% if p.LstType == "comment" %}pure-button-active{% endif %}" href="?type=comment">评论</a>
+        <div style="display:flex;flex-wrap:wrap;gap:8px 18px;font-size:12.5px;color:var(--wk-text-muted);margin-bottom:16px;">
+            <span>🕘 注册于 <time datetime="{%s p.UserFmt.RegTimeFmt %}">{%s p.UserFmt.RegTimeFmt %}</time></span>
+            {% if len(p.UserFmt.Url) > 0 %}
+            <span>🔗 <a href="{%s p.UserFmt.Url %}" target="_blank" rel="noopener" style="color:var(--wk-text-2);">{%s p.UserFmt.Url %}</a></span>
+            {% endif %}
         </div>
     </div>
+</section>
 
-    {% if len(p.TopicLst)>0 %}
-    <h2 class="bot-line">待审核主题</h2>
-    <ul class="bot-line">
+<nav style="display:flex;gap:4px;border-bottom:1px solid var(--wk-border);margin-bottom:6px;">
+    <a href="?type=topic" style="position:relative;display:inline-flex;align-items:center;gap:7px;padding:10px 14px 12px;font-size:14px;font-weight:600;color:{% if p.LstType == "topic" %}var(--wk-text){% else %}var(--wk-text-muted){% endif %};text-decoration:none;margin-bottom:-1px;">
+        主题 <span style="display:inline-flex;align-items:center;justify-content:center;min-width:20px;height:18px;padding:0 6px;border-radius:999px;font-size:11px;font-weight:600;background:var(--wk-bg-soft);border:1px solid var(--wk-border);color:var(--wk-text-muted);">{%dul p.TopicNum %}</span>
+        {% if p.LstType == "topic" %}<span style="position:absolute;left:12px;right:12px;bottom:-1px;height:2px;border-radius:2px 2px 0 0;background:var(--wk-user);"></span>{% endif %}
+    </a>
+    <a href="?type=comment" style="position:relative;display:inline-flex;align-items:center;gap:7px;padding:10px 14px 12px;font-size:14px;font-weight:600;color:{% if p.LstType == "comment" %}var(--wk-text){% else %}var(--wk-text-muted){% endif %};text-decoration:none;margin-bottom:-1px;">
+        评论 <span style="display:inline-flex;align-items:center;justify-content:center;min-width:20px;height:18px;padding:0 6px;border-radius:999px;font-size:11px;font-weight:600;background:var(--wk-bg-soft);border:1px solid var(--wk-border);color:var(--wk-text-muted);">{%dul p.CommentNum %}</span>
+        {% if p.LstType == "comment" %}<span style="position:absolute;left:12px;right:12px;bottom:-1px;height:2px;border-radius:2px 2px 0 0;background:var(--wk-user);"></span>{% endif %}
+    </a>
+</nav>
+
+{% if len(p.TopicLst) > 0 %}
+<section style="margin-top:20px;border:1px solid var(--wk-warn-border);border-radius:12px;background:linear-gradient(180deg,color-mix(in srgb, var(--wk-warn) 5%, transparent),transparent 42%),var(--wk-bg);overflow:hidden;position:relative;">
+    <div style="display:flex;align-items:center;gap:10px;padding:13px 18px;border-bottom:1px dashed var(--wk-warn-border);">
+        <span style="width:30px;height:30px;display:grid;place-items:center;border-radius:9px;font-size:15px;background:var(--wk-warn-soft);border:1px solid var(--wk-warn-border);flex:0 0 auto;">⏳</span>
+        <div style="flex:1;min-width:0;">
+            <h3 style="margin:0 0 2px;font-size:15px;font-weight:700;color:var(--wk-text);">待审核主题 <span style="display:inline-flex;align-items:center;justify-content:center;min-width:20px;height:18px;padding:0 7px;border-radius:999px;background:var(--wk-warn);color:#fff;font-size:11px;font-weight:700;">{%d len(p.TopicLst) %}</span></h3>
+            <p style="margin:0;font-size:12.5px;color:var(--wk-text-muted);">这些主题提交后尚未通过审核，仅管理员可见。</p>
+        </div>
+    </div>
+    <ul style="list-style:none;margin:0;padding:6px 0;">
         {% for _, item := range p.TopicLst %}
-        <li>
-            [{%s item.AddTimeFmt %}] {%s item.Title %} <br>&nbsp;
+        <li style="padding:16px 20px;border-bottom:1px solid color-mix(in srgb, var(--wk-warn-border) 60%, transparent);">
+            <div style="font-size:12.5px;color:var(--wk-text-muted);margin-bottom:8px;">🕘 {%s item.AddTimeFmt %}</div>
+            <div style="font-size:15px;font-weight:620;color:var(--wk-text);">{%s item.Title %}</div>
         </li>
         {% endfor %}
     </ul>
-    {% endif %}
+</section>
+{% endif %}
 
-    {% if len(p.CommentReviewLst)>0 %}
-    <h2 class="bot-line">待审核评论</h2>
-    <ul class="bot-line">
+{% if len(p.CommentReviewLst) > 0 %}
+<section style="margin-top:20px;border:1px solid var(--wk-warn-border);border-radius:12px;background:linear-gradient(180deg,color-mix(in srgb, var(--wk-warn) 5%, transparent),transparent 42%),var(--wk-bg);overflow:hidden;position:relative;">
+    <div style="display:flex;align-items:center;gap:10px;padding:13px 18px;border-bottom:1px dashed var(--wk-warn-border);">
+        <span style="width:30px;height:30px;display:grid;place-items:center;border-radius:9px;font-size:15px;background:var(--wk-warn-soft);border:1px solid var(--wk-warn-border);flex:0 0 auto;">⏳</span>
+        <div style="flex:1;min-width:0;">
+            <h3 style="margin:0 0 2px;font-size:15px;font-weight:700;color:var(--wk-text);">待审核评论 <span style="display:inline-flex;align-items:center;justify-content:center;min-width:20px;height:18px;padding:0 7px;border-radius:999px;background:var(--wk-warn);color:#fff;font-size:11px;font-weight:700;">{%d len(p.CommentReviewLst) %}</span></h3>
+            <p style="margin:0;font-size:12.5px;color:var(--wk-text-muted);">这些评论提交后尚未通过审核，仅管理员可见。</p>
+        </div>
+    </div>
+    <ul style="list-style:none;margin:0;padding:6px 0;">
         {% for _, item := range p.CommentReviewLst %}
-        <li>
-            主题: <a href="/t/{%dul item.TopicId %}">{%s item.TopicTitle %}</a><br>
-            <div class="gray">{%s item.AddTimeFmt %}</div>
-            <div class="markdown-body entry-content">
+        <li style="padding:16px 20px;border-bottom:1px solid color-mix(in srgb, var(--wk-warn-border) 60%, transparent);">
+            <div style="font-size:12.5px;color:var(--wk-text-muted);margin-bottom:8px;">
+                评论了主题 <a href="/t/{%dul item.TopicId %}" style="color:var(--wk-text-2);font-weight:600;">{%s item.TopicTitle %}</a>
+                · <time datetime="{%s item.AddTimeFmt %}">{%s item.AddTimeFmt %}</time>
+            </div>
+            <div class="markdown-body" style="font-size:14.5px;line-height:1.72;color:var(--wk-text-2);padding:12px 14px;border-radius:var(--wk-radius-sm);background:var(--wk-bg-soft);border:1px dashed var(--wk-border-strong);">
                 {%s= item.ContentFmt %}
             </div>
         </li>
         {% endfor %}
     </ul>
-    {% endif %}
+</section>
+{% endif %}
 
+<div style="display:flex;align-items:center;gap:10px;padding:24px 0 12px;margin-top:8px;border-bottom:1px solid var(--wk-border);margin-bottom:6px;">
+    <h2 style="margin:0;font-size:16px;font-weight:650;color:var(--wk-text);">
+        {% if p.LstType == "topic" %}已发布主题{% else %}已发布评论{% endif %}
+    </h2>
+</div>
+
+{% if p.LstType == "topic" %}
+<ul class="wk-list">
     {% for _, item := range p.TopicPageInfo.Items %}
-    <article>
-
-        <header>
+    <li class="wk-item">
+        <div class="wk-item-avatar">
             {% if item.Comments > 0 %}
-            <a href="/t/{%dul item.ID %}#r{%dul item.Comments %}"><img alt="{%s item.Title %} icon" src="/icon/t/{%dul item.ID %}.jpg?r={%dul item.Comments %}" class="avatar"></a>
+            <img alt="{%s item.Title %}" src="/icon/t/{%dul item.ID %}.jpg?r={%dul item.Comments %}" loading="lazy">
             {% else %}
-            <a href="/t/{%dul item.ID %}"><img alt="{%s item.Title %} icon" src="/avatar/{%dul item.UserId %}.jpg" class="avatar"></a>
+            <img alt="{%s item.Title %}" src="/avatar/{%dul item.UserId %}.jpg" loading="lazy">
             {% endif %}
-            <h1><a href="/t/{%dul item.ID %}" rel="bookmark">{%s item.Title %}</a></h1>
-            <p class="meta">
-                <a href="/n/{%dul item.NodeId %}">{%s item.NodeName %}</a>
-                <a href="/member/{%dul item.UserId %}" rel="nofollow">{%s item.AuthorName %}</a>
-                <time datetime="{%s item.AddTimeFmt %}" pubdate data-updated="true">{%s item.EditTimeFmt %}</time>
+        </div>
+        <div class="wk-item-body">
+            <a class="wk-item-title" href="/t/{%dul item.ID %}">{%s item.Title %}</a>
+            <div class="wk-item-meta">
+                <span class="mi"><a class="wk-chip" href="/n/{%dul item.NodeId %}">{%s item.NodeName %}</a></span>
+                <span class="mi">🕘 <time datetime="{%s item.AddTimeFmt %}">{%s item.EditTimeFmt %}</time></span>
                 {% if item.Comments > 0 %}
-                <a class="right count" href="/t/{%dul item.ID %}#r{%dul item.Comments %}" title="Comment on {%s item.Title %}" rel="nofollow">{%dul item.Comments %}</a>
+                <a class="wk-comment-pill" href="/t/{%dul item.ID %}#r{%dul item.Comments %}">💬 {%dul item.Comments %}</a>
+                {% else %}
+                <span class="wk-comment-pill is-zero">💬 0</span>
                 {% endif %}
-            </p>
-        </header>
-
-    </article>
-
+            </div>
+        </div>
+    </li>
     {% endfor %}
+</ul>
+{% else %}
 
-    <div class="pagination">
+<ul class="wk-list">
+    {% for _, item := range p.TopicPageInfo.Items %}
+    <li class="wk-item">
+        <div class="wk-item-avatar">
+            <img src="/avatar/{%dul p.UserFmt.ID %}.jpg" alt="{%s p.UserFmt.Name %} avatar" loading="lazy">
+        </div>
+        <div class="wk-item-body">
+            <div class="wk-item-meta" style="margin-bottom:6px;">
+                <span class="mi"><a href="/member/{%dul p.UserFmt.ID %}">{%s p.UserFmt.Name %}</a> 评论了主题</span>
+                <span class="mi">🕘 <time datetime="{%s item.AddTimeFmt %}">{%s item.EditTimeFmt %}</time></span>
+            </div>
+            <a class="wk-item-title" href="/t/{%dul item.ID %}" style="font-size:15px;">{%s item.Title %}</a>
+        </div>
+    </li>
+    {% endfor %}
+</ul>
+{% endif %}
+
+<nav class="wk-pagination">
+    <span class="wk-page-info">共 <b>{%dul p.TopicPageInfo.TotalNum %}</b> 条</span>
+    <div style="display:flex;gap:8px;">
         {% if p.TopicPageInfo.HasPrev %}
-        <a class="prev" href="?type={%s p.LstType %}&btn=prev&key={%dul p.TopicPageInfo.FirstKey %}&score={%dul p.TopicPageInfo.FirstScore %}">← Newer</a>
+        <a class="wk-page-btn" href="?type={%s p.LstType %}&btn=prev&key={%dul p.TopicPageInfo.FirstKey %}&score={%dul p.TopicPageInfo.FirstScore %}">← 上一页</a>
+        {% else %}
+        <span class="wk-page-btn is-disabled">← 上一页</span>
         {% endif %}
         {% if p.TopicPageInfo.HasNext %}
-        <a class="next" href="?type={%s p.LstType %}&btn=next&key={%dul p.TopicPageInfo.LastKey %}&score={%dul p.TopicPageInfo.LastScore %}">Older →</a>
+        <a class="wk-page-btn" href="?type={%s p.LstType %}&btn=next&key={%dul p.TopicPageInfo.LastKey %}&score={%dul p.TopicPageInfo.LastScore %}">下一页 →</a>
+        {% else %}
+        <span class="wk-page-btn is-disabled">下一页 →</span>
         {% endif %}
     </div>
-
-</div>
+</nav>
 
 {% endfunc %}

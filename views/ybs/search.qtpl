@@ -1,41 +1,55 @@
 {% func (p *SearchPage) MainBody() %}
 
-<div class="index">
+<nav class="wk-breadcrumb">
+    <a href="/">首页</a><span class="sep">/</span>
+    <span class="current">搜索</span>
+</nav>
 
-    <article>
-        <header>
-            <h1 class="entry-title">Search: {%s p.Q %}</h1>
-        </header>
-    </article>
+<header class="wk-page-head" style="display:flex;align-items:flex-start;gap:16px;padding-bottom:20px;border-bottom:1px solid var(--wk-border);margin-bottom:22px;">
+    <div class="ph-icon" style="flex:0 0 auto;width:44px;height:44px;display:grid;place-items:center;border-radius:12px;font-size:20px;background:linear-gradient(135deg,var(--wk-accent-soft),var(--wk-tag-soft));border:1px solid var(--wk-border);">🔍</div>
+    <div style="flex:1;min-width:0;">
+        <h1 class="wk-page-title" style="margin:0 0 6px;font-size:24px;font-weight:700;line-height:1.3;color:var(--wk-text);">搜索 <span style="background:linear-gradient(180deg,transparent 62%,color-mix(in srgb, var(--wk-accent) 32%, transparent) 62%);padding:0 2px;">「{%s p.Q %}」</span></h1>
+        <p class="wk-page-desc" style="margin:0;font-size:13.5px;color:var(--wk-text-muted);line-height:1.6;">找到 <b>{%d len(p.TopicPageInfo.Items) %}</b> 条结果</p>
+    </div>
+</header>
 
-    {% for _, item := range p.TopicPageInfo.Items %}
-    <article>
-
-        <header>
-            {% if item.Comments > 0 %}
-            <a href="/t/{%dul item.ID %}#r{%dul item.Comments %}"><img alt="{%s item.Title %} icon" src="/icon/t/{%dul item.ID %}.jpg?r={%dul item.Comments %}" class="avatar"></a>
-            {% else %}
-            <a href="/t/{%dul item.ID %}"><img alt="{%s item.Title %} icon" src="/avatar/{%dul item.UserId %}.jpg" class="avatar"></a>
-            {% endif %}
-            <h1 class="entry-title"><a href="/t/{%dul item.ID %}" rel="bookmark">{%s item.Title %}</a></h1>
-            <p class="meta">
-                <time datetime="{%s item.AddTimeFmt %}" pubdate data-updated="true">{%s item.EditTimeFmt %}</time>
-                in <a href="/n/{%dul item.NodeId %}" rel="bookmark">{%s item.NodeName %}</a>
-                by <a href="/member/{%dul item.UserId %}" rel="nofollow">{%s item.AuthorName %}</a>
-                {% if item.Comments > 0 %}
-                <a class="count" href="/t/{%dul item.ID %}#r{%dul item.Comments %}" title="Comment on {%s item.Title %}">{%dul item.Comments %}</a>
-                {% endif %}
-            </p>
-        </header>
-
-        <div class="entry-content">
-            {%s item.FirstCon %}
-        </div>
-
-    </article>
-
-    {% endfor %}
-
+<div style="position:relative;margin-bottom:20px;">
+    <svg style="position:absolute;left:14px;top:50%;transform:translateY(-50%);width:17px;height:17px;color:var(--wk-text-muted);pointer-events:none;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+    <form action="/q" method="get" style="margin:0;">
+        <input type="text" name="q" value="{%s p.Q %}" placeholder="输入关键词重新搜索…" autocomplete="off"
+               style="width:100%;height:44px;padding:0 110px 0 42px;border:1px solid var(--wk-border-strong);border-radius:10px;background:var(--wk-bg-soft);color:var(--wk-text);font-size:15px;font-family:var(--wk-font);outline:none;" />
+        <button type="submit" style="position:absolute;right:5px;top:5px;bottom:5px;padding:0 18px;border:0;border-radius:7px;background:var(--wk-accent);color:#fff;font-family:var(--wk-font);font-size:13.5px;font-weight:600;cursor:pointer;">搜索</button>
+    </form>
 </div>
+
+<ul class="wk-list">
+    {% for _, item := range p.TopicPageInfo.Items %}
+    <li class="wk-item">
+        <div class="wk-item-avatar">
+            {% if item.Comments > 0 %}
+            <img alt="{%s item.Title %}" src="/icon/t/{%dul item.ID %}.jpg?r={%dul item.Comments %}" loading="lazy">
+            {% else %}
+            <img alt="{%s item.Title %}" src="/avatar/{%dul item.UserId %}.jpg" loading="lazy">
+            {% endif %}
+        </div>
+        <div class="wk-item-body">
+            <a class="wk-item-title" href="/t/{%dul item.ID %}">{%s item.Title %}</a>
+            <div class="wk-item-meta">
+                <span class="mi"><a class="wk-chip" href="/n/{%dul item.NodeId %}">{%s item.NodeName %}</a></span>
+                <span class="mi">👤 <a href="/member/{%dul item.UserId %}">{%s item.AuthorName %}</a></span>
+                <span class="mi">🕘 <time datetime="{%s item.AddTimeFmt %}">{%s item.EditTimeFmt %}</time></span>
+                {% if item.Comments > 0 %}
+                <a class="wk-comment-pill" href="/t/{%dul item.ID %}#r{%dul item.Comments %}">💬 {%dul item.Comments %}</a>
+                {% else %}
+                <span class="wk-comment-pill is-zero">💬 0</span>
+                {% endif %}
+            </div>
+            {% if len(item.FirstCon) > 0 %}
+            <p style="margin:6px 0 0;font-size:13.5px;line-height:1.7;color:var(--wk-text-2);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">{%s item.FirstCon %}</p>
+            {% endif %}
+        </div>
+    </li>
+    {% endfor %}
+</ul>
 
 {% endfunc %}

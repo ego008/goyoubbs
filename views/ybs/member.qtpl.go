@@ -22,373 +22,571 @@ func (p *MemberPage) StreamMainBody(qw422016 *qt422016.Writer) {
 //line views/ybs/member.qtpl:1
 	qw422016.N().S(`
 
-<div class="index">
-    <div class="user-detail bot-line">
-        <img src="/avatar/`)
-//line views/ybs/member.qtpl:5
+<nav class="wk-breadcrumb">
+    <a href="/">首页</a><span class="sep">/</span>
+    <a href="/member">会员</a><span class="sep">/</span>
+    <a href="/member/`)
+//line views/ybs/member.qtpl:6
 	qw422016.N().DUL(p.UserFmt.ID)
-//line views/ybs/member.qtpl:5
-	qw422016.N().S(`.jpg" alt="`)
-//line views/ybs/member.qtpl:5
+//line views/ybs/member.qtpl:6
+	qw422016.N().S(`">`)
+//line views/ybs/member.qtpl:6
 	qw422016.E().S(p.UserFmt.Name)
-//line views/ybs/member.qtpl:5
-	qw422016.N().S(` avatar" class="avatar right" >
-        <h1>
-        会员: `)
+//line views/ybs/member.qtpl:6
+	qw422016.N().S(`</a><span class="sep">/</span>
+    <span class="current">`)
 //line views/ybs/member.qtpl:7
-	qw422016.E().S(p.UserFmt.Name)
+	if p.LstType == "topic" {
 //line views/ybs/member.qtpl:7
-	qw422016.N().S(`
-        `)
-//line views/ybs/member.qtpl:8
-	if p.CurrentUser.Flag >= 99 {
-//line views/ybs/member.qtpl:8
-		qw422016.N().S(`
-        - <a href="/admin/user?id=`)
-//line views/ybs/member.qtpl:9
-		qw422016.N().DUL(p.UserFmt.ID)
-//line views/ybs/member.qtpl:9
-		qw422016.N().S(`">Edit</a>
-        `)
-//line views/ybs/member.qtpl:10
+		qw422016.N().S(`主题`)
+//line views/ybs/member.qtpl:7
+	} else {
+//line views/ybs/member.qtpl:7
+		qw422016.N().S(`评论`)
+//line views/ybs/member.qtpl:7
 	}
-//line views/ybs/member.qtpl:10
+//line views/ybs/member.qtpl:7
+	qw422016.N().S(`</span>
+</nav>
+
+<section class="wk-user-card" style="display:flex;gap:22px;padding:26px;margin-bottom:22px;border:1px solid var(--wk-border);border-radius:14px;background:radial-gradient(circle at top right,color-mix(in srgb, var(--wk-user) 9%, transparent),transparent 55%),var(--wk-bg);position:relative;overflow:hidden;">
+    <div style="flex:0 0 auto;width:88px;height:88px;border-radius:22px;overflow:hidden;border:2px solid var(--wk-bg);box-shadow:0 4px 14px rgba(0,0,0,.09),0 0 0 1px var(--wk-border);background:var(--wk-bg-soft);">
+        <img src="/avatar/`)
+//line views/ybs/member.qtpl:12
+	qw422016.N().DUL(p.UserFmt.ID)
+//line views/ybs/member.qtpl:12
+	qw422016.N().S(`.jpg" alt="`)
+//line views/ybs/member.qtpl:12
+	qw422016.E().S(p.UserFmt.Name)
+//line views/ybs/member.qtpl:12
+	qw422016.N().S(` avatar" style="width:100%;height:100%;object-fit:cover;display:block;">
+    </div>
+    <div style="flex:1;min-width:0;">
+        <h1 style="display:flex;align-items:center;flex-wrap:wrap;gap:10px;margin:0 0 4px;font-size:26px;font-weight:700;line-height:1.25;color:var(--wk-text);">
+            `)
+//line views/ybs/member.qtpl:16
+	qw422016.E().S(p.UserFmt.Name)
+//line views/ybs/member.qtpl:16
+	qw422016.N().S(`
+            `)
+//line views/ybs/member.qtpl:17
+	if p.CurrentUser.Flag >= 99 {
+//line views/ybs/member.qtpl:17
+		qw422016.N().S(`
+            <a href="/admin/user?id=`)
+//line views/ybs/member.qtpl:18
+		qw422016.N().DUL(p.UserFmt.ID)
+//line views/ybs/member.qtpl:18
+		qw422016.N().S(`" style="font-size:13px;font-weight:500;color:var(--wk-text-muted);">✎ 编辑</a>
+            `)
+//line views/ybs/member.qtpl:19
+	}
+//line views/ybs/member.qtpl:19
 	qw422016.N().S(`
         </h1>
-        <ul class="user-info">
-            <li>注册时间： `)
-//line views/ybs/member.qtpl:13
+        <div style="display:flex;flex-wrap:wrap;gap:8px 18px;font-size:12.5px;color:var(--wk-text-muted);margin-bottom:16px;">
+            <span>🕘 注册于 <time datetime="`)
+//line views/ybs/member.qtpl:22
 	qw422016.E().S(p.UserFmt.RegTimeFmt)
-//line views/ybs/member.qtpl:13
-	qw422016.N().S(`</li>
-            <li>Web: <a href="`)
-//line views/ybs/member.qtpl:14
-	qw422016.E().S(p.UserFmt.Url)
-//line views/ybs/member.qtpl:14
-	qw422016.N().S(`" target="_blank">`)
-//line views/ybs/member.qtpl:14
-	qw422016.E().S(p.UserFmt.Url)
-//line views/ybs/member.qtpl:14
-	qw422016.N().S(`</a></li>
-            <li>About: `)
-//line views/ybs/member.qtpl:15
-	qw422016.E().S(p.UserFmt.About)
-//line views/ybs/member.qtpl:15
-	qw422016.N().S(`</li>
-        </ul>
-        <div class="pure-button-group">
-            <a class="pure-button `)
-//line views/ybs/member.qtpl:18
-	if p.LstType == "topic" {
-//line views/ybs/member.qtpl:18
-		qw422016.N().S(`pure-button-active`)
-//line views/ybs/member.qtpl:18
+//line views/ybs/member.qtpl:22
+	qw422016.N().S(`">`)
+//line views/ybs/member.qtpl:22
+	qw422016.E().S(p.UserFmt.RegTimeFmt)
+//line views/ybs/member.qtpl:22
+	qw422016.N().S(`</time></span>
+            `)
+//line views/ybs/member.qtpl:23
+	if len(p.UserFmt.Url) > 0 {
+//line views/ybs/member.qtpl:23
+		qw422016.N().S(`
+            <span>🔗 <a href="`)
+//line views/ybs/member.qtpl:24
+		qw422016.E().S(p.UserFmt.Url)
+//line views/ybs/member.qtpl:24
+		qw422016.N().S(`" target="_blank" rel="noopener" style="color:var(--wk-text-2);">`)
+//line views/ybs/member.qtpl:24
+		qw422016.E().S(p.UserFmt.Url)
+//line views/ybs/member.qtpl:24
+		qw422016.N().S(`</a></span>
+            `)
+//line views/ybs/member.qtpl:25
 	}
-//line views/ybs/member.qtpl:18
-	qw422016.N().S(`" href="?type=topic">主题</a>
-            <a class="pure-button `)
-//line views/ybs/member.qtpl:19
-	if p.LstType == "comment" {
-//line views/ybs/member.qtpl:19
-		qw422016.N().S(`pure-button-active`)
-//line views/ybs/member.qtpl:19
-	}
-//line views/ybs/member.qtpl:19
-	qw422016.N().S(`" href="?type=comment">评论</a>
+//line views/ybs/member.qtpl:25
+	qw422016.N().S(`
         </div>
     </div>
+</section>
 
-    `)
-//line views/ybs/member.qtpl:23
-	if len(p.TopicLst) > 0 {
-//line views/ybs/member.qtpl:23
-		qw422016.N().S(`
-    <h2 class="bot-line">待审核主题</h2>
-    <ul class="bot-line">
+<nav style="display:flex;gap:4px;border-bottom:1px solid var(--wk-border);margin-bottom:6px;">
+    <a href="?type=topic" style="position:relative;display:inline-flex;align-items:center;gap:7px;padding:10px 14px 12px;font-size:14px;font-weight:600;color:`)
+//line views/ybs/member.qtpl:31
+	if p.LstType == "topic" {
+//line views/ybs/member.qtpl:31
+		qw422016.N().S(`var(--wk-text)`)
+//line views/ybs/member.qtpl:31
+	} else {
+//line views/ybs/member.qtpl:31
+		qw422016.N().S(`var(--wk-text-muted)`)
+//line views/ybs/member.qtpl:31
+	}
+//line views/ybs/member.qtpl:31
+	qw422016.N().S(`;text-decoration:none;margin-bottom:-1px;">
+        主题 <span style="display:inline-flex;align-items:center;justify-content:center;min-width:20px;height:18px;padding:0 6px;border-radius:999px;font-size:11px;font-weight:600;background:var(--wk-bg-soft);border:1px solid var(--wk-border);color:var(--wk-text-muted);">`)
+//line views/ybs/member.qtpl:32
+	qw422016.N().DUL(p.TopicNum)
+//line views/ybs/member.qtpl:32
+	qw422016.N().S(`</span>
         `)
-//line views/ybs/member.qtpl:26
+//line views/ybs/member.qtpl:33
+	if p.LstType == "topic" {
+//line views/ybs/member.qtpl:33
+		qw422016.N().S(`<span style="position:absolute;left:12px;right:12px;bottom:-1px;height:2px;border-radius:2px 2px 0 0;background:var(--wk-user);"></span>`)
+//line views/ybs/member.qtpl:33
+	}
+//line views/ybs/member.qtpl:33
+	qw422016.N().S(`
+    </a>
+    <a href="?type=comment" style="position:relative;display:inline-flex;align-items:center;gap:7px;padding:10px 14px 12px;font-size:14px;font-weight:600;color:`)
+//line views/ybs/member.qtpl:35
+	if p.LstType == "comment" {
+//line views/ybs/member.qtpl:35
+		qw422016.N().S(`var(--wk-text)`)
+//line views/ybs/member.qtpl:35
+	} else {
+//line views/ybs/member.qtpl:35
+		qw422016.N().S(`var(--wk-text-muted)`)
+//line views/ybs/member.qtpl:35
+	}
+//line views/ybs/member.qtpl:35
+	qw422016.N().S(`;text-decoration:none;margin-bottom:-1px;">
+        评论 <span style="display:inline-flex;align-items:center;justify-content:center;min-width:20px;height:18px;padding:0 6px;border-radius:999px;font-size:11px;font-weight:600;background:var(--wk-bg-soft);border:1px solid var(--wk-border);color:var(--wk-text-muted);">`)
+//line views/ybs/member.qtpl:36
+	qw422016.N().DUL(p.CommentNum)
+//line views/ybs/member.qtpl:36
+	qw422016.N().S(`</span>
+        `)
+//line views/ybs/member.qtpl:37
+	if p.LstType == "comment" {
+//line views/ybs/member.qtpl:37
+		qw422016.N().S(`<span style="position:absolute;left:12px;right:12px;bottom:-1px;height:2px;border-radius:2px 2px 0 0;background:var(--wk-user);"></span>`)
+//line views/ybs/member.qtpl:37
+	}
+//line views/ybs/member.qtpl:37
+	qw422016.N().S(`
+    </a>
+</nav>
+
+`)
+//line views/ybs/member.qtpl:41
+	if len(p.TopicLst) > 0 {
+//line views/ybs/member.qtpl:41
+		qw422016.N().S(`
+<section style="margin-top:20px;border:1px solid var(--wk-warn-border);border-radius:12px;background:linear-gradient(180deg,color-mix(in srgb, var(--wk-warn) 5%, transparent),transparent 42%),var(--wk-bg);overflow:hidden;position:relative;">
+    <div style="display:flex;align-items:center;gap:10px;padding:13px 18px;border-bottom:1px dashed var(--wk-warn-border);">
+        <span style="width:30px;height:30px;display:grid;place-items:center;border-radius:9px;font-size:15px;background:var(--wk-warn-soft);border:1px solid var(--wk-warn-border);flex:0 0 auto;">⏳</span>
+        <div style="flex:1;min-width:0;">
+            <h3 style="margin:0 0 2px;font-size:15px;font-weight:700;color:var(--wk-text);">待审核主题 <span style="display:inline-flex;align-items:center;justify-content:center;min-width:20px;height:18px;padding:0 7px;border-radius:999px;background:var(--wk-warn);color:#fff;font-size:11px;font-weight:700;">`)
+//line views/ybs/member.qtpl:46
+		qw422016.N().D(len(p.TopicLst))
+//line views/ybs/member.qtpl:46
+		qw422016.N().S(`</span></h3>
+            <p style="margin:0;font-size:12.5px;color:var(--wk-text-muted);">这些主题提交后尚未通过审核，仅管理员可见。</p>
+        </div>
+    </div>
+    <ul style="list-style:none;margin:0;padding:6px 0;">
+        `)
+//line views/ybs/member.qtpl:51
 		for _, item := range p.TopicLst {
-//line views/ybs/member.qtpl:26
+//line views/ybs/member.qtpl:51
 			qw422016.N().S(`
-        <li>
-            [`)
-//line views/ybs/member.qtpl:28
+        <li style="padding:16px 20px;border-bottom:1px solid color-mix(in srgb, var(--wk-warn-border) 60%, transparent);">
+            <div style="font-size:12.5px;color:var(--wk-text-muted);margin-bottom:8px;">🕘 `)
+//line views/ybs/member.qtpl:53
 			qw422016.E().S(item.AddTimeFmt)
-//line views/ybs/member.qtpl:28
-			qw422016.N().S(`] `)
-//line views/ybs/member.qtpl:28
+//line views/ybs/member.qtpl:53
+			qw422016.N().S(`</div>
+            <div style="font-size:15px;font-weight:620;color:var(--wk-text);">`)
+//line views/ybs/member.qtpl:54
 			qw422016.E().S(item.Title)
-//line views/ybs/member.qtpl:28
-			qw422016.N().S(` <br>&nbsp;
+//line views/ybs/member.qtpl:54
+			qw422016.N().S(`</div>
         </li>
         `)
-//line views/ybs/member.qtpl:30
+//line views/ybs/member.qtpl:56
 		}
-//line views/ybs/member.qtpl:30
+//line views/ybs/member.qtpl:56
 		qw422016.N().S(`
     </ul>
-    `)
-//line views/ybs/member.qtpl:32
+</section>
+`)
+//line views/ybs/member.qtpl:59
 	}
-//line views/ybs/member.qtpl:32
+//line views/ybs/member.qtpl:59
 	qw422016.N().S(`
 
-    `)
-//line views/ybs/member.qtpl:34
+`)
+//line views/ybs/member.qtpl:61
 	if len(p.CommentReviewLst) > 0 {
-//line views/ybs/member.qtpl:34
+//line views/ybs/member.qtpl:61
 		qw422016.N().S(`
-    <h2 class="bot-line">待审核评论</h2>
-    <ul class="bot-line">
+<section style="margin-top:20px;border:1px solid var(--wk-warn-border);border-radius:12px;background:linear-gradient(180deg,color-mix(in srgb, var(--wk-warn) 5%, transparent),transparent 42%),var(--wk-bg);overflow:hidden;position:relative;">
+    <div style="display:flex;align-items:center;gap:10px;padding:13px 18px;border-bottom:1px dashed var(--wk-warn-border);">
+        <span style="width:30px;height:30px;display:grid;place-items:center;border-radius:9px;font-size:15px;background:var(--wk-warn-soft);border:1px solid var(--wk-warn-border);flex:0 0 auto;">⏳</span>
+        <div style="flex:1;min-width:0;">
+            <h3 style="margin:0 0 2px;font-size:15px;font-weight:700;color:var(--wk-text);">待审核评论 <span style="display:inline-flex;align-items:center;justify-content:center;min-width:20px;height:18px;padding:0 7px;border-radius:999px;background:var(--wk-warn);color:#fff;font-size:11px;font-weight:700;">`)
+//line views/ybs/member.qtpl:66
+		qw422016.N().D(len(p.CommentReviewLst))
+//line views/ybs/member.qtpl:66
+		qw422016.N().S(`</span></h3>
+            <p style="margin:0;font-size:12.5px;color:var(--wk-text-muted);">这些评论提交后尚未通过审核，仅管理员可见。</p>
+        </div>
+    </div>
+    <ul style="list-style:none;margin:0;padding:6px 0;">
         `)
-//line views/ybs/member.qtpl:37
+//line views/ybs/member.qtpl:71
 		for _, item := range p.CommentReviewLst {
-//line views/ybs/member.qtpl:37
+//line views/ybs/member.qtpl:71
 			qw422016.N().S(`
-        <li>
-            主题: <a href="/t/`)
-//line views/ybs/member.qtpl:39
+        <li style="padding:16px 20px;border-bottom:1px solid color-mix(in srgb, var(--wk-warn-border) 60%, transparent);">
+            <div style="font-size:12.5px;color:var(--wk-text-muted);margin-bottom:8px;">
+                评论了主题 <a href="/t/`)
+//line views/ybs/member.qtpl:74
 			qw422016.N().DUL(item.TopicId)
-//line views/ybs/member.qtpl:39
-			qw422016.N().S(`">`)
-//line views/ybs/member.qtpl:39
+//line views/ybs/member.qtpl:74
+			qw422016.N().S(`" style="color:var(--wk-text-2);font-weight:600;">`)
+//line views/ybs/member.qtpl:74
 			qw422016.E().S(item.TopicTitle)
-//line views/ybs/member.qtpl:39
-			qw422016.N().S(`</a><br>
-            <div class="gray">`)
-//line views/ybs/member.qtpl:40
+//line views/ybs/member.qtpl:74
+			qw422016.N().S(`</a>
+                · <time datetime="`)
+//line views/ybs/member.qtpl:75
 			qw422016.E().S(item.AddTimeFmt)
-//line views/ybs/member.qtpl:40
-			qw422016.N().S(`</div>
-            <div class="markdown-body entry-content">
+//line views/ybs/member.qtpl:75
+			qw422016.N().S(`">`)
+//line views/ybs/member.qtpl:75
+			qw422016.E().S(item.AddTimeFmt)
+//line views/ybs/member.qtpl:75
+			qw422016.N().S(`</time>
+            </div>
+            <div class="markdown-body" style="font-size:14.5px;line-height:1.72;color:var(--wk-text-2);padding:12px 14px;border-radius:var(--wk-radius-sm);background:var(--wk-bg-soft);border:1px dashed var(--wk-border-strong);">
                 `)
-//line views/ybs/member.qtpl:42
+//line views/ybs/member.qtpl:78
 			qw422016.N().S(item.ContentFmt)
-//line views/ybs/member.qtpl:42
+//line views/ybs/member.qtpl:78
 			qw422016.N().S(`
             </div>
         </li>
         `)
-//line views/ybs/member.qtpl:45
+//line views/ybs/member.qtpl:81
 		}
-//line views/ybs/member.qtpl:45
+//line views/ybs/member.qtpl:81
 		qw422016.N().S(`
     </ul>
-    `)
-//line views/ybs/member.qtpl:47
+</section>
+`)
+//line views/ybs/member.qtpl:84
 	}
-//line views/ybs/member.qtpl:47
+//line views/ybs/member.qtpl:84
 	qw422016.N().S(`
 
-    `)
-//line views/ybs/member.qtpl:49
-	for _, item := range p.TopicPageInfo.Items {
-//line views/ybs/member.qtpl:49
-		qw422016.N().S(`
-    <article>
-
-        <header>
-            `)
-//line views/ybs/member.qtpl:53
-		if item.Comments > 0 {
-//line views/ybs/member.qtpl:53
-			qw422016.N().S(`
-            <a href="/t/`)
-//line views/ybs/member.qtpl:54
-			qw422016.N().DUL(item.ID)
-//line views/ybs/member.qtpl:54
-			qw422016.N().S(`#r`)
-//line views/ybs/member.qtpl:54
-			qw422016.N().DUL(item.Comments)
-//line views/ybs/member.qtpl:54
-			qw422016.N().S(`"><img alt="`)
-//line views/ybs/member.qtpl:54
-			qw422016.E().S(item.Title)
-//line views/ybs/member.qtpl:54
-			qw422016.N().S(` icon" src="/icon/t/`)
-//line views/ybs/member.qtpl:54
-			qw422016.N().DUL(item.ID)
-//line views/ybs/member.qtpl:54
-			qw422016.N().S(`.jpg?r=`)
-//line views/ybs/member.qtpl:54
-			qw422016.N().DUL(item.Comments)
-//line views/ybs/member.qtpl:54
-			qw422016.N().S(`" class="avatar"></a>
-            `)
-//line views/ybs/member.qtpl:55
-		} else {
-//line views/ybs/member.qtpl:55
-			qw422016.N().S(`
-            <a href="/t/`)
-//line views/ybs/member.qtpl:56
-			qw422016.N().DUL(item.ID)
-//line views/ybs/member.qtpl:56
-			qw422016.N().S(`"><img alt="`)
-//line views/ybs/member.qtpl:56
-			qw422016.E().S(item.Title)
-//line views/ybs/member.qtpl:56
-			qw422016.N().S(` icon" src="/avatar/`)
-//line views/ybs/member.qtpl:56
-			qw422016.N().DUL(item.UserId)
-//line views/ybs/member.qtpl:56
-			qw422016.N().S(`.jpg" class="avatar"></a>
-            `)
-//line views/ybs/member.qtpl:57
-		}
-//line views/ybs/member.qtpl:57
-		qw422016.N().S(`
-            <h1><a href="/t/`)
-//line views/ybs/member.qtpl:58
-		qw422016.N().DUL(item.ID)
-//line views/ybs/member.qtpl:58
-		qw422016.N().S(`" rel="bookmark">`)
-//line views/ybs/member.qtpl:58
-		qw422016.E().S(item.Title)
-//line views/ybs/member.qtpl:58
-		qw422016.N().S(`</a></h1>
-            <p class="meta">
-                <a href="/n/`)
-//line views/ybs/member.qtpl:60
-		qw422016.N().DUL(item.NodeId)
-//line views/ybs/member.qtpl:60
-		qw422016.N().S(`">`)
-//line views/ybs/member.qtpl:60
-		qw422016.E().S(item.NodeName)
-//line views/ybs/member.qtpl:60
-		qw422016.N().S(`</a>
-                <a href="/member/`)
-//line views/ybs/member.qtpl:61
-		qw422016.N().DUL(item.UserId)
-//line views/ybs/member.qtpl:61
-		qw422016.N().S(`" rel="nofollow">`)
-//line views/ybs/member.qtpl:61
-		qw422016.E().S(item.AuthorName)
-//line views/ybs/member.qtpl:61
-		qw422016.N().S(`</a>
-                <time datetime="`)
-//line views/ybs/member.qtpl:62
-		qw422016.E().S(item.AddTimeFmt)
-//line views/ybs/member.qtpl:62
-		qw422016.N().S(`" pubdate data-updated="true">`)
-//line views/ybs/member.qtpl:62
-		qw422016.E().S(item.EditTimeFmt)
-//line views/ybs/member.qtpl:62
-		qw422016.N().S(`</time>
-                `)
-//line views/ybs/member.qtpl:63
-		if item.Comments > 0 {
-//line views/ybs/member.qtpl:63
-			qw422016.N().S(`
-                <a class="right count" href="/t/`)
-//line views/ybs/member.qtpl:64
-			qw422016.N().DUL(item.ID)
-//line views/ybs/member.qtpl:64
-			qw422016.N().S(`#r`)
-//line views/ybs/member.qtpl:64
-			qw422016.N().DUL(item.Comments)
-//line views/ybs/member.qtpl:64
-			qw422016.N().S(`" title="Comment on `)
-//line views/ybs/member.qtpl:64
-			qw422016.E().S(item.Title)
-//line views/ybs/member.qtpl:64
-			qw422016.N().S(`" rel="nofollow">`)
-//line views/ybs/member.qtpl:64
-			qw422016.N().DUL(item.Comments)
-//line views/ybs/member.qtpl:64
-			qw422016.N().S(`</a>
-                `)
-//line views/ybs/member.qtpl:65
-		}
-//line views/ybs/member.qtpl:65
-		qw422016.N().S(`
-            </p>
-        </header>
-
-    </article>
-
-    `)
-//line views/ybs/member.qtpl:71
+<div style="display:flex;align-items:center;gap:10px;padding:24px 0 12px;margin-top:8px;border-bottom:1px solid var(--wk-border);margin-bottom:6px;">
+    <h2 style="margin:0;font-size:16px;font-weight:650;color:var(--wk-text);">
+        `)
+//line views/ybs/member.qtpl:88
+	if p.LstType == "topic" {
+//line views/ybs/member.qtpl:88
+		qw422016.N().S(`已发布主题`)
+//line views/ybs/member.qtpl:88
+	} else {
+//line views/ybs/member.qtpl:88
+		qw422016.N().S(`已发布评论`)
+//line views/ybs/member.qtpl:88
 	}
-//line views/ybs/member.qtpl:71
+//line views/ybs/member.qtpl:88
 	qw422016.N().S(`
-
-    <div class="pagination">
-        `)
-//line views/ybs/member.qtpl:74
-	if p.TopicPageInfo.HasPrev {
-//line views/ybs/member.qtpl:74
-		qw422016.N().S(`
-        <a class="prev" href="?type=`)
-//line views/ybs/member.qtpl:75
-		qw422016.E().S(p.LstType)
-//line views/ybs/member.qtpl:75
-		qw422016.N().S(`&btn=prev&key=`)
-//line views/ybs/member.qtpl:75
-		qw422016.N().DUL(p.TopicPageInfo.FirstKey)
-//line views/ybs/member.qtpl:75
-		qw422016.N().S(`&score=`)
-//line views/ybs/member.qtpl:75
-		qw422016.N().DUL(p.TopicPageInfo.FirstScore)
-//line views/ybs/member.qtpl:75
-		qw422016.N().S(`">← Newer</a>
-        `)
-//line views/ybs/member.qtpl:76
-	}
-//line views/ybs/member.qtpl:76
-	qw422016.N().S(`
-        `)
-//line views/ybs/member.qtpl:77
-	if p.TopicPageInfo.HasNext {
-//line views/ybs/member.qtpl:77
-		qw422016.N().S(`
-        <a class="next" href="?type=`)
-//line views/ybs/member.qtpl:78
-		qw422016.E().S(p.LstType)
-//line views/ybs/member.qtpl:78
-		qw422016.N().S(`&btn=next&key=`)
-//line views/ybs/member.qtpl:78
-		qw422016.N().DUL(p.TopicPageInfo.LastKey)
-//line views/ybs/member.qtpl:78
-		qw422016.N().S(`&score=`)
-//line views/ybs/member.qtpl:78
-		qw422016.N().DUL(p.TopicPageInfo.LastScore)
-//line views/ybs/member.qtpl:78
-		qw422016.N().S(`">Older →</a>
-        `)
-//line views/ybs/member.qtpl:79
-	}
-//line views/ybs/member.qtpl:79
-	qw422016.N().S(`
-    </div>
-
+    </h2>
 </div>
 
 `)
-//line views/ybs/member.qtpl:84
+//line views/ybs/member.qtpl:92
+	if p.LstType == "topic" {
+//line views/ybs/member.qtpl:92
+		qw422016.N().S(`
+<ul class="wk-list">
+    `)
+//line views/ybs/member.qtpl:94
+		for _, item := range p.TopicPageInfo.Items {
+//line views/ybs/member.qtpl:94
+			qw422016.N().S(`
+    <li class="wk-item">
+        <div class="wk-item-avatar">
+            `)
+//line views/ybs/member.qtpl:97
+			if item.Comments > 0 {
+//line views/ybs/member.qtpl:97
+				qw422016.N().S(`
+            <img alt="`)
+//line views/ybs/member.qtpl:98
+				qw422016.E().S(item.Title)
+//line views/ybs/member.qtpl:98
+				qw422016.N().S(`" src="/icon/t/`)
+//line views/ybs/member.qtpl:98
+				qw422016.N().DUL(item.ID)
+//line views/ybs/member.qtpl:98
+				qw422016.N().S(`.jpg?r=`)
+//line views/ybs/member.qtpl:98
+				qw422016.N().DUL(item.Comments)
+//line views/ybs/member.qtpl:98
+				qw422016.N().S(`" loading="lazy">
+            `)
+//line views/ybs/member.qtpl:99
+			} else {
+//line views/ybs/member.qtpl:99
+				qw422016.N().S(`
+            <img alt="`)
+//line views/ybs/member.qtpl:100
+				qw422016.E().S(item.Title)
+//line views/ybs/member.qtpl:100
+				qw422016.N().S(`" src="/avatar/`)
+//line views/ybs/member.qtpl:100
+				qw422016.N().DUL(item.UserId)
+//line views/ybs/member.qtpl:100
+				qw422016.N().S(`.jpg" loading="lazy">
+            `)
+//line views/ybs/member.qtpl:101
+			}
+//line views/ybs/member.qtpl:101
+			qw422016.N().S(`
+        </div>
+        <div class="wk-item-body">
+            <a class="wk-item-title" href="/t/`)
+//line views/ybs/member.qtpl:104
+			qw422016.N().DUL(item.ID)
+//line views/ybs/member.qtpl:104
+			qw422016.N().S(`">`)
+//line views/ybs/member.qtpl:104
+			qw422016.E().S(item.Title)
+//line views/ybs/member.qtpl:104
+			qw422016.N().S(`</a>
+            <div class="wk-item-meta">
+                <span class="mi"><a class="wk-chip" href="/n/`)
+//line views/ybs/member.qtpl:106
+			qw422016.N().DUL(item.NodeId)
+//line views/ybs/member.qtpl:106
+			qw422016.N().S(`">`)
+//line views/ybs/member.qtpl:106
+			qw422016.E().S(item.NodeName)
+//line views/ybs/member.qtpl:106
+			qw422016.N().S(`</a></span>
+                <span class="mi">🕘 <time datetime="`)
+//line views/ybs/member.qtpl:107
+			qw422016.E().S(item.AddTimeFmt)
+//line views/ybs/member.qtpl:107
+			qw422016.N().S(`">`)
+//line views/ybs/member.qtpl:107
+			qw422016.E().S(item.EditTimeFmt)
+//line views/ybs/member.qtpl:107
+			qw422016.N().S(`</time></span>
+                `)
+//line views/ybs/member.qtpl:108
+			if item.Comments > 0 {
+//line views/ybs/member.qtpl:108
+				qw422016.N().S(`
+                <a class="wk-comment-pill" href="/t/`)
+//line views/ybs/member.qtpl:109
+				qw422016.N().DUL(item.ID)
+//line views/ybs/member.qtpl:109
+				qw422016.N().S(`#r`)
+//line views/ybs/member.qtpl:109
+				qw422016.N().DUL(item.Comments)
+//line views/ybs/member.qtpl:109
+				qw422016.N().S(`">💬 `)
+//line views/ybs/member.qtpl:109
+				qw422016.N().DUL(item.Comments)
+//line views/ybs/member.qtpl:109
+				qw422016.N().S(`</a>
+                `)
+//line views/ybs/member.qtpl:110
+			} else {
+//line views/ybs/member.qtpl:110
+				qw422016.N().S(`
+                <span class="wk-comment-pill is-zero">💬 0</span>
+                `)
+//line views/ybs/member.qtpl:112
+			}
+//line views/ybs/member.qtpl:112
+			qw422016.N().S(`
+            </div>
+        </div>
+    </li>
+    `)
+//line views/ybs/member.qtpl:116
+		}
+//line views/ybs/member.qtpl:116
+		qw422016.N().S(`
+</ul>
+`)
+//line views/ybs/member.qtpl:118
+	} else {
+//line views/ybs/member.qtpl:118
+		qw422016.N().S(`
+
+<ul class="wk-list">
+    `)
+//line views/ybs/member.qtpl:121
+		for _, item := range p.TopicPageInfo.Items {
+//line views/ybs/member.qtpl:121
+			qw422016.N().S(`
+    <li class="wk-item">
+        <div class="wk-item-avatar">
+            <img src="/avatar/`)
+//line views/ybs/member.qtpl:124
+			qw422016.N().DUL(p.UserFmt.ID)
+//line views/ybs/member.qtpl:124
+			qw422016.N().S(`.jpg" alt="`)
+//line views/ybs/member.qtpl:124
+			qw422016.E().S(p.UserFmt.Name)
+//line views/ybs/member.qtpl:124
+			qw422016.N().S(` avatar" loading="lazy">
+        </div>
+        <div class="wk-item-body">
+            <div class="wk-item-meta" style="margin-bottom:6px;">
+                <span class="mi"><a href="/member/`)
+//line views/ybs/member.qtpl:128
+			qw422016.N().DUL(p.UserFmt.ID)
+//line views/ybs/member.qtpl:128
+			qw422016.N().S(`">`)
+//line views/ybs/member.qtpl:128
+			qw422016.E().S(p.UserFmt.Name)
+//line views/ybs/member.qtpl:128
+			qw422016.N().S(`</a> 评论了主题</span>
+                <span class="mi">🕘 <time datetime="`)
+//line views/ybs/member.qtpl:129
+			qw422016.E().S(item.AddTimeFmt)
+//line views/ybs/member.qtpl:129
+			qw422016.N().S(`">`)
+//line views/ybs/member.qtpl:129
+			qw422016.E().S(item.EditTimeFmt)
+//line views/ybs/member.qtpl:129
+			qw422016.N().S(`</time></span>
+            </div>
+            <a class="wk-item-title" href="/t/`)
+//line views/ybs/member.qtpl:131
+			qw422016.N().DUL(item.ID)
+//line views/ybs/member.qtpl:131
+			qw422016.N().S(`" style="font-size:15px;">`)
+//line views/ybs/member.qtpl:131
+			qw422016.E().S(item.Title)
+//line views/ybs/member.qtpl:131
+			qw422016.N().S(`</a>
+        </div>
+    </li>
+    `)
+//line views/ybs/member.qtpl:134
+		}
+//line views/ybs/member.qtpl:134
+		qw422016.N().S(`
+</ul>
+`)
+//line views/ybs/member.qtpl:136
+	}
+//line views/ybs/member.qtpl:136
+	qw422016.N().S(`
+
+<nav class="wk-pagination">
+    <span class="wk-page-info">共 <b>`)
+//line views/ybs/member.qtpl:139
+	qw422016.N().DUL(p.TopicPageInfo.TotalNum)
+//line views/ybs/member.qtpl:139
+	qw422016.N().S(`</b> 条</span>
+    <div style="display:flex;gap:8px;">
+        `)
+//line views/ybs/member.qtpl:141
+	if p.TopicPageInfo.HasPrev {
+//line views/ybs/member.qtpl:141
+		qw422016.N().S(`
+        <a class="wk-page-btn" href="?type=`)
+//line views/ybs/member.qtpl:142
+		qw422016.E().S(p.LstType)
+//line views/ybs/member.qtpl:142
+		qw422016.N().S(`&btn=prev&key=`)
+//line views/ybs/member.qtpl:142
+		qw422016.N().DUL(p.TopicPageInfo.FirstKey)
+//line views/ybs/member.qtpl:142
+		qw422016.N().S(`&score=`)
+//line views/ybs/member.qtpl:142
+		qw422016.N().DUL(p.TopicPageInfo.FirstScore)
+//line views/ybs/member.qtpl:142
+		qw422016.N().S(`">← 上一页</a>
+        `)
+//line views/ybs/member.qtpl:143
+	} else {
+//line views/ybs/member.qtpl:143
+		qw422016.N().S(`
+        <span class="wk-page-btn is-disabled">← 上一页</span>
+        `)
+//line views/ybs/member.qtpl:145
+	}
+//line views/ybs/member.qtpl:145
+	qw422016.N().S(`
+        `)
+//line views/ybs/member.qtpl:146
+	if p.TopicPageInfo.HasNext {
+//line views/ybs/member.qtpl:146
+		qw422016.N().S(`
+        <a class="wk-page-btn" href="?type=`)
+//line views/ybs/member.qtpl:147
+		qw422016.E().S(p.LstType)
+//line views/ybs/member.qtpl:147
+		qw422016.N().S(`&btn=next&key=`)
+//line views/ybs/member.qtpl:147
+		qw422016.N().DUL(p.TopicPageInfo.LastKey)
+//line views/ybs/member.qtpl:147
+		qw422016.N().S(`&score=`)
+//line views/ybs/member.qtpl:147
+		qw422016.N().DUL(p.TopicPageInfo.LastScore)
+//line views/ybs/member.qtpl:147
+		qw422016.N().S(`">下一页 →</a>
+        `)
+//line views/ybs/member.qtpl:148
+	} else {
+//line views/ybs/member.qtpl:148
+		qw422016.N().S(`
+        <span class="wk-page-btn is-disabled">下一页 →</span>
+        `)
+//line views/ybs/member.qtpl:150
+	}
+//line views/ybs/member.qtpl:150
+	qw422016.N().S(`
+    </div>
+</nav>
+
+`)
+//line views/ybs/member.qtpl:154
 }
 
-//line views/ybs/member.qtpl:84
+//line views/ybs/member.qtpl:154
 func (p *MemberPage) WriteMainBody(qq422016 qtio422016.Writer) {
-//line views/ybs/member.qtpl:84
+//line views/ybs/member.qtpl:154
 	qw422016 := qt422016.AcquireWriter(qq422016)
-//line views/ybs/member.qtpl:84
+//line views/ybs/member.qtpl:154
 	p.StreamMainBody(qw422016)
-//line views/ybs/member.qtpl:84
+//line views/ybs/member.qtpl:154
 	qt422016.ReleaseWriter(qw422016)
-//line views/ybs/member.qtpl:84
+//line views/ybs/member.qtpl:154
 }
 
-//line views/ybs/member.qtpl:84
+//line views/ybs/member.qtpl:154
 func (p *MemberPage) MainBody() string {
-//line views/ybs/member.qtpl:84
+//line views/ybs/member.qtpl:154
 	qb422016 := qt422016.AcquireByteBuffer()
-//line views/ybs/member.qtpl:84
+//line views/ybs/member.qtpl:154
 	p.WriteMainBody(qb422016)
-//line views/ybs/member.qtpl:84
+//line views/ybs/member.qtpl:154
 	qs422016 := string(qb422016.B)
-//line views/ybs/member.qtpl:84
+//line views/ybs/member.qtpl:154
 	qt422016.ReleaseByteBuffer(qb422016)
-//line views/ybs/member.qtpl:84
+//line views/ybs/member.qtpl:154
 	return qs422016
-//line views/ybs/member.qtpl:84
+//line views/ybs/member.qtpl:154
 }

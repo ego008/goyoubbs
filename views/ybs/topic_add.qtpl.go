@@ -21,369 +21,469 @@ var (
 func (p *UserTopicAdd) StreamMainBody(qw422016 *qt422016.Writer) {
 //line views/ybs/topic_add.qtpl:1
 	qw422016.N().S(`
-<div class="write-box">
-    <h1>`)
-//line views/ybs/topic_add.qtpl:3
+
+<nav class="wk-breadcrumb">
+    <a href="/">首页</a><span class="sep">/</span>
+    <a href="/my/topic">我的主题</a><span class="sep">/</span>
+    <span class="current">`)
+//line views/ybs/topic_add.qtpl:6
 	qw422016.E().S(p.Title)
-//line views/ybs/topic_add.qtpl:3
+//line views/ybs/topic_add.qtpl:6
+	qw422016.N().S(`</span>
+</nav>
+
+<header class="wk-page-head" style="display:flex;align-items:flex-start;gap:16px;padding-bottom:20px;border-bottom:1px solid var(--wk-border);margin-bottom:22px;">
+    <div class="ph-icon" style="flex:0 0 auto;width:44px;height:44px;display:grid;place-items:center;border-radius:12px;font-size:20px;background:linear-gradient(135deg,var(--wk-accent-soft),var(--wk-tag-soft));border:1px solid var(--wk-border);">✎</div>
+    <div style="flex:1;min-width:0;">
+        <h1 class="wk-page-title" style="margin:0 0 6px;font-size:24px;font-weight:700;line-height:1.3;color:var(--wk-text);">`)
+//line views/ybs/topic_add.qtpl:12
+	qw422016.E().S(p.Title)
+//line views/ybs/topic_add.qtpl:12
 	qw422016.N().S(`</h1>
-    <form class="pure-form" action="" method="post" onsubmit="form_post();return false;">
-        <fieldset class="pure-group">
-            <select id="select-nid">
-                `)
-//line views/ybs/topic_add.qtpl:7
-	for _, item := range p.NodeLst {
-//line views/ybs/topic_add.qtpl:7
-		qw422016.N().S(`
-                <option value="`)
-//line views/ybs/topic_add.qtpl:8
-		qw422016.N().DUL(item.ID)
-//line views/ybs/topic_add.qtpl:8
-		qw422016.N().S(`" `)
-//line views/ybs/topic_add.qtpl:8
-		if item.ID == p.DefaultNode.ID {
-//line views/ybs/topic_add.qtpl:8
-			qw422016.N().S(`selected="selected"`)
-//line views/ybs/topic_add.qtpl:8
-		}
-//line views/ybs/topic_add.qtpl:8
-		qw422016.N().S(`>`)
-//line views/ybs/topic_add.qtpl:8
-		qw422016.E().S(item.Name)
-//line views/ybs/topic_add.qtpl:8
-		qw422016.N().S(`</option>
-                `)
-//line views/ybs/topic_add.qtpl:9
-	}
-//line views/ybs/topic_add.qtpl:9
-	qw422016.N().S(`
-            </select>
-            <input id="id-title" type="text" value="`)
-//line views/ybs/topic_add.qtpl:11
-	qw422016.E().S(p.DefaultTopic.Title)
-//line views/ybs/topic_add.qtpl:11
-	qw422016.N().S(`" class="pure-input-1" placeholder="* 标题 字符限制 `)
-//line views/ybs/topic_add.qtpl:11
-	qw422016.N().D(p.SiteCf.TitleMaxLen)
-//line views/ybs/topic_add.qtpl:11
-	qw422016.N().S(`" autocomplete="off" />
-            <textarea id="id-content" class="pure-input-1 topic-con-input" placeholder="* 内容 字符限制 `)
+        <p style="margin:0;font-size:13.5px;color:var(--wk-text-muted);line-height:1.6;">支持 Markdown 语法。可直接拖拽或粘贴图片 / 视频 / 音频到正文，系统会自动上传并插入。</p>
+    </div>
+</header>
+
+<form class="pure-form" action="" method="post" onsubmit="form_post();return false;" style="border:1px solid var(--wk-border);border-radius:12px;background:var(--wk-bg);overflow:hidden;">
+
+<div style="display:flex;align-items:center;flex-wrap:wrap;gap:8px;padding:10px 14px;background:var(--wk-bg-soft);border-bottom:1px solid var(--wk-border);">
+    <span style="font-size:11.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--wk-text-muted);margin-right:2px;">工具</span>
+    <button type="button" style="display:inline-flex;align-items:center;gap:5px;height:28px;padding:0 10px;border-radius:6px;border:1px solid var(--wk-border);background:var(--wk-bg);color:var(--wk-text-2);font-size:12.5px;font-family:var(--wk-font);cursor:pointer;" onclick="insertText('**','**')">粗体</button>
+    <button type="button" style="display:inline-flex;align-items:center;gap:5px;height:28px;padding:0 10px;border-radius:6px;border:1px solid var(--wk-border);background:var(--wk-bg);color:var(--wk-text-2);font-size:12.5px;font-family:var(--wk-font);cursor:pointer;" onclick="insertText('*','*')">斜体</button>
+    <button type="button" style="display:inline-flex;align-items:center;gap:5px;height:28px;padding:0 10px;border-radius:6px;border:1px solid var(--wk-border);background:var(--wk-bg);color:var(--wk-text-2);font-size:12.5px;font-family:var(--wk-font);cursor:pointer;" onclick="insertText('\`)
 //line views/ybs/topic_add.qtpl:12
-	qw422016.N().D(p.SiteCf.TopicConMaxLen)
+	qw422016.N().S("`")
 //line views/ybs/topic_add.qtpl:12
-	qw422016.N().S(`">`)
+	qw422016.N().S(`','\`)
 //line views/ybs/topic_add.qtpl:12
-	qw422016.N().S(p.DefaultTopic.Content)
+	qw422016.N().S("`")
 //line views/ybs/topic_add.qtpl:12
-	qw422016.N().S(`</textarea>
+	qw422016.N().S(`')">代码</button>
+    <button type="button" style="display:inline-flex;align-items:center;gap:5px;height:28px;padding:0 10px;border-radius:6px;border:1px solid var(--wk-border);background:var(--wk-bg);color:var(--wk-text-2);font-size:12.5px;font-family:var(--wk-font);cursor:pointer;" id="insert-break">分割线</button>
+</div>
+
+<div style="padding:18px 20px 22px;">
+
+    <div style="margin-bottom:18px;">
+        <label style="display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--wk-text-muted);margin-bottom:8px;">分类 <span style="color:var(--wk-danger);font-weight:700;">*</span> <span style="margin-left:auto;font-weight:500;letter-spacing:0;text-transform:none;font-size:11px;">选择文章归属的节点</span></label>
+        <select id="select-nid" style="display:block;width:100%;height:42px;padding:0 34px 0 13px;border:1px solid var(--wk-border-strong);border-radius:var(--wk-radius-sm);background:var(--wk-bg);color:var(--wk-text);font-family:var(--wk-font);font-size:14.5px;outline:none;cursor:pointer;appearance:none;">
             `)
-//line views/ybs/topic_add.qtpl:13
-	if p.CurrentUser.Flag >= 99 {
-//line views/ybs/topic_add.qtpl:13
+//line views/ybs/topic_add.qtpl:32
+	for _, item := range p.NodeLst {
+//line views/ybs/topic_add.qtpl:32
 		qw422016.N().S(`
-            <div class="pure-g">
-                <select id="select-uid">
+            <option value="`)
+//line views/ybs/topic_add.qtpl:33
+		qw422016.N().DUL(item.ID)
+//line views/ybs/topic_add.qtpl:33
+		qw422016.N().S(`" `)
+//line views/ybs/topic_add.qtpl:33
+		if item.ID == p.DefaultNode.ID {
+//line views/ybs/topic_add.qtpl:33
+			qw422016.N().S(`selected="selected"`)
+//line views/ybs/topic_add.qtpl:33
+		}
+//line views/ybs/topic_add.qtpl:33
+		qw422016.N().S(`>`)
+//line views/ybs/topic_add.qtpl:33
+		qw422016.E().S(item.Name)
+//line views/ybs/topic_add.qtpl:33
+		qw422016.N().S(`</option>
+            `)
+//line views/ybs/topic_add.qtpl:34
+	}
+//line views/ybs/topic_add.qtpl:34
+	qw422016.N().S(`
+        </select>
+    </div>
+
+    <div style="margin-bottom:18px;">
+        <label style="display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--wk-text-muted);margin-bottom:8px;">标题 <span style="color:var(--wk-danger);font-weight:700;">*</span> <span style="margin-left:auto;font-weight:500;letter-spacing:0;text-transform:none;font-size:11px;"><span id="title-count">0</span> / `)
+//line views/ybs/topic_add.qtpl:39
+	qw422016.N().D(p.SiteCf.TitleMaxLen)
+//line views/ybs/topic_add.qtpl:39
+	qw422016.N().S(`</span></label>
+        <input id="id-title" type="text" value="`)
+//line views/ybs/topic_add.qtpl:40
+	qw422016.E().S(p.DefaultTopic.Title)
+//line views/ybs/topic_add.qtpl:40
+	qw422016.N().S(`" placeholder="写一个清晰、准确的标题…" autocomplete="off" maxlength="`)
+//line views/ybs/topic_add.qtpl:40
+	qw422016.N().D(p.SiteCf.TitleMaxLen)
+//line views/ybs/topic_add.qtpl:40
+	qw422016.N().S(`" style="display:block;width:100%;height:48px;padding:0 15px;border:1px solid var(--wk-border-strong);border-radius:var(--wk-radius-sm);background:var(--wk-bg);color:var(--wk-text);font-family:var(--wk-font);font-size:17px;font-weight:600;outline:none;">
+    </div>
+
+    <div style="margin-bottom:18px;">
+        <label style="display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--wk-text-muted);margin-bottom:8px;">正文 <span style="color:var(--wk-danger);font-weight:700;">*</span> <span style="margin-left:auto;font-weight:500;letter-spacing:0;text-transform:none;font-size:11px;"><span id="content-count">0</span> / `)
+//line views/ybs/topic_add.qtpl:44
+	qw422016.N().D(p.SiteCf.TopicConMaxLen)
+//line views/ybs/topic_add.qtpl:44
+	qw422016.N().S(`</span></label>
+        <textarea id="id-content" placeholder="开始写作…&#10;&#10;支持 Markdown：&#10;# 一级标题  ## 二级标题&#10;**粗体**  *斜体*  `)
+//line views/ybs/topic_add.qtpl:44
+	qw422016.N().S("`")
+//line views/ybs/topic_add.qtpl:44
+	qw422016.N().S(`行内代码`)
+//line views/ybs/topic_add.qtpl:44
+	qw422016.N().S("`")
+//line views/ybs/topic_add.qtpl:44
+	qw422016.N().S(`&#10;`)
+//line views/ybs/topic_add.qtpl:44
+	qw422016.N().S("`")
+//line views/ybs/topic_add.qtpl:44
+	qw422016.N().S(``)
+//line views/ybs/topic_add.qtpl:44
+	qw422016.N().S("`")
+//line views/ybs/topic_add.qtpl:44
+	qw422016.N().S(``)
+//line views/ybs/topic_add.qtpl:44
+	qw422016.N().S("`")
+//line views/ybs/topic_add.qtpl:44
+	qw422016.N().S(`代码块`)
+//line views/ybs/topic_add.qtpl:44
+	qw422016.N().S("`")
+//line views/ybs/topic_add.qtpl:44
+	qw422016.N().S(``)
+//line views/ybs/topic_add.qtpl:44
+	qw422016.N().S("`")
+//line views/ybs/topic_add.qtpl:44
+	qw422016.N().S(``)
+//line views/ybs/topic_add.qtpl:44
+	qw422016.N().S("`")
+//line views/ybs/topic_add.qtpl:44
+	qw422016.N().S(`  > 引用  - 列表&#10;&#10;也可以直接拖拽或粘贴图片到此处。" maxlength="`)
+//line views/ybs/topic_add.qtpl:45
+	qw422016.N().D(p.SiteCf.TopicConMaxLen)
+//line views/ybs/topic_add.qtpl:45
+	qw422016.N().S(`" style="display:block;width:100%;min-height:380px;padding:14px 15px;border:1px solid var(--wk-border-strong);border-radius:var(--wk-radius-sm);background:var(--wk-bg);color:var(--wk-text);font-family:var(--wk-mono);font-size:13.5px;line-height:1.75;resize:vertical;outline:none;tab-size:2;">`)
+//line views/ybs/topic_add.qtpl:45
+	qw422016.N().S(p.DefaultTopic.Content)
+//line views/ybs/topic_add.qtpl:45
+	qw422016.N().S(`</textarea>
+    </div>
+
+    `)
+//line views/ybs/topic_add.qtpl:48
+	if p.CurrentUser.Flag >= 99 {
+//line views/ybs/topic_add.qtpl:48
+		qw422016.N().S(`
+    <details style="border:1px solid var(--wk-border);border-radius:var(--wk-radius-sm);background:var(--wk-bg-soft);margin-bottom:16px;overflow:hidden;">
+        <summary style="display:flex;align-items:center;gap:8px;padding:10px 14px;font-size:12.5px;font-weight:650;color:var(--wk-text-2);cursor:pointer;list-style:none;">高级选项（作者、时间戳）</summary>
+        <div style="padding:4px 14px 14px;border-top:1px solid var(--wk-border);display:grid;grid-template-columns:2fr 1fr;gap:14px;margin-top:12px;">
+            <div><label style="display:block;font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--wk-text-muted);margin-bottom:7px;">作者</label>
+                <select id="select-uid" style="display:block;width:100%;height:42px;padding:0 34px 0 13px;border:1px solid var(--wk-border-strong);border-radius:var(--wk-radius-sm);background:var(--wk-bg);color:var(--wk-text);font-family:var(--wk-font);font-size:14.5px;outline:none;cursor:pointer;appearance:none;">
                     `)
-//line views/ybs/topic_add.qtpl:16
+//line views/ybs/topic_add.qtpl:54
 		for _, item := range p.UserLst {
-//line views/ybs/topic_add.qtpl:16
+//line views/ybs/topic_add.qtpl:54
 			qw422016.N().S(`
                     <option value="`)
-//line views/ybs/topic_add.qtpl:17
+//line views/ybs/topic_add.qtpl:55
 			qw422016.N().DUL(item.ID)
-//line views/ybs/topic_add.qtpl:17
+//line views/ybs/topic_add.qtpl:55
 			qw422016.N().S(`" `)
-//line views/ybs/topic_add.qtpl:17
+//line views/ybs/topic_add.qtpl:55
 			if item.ID == p.DefaultUser.ID {
-//line views/ybs/topic_add.qtpl:17
+//line views/ybs/topic_add.qtpl:55
 				qw422016.N().S(`selected="selected"`)
-//line views/ybs/topic_add.qtpl:17
+//line views/ybs/topic_add.qtpl:55
 			}
-//line views/ybs/topic_add.qtpl:17
+//line views/ybs/topic_add.qtpl:55
 			qw422016.N().S(`>`)
-//line views/ybs/topic_add.qtpl:17
+//line views/ybs/topic_add.qtpl:55
 			qw422016.E().S(item.Name)
-//line views/ybs/topic_add.qtpl:17
+//line views/ybs/topic_add.qtpl:55
 			qw422016.N().S(`</option>
                     `)
-//line views/ybs/topic_add.qtpl:18
+//line views/ybs/topic_add.qtpl:56
 		}
-//line views/ybs/topic_add.qtpl:18
+//line views/ybs/topic_add.qtpl:56
 		qw422016.N().S(`
                 </select>
-                <input id="id-addtime" type="text" value="`)
-//line views/ybs/topic_add.qtpl:20
-		qw422016.N().DL(p.DefaultTopic.AddTime)
-//line views/ybs/topic_add.qtpl:20
-		qw422016.N().S(`" class="pure-u-1-6" placeholder="发表的时间戳" />
             </div>
-            `)
-//line views/ybs/topic_add.qtpl:22
-	} else {
-//line views/ybs/topic_add.qtpl:22
-		qw422016.N().S(`
-            <input type="hidden" id="select-uid" value="`)
-//line views/ybs/topic_add.qtpl:23
-		qw422016.N().DUL(p.DefaultTopic.UserId)
-//line views/ybs/topic_add.qtpl:23
-		qw422016.N().S(`">
-            <input type="hidden" id="id-addtime" value="`)
-//line views/ybs/topic_add.qtpl:24
+            <div><label style="display:block;font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--wk-text-muted);margin-bottom:7px;">时间戳</label>
+                <input id="id-addtime" type="text" value="`)
+//line views/ybs/topic_add.qtpl:60
 		qw422016.N().DL(p.DefaultTopic.AddTime)
-//line views/ybs/topic_add.qtpl:24
-		qw422016.N().S(`">
-            `)
-//line views/ybs/topic_add.qtpl:25
-	}
-//line views/ybs/topic_add.qtpl:25
-	qw422016.N().S(`
-        </fieldset>
-        <fieldset>
-            <label for="ReadAuthed">
-                <input type="checkbox" id="ReadAuthed" `)
-//line views/ybs/topic_add.qtpl:29
-	if p.DefaultTopic.ReadAuthed {
-//line views/ybs/topic_add.qtpl:29
-		qw422016.N().S(`checked`)
-//line views/ybs/topic_add.qtpl:29
-	}
-//line views/ybs/topic_add.qtpl:29
-	qw422016.N().S(`> 登录可浏览
-            </label>
-            <label for="ReadReply">
-                <input type="checkbox" id="ReadReply" `)
-//line views/ybs/topic_add.qtpl:32
-	if p.DefaultTopic.ReadReply {
-//line views/ybs/topic_add.qtpl:32
-		qw422016.N().S(`checked`)
-//line views/ybs/topic_add.qtpl:32
-	}
-//line views/ybs/topic_add.qtpl:32
-	qw422016.N().S(`> 回复可浏览
-            </label>
-            <button id="insert-break" type="button" class="pure-button">插入分割线</button>
-            `)
-//line views/ybs/topic_add.qtpl:35
-	if !p.SiteCf.UploadLimit || (p.SiteCf.UploadLimit && p.CurrentUser.Flag >= 99) {
-//line views/ybs/topic_add.qtpl:35
-		qw422016.N().S(`
-            <input id="fileUpload" type="file" accept="image/*,video/*,audio/*" onChange="uploadFile()" class="pure-button" name="fileUpload" style="font-size: .8334em;width: 100px;" />
-            `)
-//line views/ybs/topic_add.qtpl:37
-	}
-//line views/ybs/topic_add.qtpl:37
-	qw422016.N().S(`
-        </fieldset>
-        <div id="id-msg"></div>
-        <div class="left pure-button-group">
-            <input id="btn-preview" type="button" value="预览" name="submit" class="pure-button button-success" />
-            <input id="btn-submit" type="submit" value="发表" name="submit" class="pure-button pure-button-primary" />
+//line views/ybs/topic_add.qtpl:60
+		qw422016.N().S(`" placeholder="0" style="display:block;width:100%;height:42px;padding:0 13px;border:1px solid var(--wk-border-strong);border-radius:var(--wk-radius-sm);background:var(--wk-bg);color:var(--wk-text);font-size:14.5px;font-family:var(--wk-mono);outline:none;">
+            </div>
         </div>
-
-        <div class="c"></div>
-
-        <div id="id-preview" class="topic-content markdown-body"></div>
-    </form>
-
-    <script>
-
-        let nodeEle = document.getElementById("select-nid");
-        let titleEle = document.getElementById("id-title");
-        let conEle = document.getElementById("id-content");
-        let btnReviewEle = document.getElementById("btn-preview");
-        let submitEle = document.getElementById("btn-submit");
-        let msgEle = document.getElementById("id-msg");
-        let addTimeEle = document.getElementById("id-addtime");
-        let userIdEle = document.getElementById("select-uid");
-        let reviewEle = document.getElementById("id-preview");
-        let readAuthedEle = document.getElementById("ReadAuthed");
-        let readReplyEle = document.getElementById("ReadReply");
-
-        document.getElementById("insert-break").addEventListener('click', function (event) {
-            let break_line = "\n`)
-//line views/ybs/topic_add.qtpl:65
-	qw422016.N().S(p.ReadMoreBreak)
-//line views/ybs/topic_add.qtpl:65
-	qw422016.N().S(`\n";
-            let pos = conEle.selectionStart;
-            let con = conEle.value;
-            conEle.value = con.slice(0, pos) + break_line + con.slice(pos);
-        }, false);
-
-        btnReviewEle.addEventListener('click', function (event) {
-            let con = conEle.value.trim();
-            let title = titleEle.value.trim();
-            if (con === "") {
-                conEle.focus();
-                return
-            }
-
-            btnReviewEle.setAttribute("disabled", "disabled");
-
-            postAjax("/content/preview", JSON.stringify({Act: "topicPreview", Title: title, Content: con}), function(data){
-                var obj = JSON.parse(data)
-                //console.log(obj);
-                if(obj.Code === 200) {
-                    msgEle.style.display = "none";
-                    reviewEle.innerHTML = obj.Html;
-                    reviewEle.style.display = "block";
-                }else{
-                    reviewEle.innerHTML = "";
-                    reviewEle.style.display = "none";
-                    msgEle.innerText = obj.Msg;
-                }
-                btnReviewEle.removeAttribute('disabled')
-            });
-        }, false);
-
-        function form_post(){
-            let title = titleEle.value.trim();
-            let con = conEle.value.trim();
-
-            if (title === "") {
-                titleEle.focus();
-                return false;
-            }
-
-            if (con === "") {
-                conEle.focus();
-                return false;
-            }
-
-            reviewEle.innerHTML = "";
-            reviewEle.style.display = "none";
-
-            submitEle.setAttribute("disabled", "disabled");
-            postAjax("/topic/add", JSON.stringify({"Act": "submit", "NodeId": parseInt(nodeEle.value, 10), "Title": title, "Content": con, "UserId": parseInt(userIdEle.value, 10), "AddTime": parseInt(addTimeEle.value, 10), "ReadAuthed": readAuthedEle.checked, "ReadReply": readReplyEle.checked}), function(data){
-                var obj = JSON.parse(data)
-                //console.log(obj);
-                if(obj.Code === 200) {
-                    msgEle.style.display = "none";
-                    if(obj.Tid > 0){
-                        window.location.href = "/t/"+obj.Tid;
-                    }else{
-                        window.location.href = "/my/topic";
-                    }
-                } else if(obj.Code === 201){
-                    msgEle.style.display = "block";
-                    msgEle.innerText = obj.Msg;
-                    titleEle.value = "";
-                    conEle.value = "";
-
-                    window.location.href = "/member/`)
-//line views/ybs/topic_add.qtpl:131
-	qw422016.N().DUL(p.CurrentUser.ID)
-//line views/ybs/topic_add.qtpl:131
-	qw422016.N().S(`";
-                    return;
-                }else{
-                    msgEle.style.display = "block";
-                    msgEle.innerText = obj.Msg;
-                }
-                submitEle.removeAttribute('disabled');
-            });
-
-            return false;
-        }
-
-        `)
-//line views/ybs/topic_add.qtpl:143
-	if !p.SiteCf.UploadLimit || (p.SiteCf.UploadLimit && p.CurrentUser.Flag >= 99) {
-//line views/ybs/topic_add.qtpl:143
+    </details>
+    `)
+//line views/ybs/topic_add.qtpl:64
+	} else {
+//line views/ybs/topic_add.qtpl:64
 		qw422016.N().S(`
-        document.addEventListener('paste', function (evt) {
-            var url = "/file/upload";
-            var items = evt.clipboardData && evt.clipboardData.items;
-            var file = null;
-            if(items && items.length) {
-                for(var i=0; i!==items.length; i++) {
-                    var iType = items[i].type;
-                    if(iType.indexOf('image') !== -1 || iType.indexOf('video') !== -1 || iType.indexOf('audio') !== -1) {
-                        file = items[i].getAsFile();
-                        if(!!!file) {
-                            continue;
-                        }
-
-                        // upload file object.
-                        var form = new FormData();
-                        form.append('file', file);
-
-                        postAjax("/file/upload", form, function(data){
-                            let obj = JSON.parse(data)
-                            //console.log(obj);
-                            if(obj.Code === 200) {
-                                let img_url = "\n" + s2tag(obj.Url, `)
-//line views/ybs/topic_add.qtpl:165
-		qw422016.E().V(p.SiteCf.AutoDecodeMp4)
-//line views/ybs/topic_add.qtpl:165
-		qw422016.N().S(`) + "\n";
-                                let pos = conEle.selectionStart;
-                                let con = conEle.value;
-                                conEle.value = con.slice(0, pos) + img_url + con.slice(pos);
-                            }else{
-                                console.warn(obj.Msg);
-                            }
-                        });
-                    }
-                }
-            }
-
-        });
-        function uploadFile() {
-            let form = new FormData();
-            form.append("file", fileUpload.files[0]);
-            postAjax("/file/upload", form, function(data){
-                let obj = JSON.parse(data)
-                if(obj.Code === 200) {
-                    let img_url = "\n" + s2tag(obj.Url, `)
-//line views/ybs/topic_add.qtpl:184
-		qw422016.E().V(p.SiteCf.AutoDecodeMp4)
-//line views/ybs/topic_add.qtpl:184
-		qw422016.N().S(`) + "\n";
-                    let pos = conEle.selectionStart;
-                    let con = conEle.value;
-                    conEle.value = con.slice(0, pos) + img_url + con.slice(pos);
-                }else{
-                    console.warn(obj.Msg);
-                }
-            });
-        }
-        `)
-//line views/ybs/topic_add.qtpl:193
+    <input type="hidden" id="select-uid" value="`)
+//line views/ybs/topic_add.qtpl:65
+		qw422016.N().DUL(p.DefaultTopic.UserId)
+//line views/ybs/topic_add.qtpl:65
+		qw422016.N().S(`">
+    <input type="hidden" id="id-addtime" value="`)
+//line views/ybs/topic_add.qtpl:66
+		qw422016.N().DL(p.DefaultTopic.AddTime)
+//line views/ybs/topic_add.qtpl:66
+		qw422016.N().S(`">
+    `)
+//line views/ybs/topic_add.qtpl:67
 	}
-//line views/ybs/topic_add.qtpl:193
+//line views/ybs/topic_add.qtpl:67
 	qw422016.N().S(`
 
-    </script>
+    <div style="display:flex;flex-wrap:wrap;gap:12px 22px;padding:4px 0 14px;">
+        <label style="display:inline-flex;align-items:center;gap:8px;font-size:13.5px;color:var(--wk-text-2);cursor:pointer;">
+            <input type="checkbox" id="ReadAuthed" `)
+//line views/ybs/topic_add.qtpl:71
+	if p.DefaultTopic.ReadAuthed {
+//line views/ybs/topic_add.qtpl:71
+		qw422016.N().S(`checked`)
+//line views/ybs/topic_add.qtpl:71
+	}
+//line views/ybs/topic_add.qtpl:71
+	qw422016.N().S(` style="width:16px;height:16px;accent-color:var(--wk-accent);cursor:pointer;margin:0;">
+            登录可浏览
+        </label>
+        <label style="display:inline-flex;align-items:center;gap:8px;font-size:13.5px;color:var(--wk-text-2);cursor:pointer;">
+            <input type="checkbox" id="ReadReply" `)
+//line views/ybs/topic_add.qtpl:75
+	if p.DefaultTopic.ReadReply {
+//line views/ybs/topic_add.qtpl:75
+		qw422016.N().S(`checked`)
+//line views/ybs/topic_add.qtpl:75
+	}
+//line views/ybs/topic_add.qtpl:75
+	qw422016.N().S(` style="width:16px;height:16px;accent-color:var(--wk-accent);cursor:pointer;margin:0;">
+            回复可浏览
+        </label>
+    </div>
+
+    `)
+//line views/ybs/topic_add.qtpl:80
+	if !p.SiteCf.UploadLimit || (p.SiteCf.UploadLimit && p.CurrentUser.Flag >= 99) {
+//line views/ybs/topic_add.qtpl:80
+		qw422016.N().S(`
+    <div style="display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-bottom:16px;">
+        <label for="fileUpload" style="display:inline-flex;align-items:center;gap:6px;height:36px;padding:0 16px;border-radius:7px;border:1px solid var(--wk-border-strong);background:var(--wk-bg);color:var(--wk-text-2);font-size:13px;font-weight:600;cursor:pointer;">📎 选择文件</label>
+        <input id="fileUpload" type="file" accept="image/*,video/*,audio/*" onChange="uploadFile()" style="display:none;">
+        <span style="font-size:12.5px;color:var(--wk-text-muted);">支持图片 / 视频 / 音频，也可直接粘贴</span>
+    </div>
+    `)
+//line views/ybs/topic_add.qtpl:86
+	}
+//line views/ybs/topic_add.qtpl:86
+	qw422016.N().S(`
+
+    <div id="id-msg" style="display:none;padding:10px 14px;margin-bottom:14px;border-radius:var(--wk-radius-sm);font-size:13.5px;line-height:1.6;"></div>
 
 </div>
 
+<div style="display:flex;flex-wrap:wrap;align-items:center;gap:10px;padding:18px 20px;background:var(--wk-bg-soft);border-top:1px solid var(--wk-border);">
+    <input id="btn-submit" type="submit" value="发表" name="submit" style="display:inline-flex;align-items:center;gap:8px;height:42px;padding:0 22px;border-radius:9px;border:1px solid var(--wk-accent);background:var(--wk-accent);color:#fff;font-family:var(--wk-font);font-size:14px;font-weight:650;cursor:pointer;">
+    <input id="btn-preview" type="button" value="预览" name="submit" style="display:inline-flex;align-items:center;gap:6px;height:42px;padding:0 18px;border-radius:9px;border:1px solid var(--wk-border-strong);background:var(--wk-bg);color:var(--wk-text-2);font-family:var(--wk-font);font-size:13.5px;font-weight:600;cursor:pointer;">
+</div>
+
+<div id="id-preview" class="markdown-body" style="display:none;margin-top:22px;border:1px solid var(--wk-border);border-radius:12px;background:var(--wk-bg);overflow:hidden;">
+    <div style="display:flex;align-items:center;gap:9px;padding:12px 16px;background:var(--wk-bg-soft);border-bottom:1px solid var(--wk-border);font-size:13px;font-weight:650;color:var(--wk-text-2);">
+        <span style="display:inline-flex;align-items:center;padding:1px 8px;border-radius:999px;font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;background:var(--wk-accent-soft);border:1px solid color-mix(in srgb, var(--wk-accent) 26%, transparent);color:var(--wk-accent);">预览</span>
+        <span id="preview-title-label">未命名标题</span>
+    </div>
+    <div style="padding:22px 26px 26px;"></div>
+</div>
+
+</form>
+
+<script>
+var nodeEle = document.getElementById("select-nid");
+var titleEle = document.getElementById("id-title");
+var conEle = document.getElementById("id-content");
+var btnReviewEle = document.getElementById("btn-preview");
+var submitEle = document.getElementById("btn-submit");
+var msgEle = document.getElementById("id-msg");
+var addTimeEle = document.getElementById("id-addtime");
+var userIdEle = document.getElementById("select-uid");
+var reviewEle = document.getElementById("id-preview");
+
+/* 字数统计 */
+function updateStats() {
+    var t = titleEle.value, c = conEle.value;
+    document.getElementById('title-count').textContent = t.length;
+    document.getElementById('content-count').textContent = c.length;
+}
+titleEle.addEventListener('input', updateStats);
+conEle.addEventListener('input', updateStats);
+updateStats();
+
+/* 工具条插入 */
+function insertText(before, after) {
+    var start = conEle.selectionStart;
+    var end = conEle.selectionEnd;
+    var text = conEle.value.slice(start, end) || '文本';
+    conEle.setRangeText(before + text + after, start, end, 'end');
+    conEle.focus();
+    updateStats();
+}
+
+/* 分割线 */
+document.getElementById("insert-break").addEventListener('click', function () {
+    var break_line = "\n`)
+//line views/ybs/topic_add.qtpl:140
+	qw422016.N().S(p.ReadMoreBreak)
+//line views/ybs/topic_add.qtpl:140
+	qw422016.N().S(`\n";
+    var pos = conEle.selectionStart;
+    var con = conEle.value;
+    conEle.value = con.slice(0, pos) + break_line + con.slice(pos);
+    updateStats();
+}, false);
+
+/* 预览 */
+btnReviewEle.addEventListener('click', function () {
+    var con = conEle.value.trim();
+    var title = titleEle.value.trim();
+    if (con === "") { conEle.focus(); return; }
+    btnReviewEle.setAttribute("disabled", "disabled");
+    postAjax("/content/preview", JSON.stringify({Act: "topicPreview", Title: title, Content: con}), function (data) {
+        var obj = JSON.parse(data);
+        if (obj.Code === 200) {
+            msgEle.style.display = "none";
+            reviewEle.querySelector('div:last-child').innerHTML = obj.Html;
+            document.getElementById('preview-title-label').textContent = title || '未命名标题';
+            reviewEle.style.display = "block";
+            reviewEle.scrollIntoView({ behavior: "smooth", block: "start" });
+        } else {
+            reviewEle.style.display = "none";
+            msgEle.style.display = "block";
+            msgEle.innerText = obj.Msg;
+        }
+        btnReviewEle.removeAttribute('disabled');
+    });
+}, false);
+
+/* 提交 */
+function form_post() {
+    var title = titleEle.value.trim();
+    var con = conEle.value.trim();
+    if (title === "") { titleEle.focus(); return false; }
+    if (con === "") { conEle.focus(); return false; }
+    reviewEle.style.display = "none";
+    submitEle.setAttribute("disabled", "disabled");
+    postAjax("/topic/add", JSON.stringify({Act: "submit", NodeId: parseInt(nodeEle.value, 10), Title: title, Content: con, UserId: parseInt(userIdEle.value, 10), AddTime: parseInt(addTimeEle.value, 10), ReadAuthed: document.getElementById("ReadAuthed").checked, ReadReply: document.getElementById("ReadReply").checked}), function (data) {
+        var obj = JSON.parse(data);
+        if (obj.Code === 200) {
+            msgEle.style.display = "none";
+            if (obj.Tid > 0) { window.location.href = "/t/" + obj.Tid; }
+            else { window.location.href = "/my/topic"; }
+        } else if (obj.Code === 201) {
+            msgEle.style.display = "block";
+            msgEle.innerText = obj.Msg;
+            titleEle.value = ""; conEle.value = "";
+            window.location.href = "/member/`)
+//line views/ybs/topic_add.qtpl:188
+	qw422016.N().DUL(p.CurrentUser.ID)
+//line views/ybs/topic_add.qtpl:188
+	qw422016.N().S(`";
+            return;
+        } else {
+            msgEle.style.display = "block";
+            msgEle.innerText = obj.Msg;
+        }
+        submitEle.removeAttribute('disabled');
+    });
+    return false;
+}
+
 `)
 //line views/ybs/topic_add.qtpl:199
+	if !p.SiteCf.UploadLimit || (p.SiteCf.UploadLimit && p.CurrentUser.Flag >= 99) {
+//line views/ybs/topic_add.qtpl:199
+		qw422016.N().S(`
+/* 粘贴上传 */
+document.addEventListener('paste', function (evt) {
+    var items = evt.clipboardData && evt.clipboardData.items;
+    if (!items || !items.length) return;
+    if (document.activeElement !== conEle) return;
+    for (var i = 0; i < items.length; i++) {
+        var iType = items[i].type || '';
+        if (iType.indexOf('image') !== -1 || iType.indexOf('video') !== -1 || iType.indexOf('audio') !== -1) {
+            var file = items[i].getAsFile();
+            if (!file) continue;
+            evt.preventDefault();
+            var form = new FormData();
+            form.append('file', file);
+            postAjax("/file/upload", form, function (data) {
+                var obj = JSON.parse(data);
+                if (obj.Code === 200) {
+                    var img_url = "\n" + s2tag(obj.Url, `)
+//line views/ybs/topic_add.qtpl:216
+		qw422016.E().V(p.SiteCf.AutoDecodeMp4)
+//line views/ybs/topic_add.qtpl:216
+		qw422016.N().S(`) + "\n";
+                    var pos = conEle.selectionStart;
+                    var con = conEle.value;
+                    conEle.value = con.slice(0, pos) + img_url + con.slice(pos);
+                    updateStats();
+                } else { console.warn(obj.Msg); }
+            });
+            break;
+        }
+    }
+});
+function uploadFile() {
+    var input = document.getElementById('fileUpload');
+    if (!input.files || !input.files.length) return;
+    var form = new FormData();
+    form.append("file", input.files[0]);
+    postAjax("/file/upload", form, function (data) {
+        var obj = JSON.parse(data);
+        if (obj.Code === 200) {
+            var img_url = "\n" + s2tag(obj.Url, `)
+//line views/ybs/topic_add.qtpl:235
+		qw422016.E().V(p.SiteCf.AutoDecodeMp4)
+//line views/ybs/topic_add.qtpl:235
+		qw422016.N().S(`) + "\n";
+            var pos = conEle.selectionStart;
+            var con = conEle.value;
+            conEle.value = con.slice(0, pos) + img_url + con.slice(pos);
+            updateStats();
+        } else { console.warn(obj.Msg); }
+    });
+    input.value = "";
+}
+`)
+//line views/ybs/topic_add.qtpl:244
+	}
+//line views/ybs/topic_add.qtpl:244
+	qw422016.N().S(`
+</script>
+
+`)
+//line views/ybs/topic_add.qtpl:247
 }
 
-//line views/ybs/topic_add.qtpl:199
+//line views/ybs/topic_add.qtpl:247
 func (p *UserTopicAdd) WriteMainBody(qq422016 qtio422016.Writer) {
-//line views/ybs/topic_add.qtpl:199
+//line views/ybs/topic_add.qtpl:247
 	qw422016 := qt422016.AcquireWriter(qq422016)
-//line views/ybs/topic_add.qtpl:199
+//line views/ybs/topic_add.qtpl:247
 	p.StreamMainBody(qw422016)
-//line views/ybs/topic_add.qtpl:199
+//line views/ybs/topic_add.qtpl:247
 	qt422016.ReleaseWriter(qw422016)
-//line views/ybs/topic_add.qtpl:199
+//line views/ybs/topic_add.qtpl:247
 }
 
-//line views/ybs/topic_add.qtpl:199
+//line views/ybs/topic_add.qtpl:247
 func (p *UserTopicAdd) MainBody() string {
-//line views/ybs/topic_add.qtpl:199
+//line views/ybs/topic_add.qtpl:247
 	qb422016 := qt422016.AcquireByteBuffer()
-//line views/ybs/topic_add.qtpl:199
+//line views/ybs/topic_add.qtpl:247
 	p.WriteMainBody(qb422016)
-//line views/ybs/topic_add.qtpl:199
+//line views/ybs/topic_add.qtpl:247
 	qs422016 := string(qb422016.B)
-//line views/ybs/topic_add.qtpl:199
+//line views/ybs/topic_add.qtpl:247
 	qt422016.ReleaseByteBuffer(qb422016)
-//line views/ybs/topic_add.qtpl:199
+//line views/ybs/topic_add.qtpl:247
 	return qs422016
-//line views/ybs/topic_add.qtpl:199
+//line views/ybs/topic_add.qtpl:247
 }

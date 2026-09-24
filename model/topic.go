@@ -95,6 +95,7 @@ type TopicPageInfo struct {
 	Items      []TopicLstLi
 	HasPrev    bool
 	HasNext    bool
+	TotalNum   uint64
 	FirstKey   uint64
 	FirstScore uint64
 	LastKey    uint64
@@ -152,6 +153,8 @@ func TopicAdd(mc *fastcache.Cache, db *mdb.DB, tx *bbolt.Tx, obj Topic) Topic {
 	_, _ = db.HIncr(tx, NodeTopicNumTbName, mdb.I2b(obj.NodeId), 1)
 	// 文章总数
 	_, _ = db.HIncr(tx, CountTb, mdb.S2b(TopicTbName+":all_number"), 1)
+	// 用户帖子数+1
+	_, _ = db.HIncr(tx, TbnUserTopicNum, mdb.I2b(obj.UserId), 1)
 	// 删除分类缓存
 	mc.Del([]byte("NodeGetAll"))
 	return obj

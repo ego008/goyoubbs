@@ -1,45 +1,64 @@
 {% func (p *NodePage) MainBody() %}
 
-<div class="index">
+<nav class="wk-breadcrumb">
+    <a href="/">首页</a><span class="sep">/</span>
+    <a href="/n">分类</a><span class="sep">/</span>
+    <span class="current">{%s p.DefaultNode.Name %}</span>
+</nav>
 
-    <header class="bot-line">
-        <h1 class="entry-title">Category: {%s p.DefaultNode.Name %}</h1>
-        {% if len(p.DefaultNode.About)>0 %}<div class="desc">{%s p.DefaultNode.About %}</div>{% endif %}
-    </header>
+<header class="wk-page-head" style="display:flex;align-items:flex-start;gap:16px;padding-bottom:20px;border-bottom:1px solid var(--wk-border);margin-bottom:22px;">
+    <div class="ph-icon" style="flex:0 0 auto;width:48px;height:48px;display:grid;place-items:center;border-radius:13px;font-size:22px;background:linear-gradient(135deg,var(--wk-accent-soft),var(--wk-tag-soft));border:1px solid var(--wk-border);">📁</div>
+    <div style="flex:1;min-width:0;">
+        <h1 class="wk-page-title" style="margin:0 0 6px;font-size:26px;font-weight:700;line-height:1.3;letter-spacing:-.02em;color:var(--wk-text);">{%s p.DefaultNode.Name %}</h1>
+        {% if len(p.DefaultNode.About)>0 %}
+        <p class="wk-page-desc" style="margin:0;font-size:13.5px;color:var(--wk-text-muted);line-height:1.6;">{%s p.DefaultNode.About %}</p>
+        {% endif %}
+        <div style="display:flex;flex-wrap:wrap;gap:16px;font-size:12.5px;color:var(--wk-text-muted);margin-top:8px;">
+            <span><b>{%dul p.DefaultNode.TopicNum %}</b> 篇文章</span>
+        </div>
+    </div>
+</header>
 
+<ul class="wk-list">
     {% for _, item := range p.TopicPageInfo.Items %}
-    <article>
-
-        <header>
+    <li class="wk-item">
+        <div class="wk-item-avatar">
             {% if item.Comments > 0 %}
-            <a href="/t/{%dul item.ID %}#r{%dul item.Comments %}"><img alt="{%s item.Title %} icon" src="/icon/t/{%dul item.ID %}.jpg?r={%dul item.Comments %}" class="avatar"></a>
+            <img alt="{%s item.Title %}" src="/icon/t/{%dul item.ID %}.jpg?r={%dul item.Comments %}" loading="lazy">
             {% else %}
-            <a href="/t/{%dul item.ID %}"><img alt="{%s item.Title %} icon" src="/avatar/{%dul item.UserId %}.jpg" class="avatar"></a>
+            <img alt="{%s item.Title %}" src="/avatar/{%dul item.UserId %}.jpg" loading="lazy">
             {% endif %}
-            <h1><a href="/t/{%dul item.ID %}" rel="bookmark">{%s item.Title %}</a></h1>
-            <p class="meta">
-                <a href="/n/{%dul item.NodeId %}">{%s item.NodeName %}</a>
-                <a href="/member/{%dul item.UserId %}" rel="nofollow">{%s item.AuthorName %}</a>
-                <time datetime="{%s item.AddTimeFmt %}" pubdate data-updated="true">{%s item.EditTimeFmt %}</time>
+        </div>
+        <div class="wk-item-body">
+            <a class="wk-item-title" href="/t/{%dul item.ID %}">{%s item.Title %}</a>
+            <div class="wk-item-meta">
+                <span class="mi">👤 <a href="/member/{%dul item.UserId %}">{%s item.AuthorName %}</a></span>
+                <span class="mi">🕘 <time datetime="{%s item.AddTimeFmt %}">{%s item.EditTimeFmt %}</time></span>
                 {% if item.Comments > 0 %}
-                <a class="right count" href="/t/{%dul item.ID %}#r{%dul item.Comments %}" title="Comment on {%s item.Title %}" rel="nofollow">{%dul item.Comments %}</a>
+                <a class="wk-comment-pill" href="/t/{%dul item.ID %}#r{%dul item.Comments %}">💬 {%dul item.Comments %}</a>
+                {% else %}
+                <span class="wk-comment-pill is-zero">💬 0</span>
                 {% endif %}
-            </p>
-        </header>
-
-    </article>
-
+            </div>
+        </div>
+    </li>
     {% endfor %}
+</ul>
 
-    <div class="pagination">
+<nav class="wk-pagination" aria-label="分页">
+    <span class="wk-page-info">共 <b>{%dul p.DefaultNode.TopicNum %}</b> 篇文章</span>
+    <div style="display:flex;gap:8px;">
         {% if p.TopicPageInfo.HasPrev %}
-        <a class="prev" href="/n/{%dul p.DefaultNode.ID %}?btn=prev&key={%dul p.TopicPageInfo.FirstKey %}&score={%dul p.TopicPageInfo.FirstScore %}">← Newer</a>
+        <a class="wk-page-btn" href="/n/{%dul p.DefaultNode.ID %}?btn=prev&key={%dul p.TopicPageInfo.FirstKey %}&score={%dul p.TopicPageInfo.FirstScore %}">← 上一页</a>
+        {% else %}
+        <span class="wk-page-btn is-disabled">← 上一页</span>
         {% endif %}
         {% if p.TopicPageInfo.HasNext %}
-        <a class="next" href="/n/{%dul p.DefaultNode.ID %}?btn=next&key={%dul p.TopicPageInfo.LastKey %}&score={%dul p.TopicPageInfo.LastScore %}">Older →</a>
+        <a class="wk-page-btn" href="/n/{%dul p.DefaultNode.ID %}?btn=next&key={%dul p.TopicPageInfo.LastKey %}&score={%dul p.TopicPageInfo.LastScore %}">下一页 →</a>
+        {% else %}
+        <span class="wk-page-btn is-disabled">下一页 →</span>
         {% endif %}
     </div>
-
-</div>
+</nav>
 
 {% endfunc %}

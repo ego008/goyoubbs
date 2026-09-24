@@ -22,227 +22,312 @@ func (p *UserLogin) StreamMainBody(qw422016 *qt422016.Writer) {
 //line views/ybs/user_loginnregister.qtpl:1
 	qw422016.N().S(`
 <script src="/static/js/md5.min.js" type="text/javascript"></script>
-<div class="index">
-    <header class="bot-line">
-        <h1 class="entry-title">`)
-//line views/ybs/user_loginnregister.qtpl:5
-	qw422016.E().S(p.Title)
-//line views/ybs/user_loginnregister.qtpl:5
-	qw422016.N().S(`</h1>
-    </header>
-    <h2>账号密码 - `)
-//line views/ybs/user_loginnregister.qtpl:7
-	qw422016.E().S(p.Title)
-//line views/ybs/user_loginnregister.qtpl:7
-	qw422016.N().S(`</h2>
-    <form class="pure-form pure-form-aligned" action="" method="post" onsubmit="form_post(); return false;">
-        <fieldset>
-            <div class="pure-control-group">
-                <label for="name">登录名： </label>
-                <input id="name" type="text" value="`)
-//line views/ybs/user_loginnregister.qtpl:12
-	qw422016.E().S(p.DefaultName)
-//line views/ybs/user_loginnregister.qtpl:12
-	qw422016.N().S(`" autocomplete="off" autofocus>
-            </div>
 
-            <div class="pure-control-group">
-                <label for="password">密　码： </label>
-                <input id="password" type="password">
-            </div>
+<nav class="wk-breadcrumb">
+    <a href="/">首页</a><span class="sep">/</span>
+    <span class="current">`)
+//line views/ybs/user_loginnregister.qtpl:6
+	qw422016.E().S(p.Title)
+//line views/ybs/user_loginnregister.qtpl:6
+	qw422016.N().S(`</span>
+</nav>
 
-            `)
-//line views/ybs/user_loginnregister.qtpl:20
-	if p.Act == "register" {
-//line views/ybs/user_loginnregister.qtpl:20
-		qw422016.N().S(`
-            <div class="pure-control-group">
-                <label for="password">重　复： </label>
-                <input id="password2" type="password">
-            </div>
-            `)
-//line views/ybs/user_loginnregister.qtpl:25
+<header class="wk-page-head" style="display:flex;align-items:flex-start;gap:16px;padding-bottom:20px;border-bottom:1px solid var(--wk-border);margin-bottom:22px;">
+    <div class="ph-icon" style="flex:0 0 auto;width:44px;height:44px;display:grid;place-items:center;border-radius:12px;font-size:20px;background:linear-gradient(135deg,var(--wk-accent-soft),var(--wk-tag-soft));border:1px solid var(--wk-border);">`)
+//line views/ybs/user_loginnregister.qtpl:10
+	if p.Act == "login" {
+//line views/ybs/user_loginnregister.qtpl:10
+		qw422016.N().S(`🔑`)
+//line views/ybs/user_loginnregister.qtpl:10
 	} else {
-//line views/ybs/user_loginnregister.qtpl:25
-		qw422016.N().S(`
-            <input id="password2" type="hidden" value="">
-            `)
-//line views/ybs/user_loginnregister.qtpl:27
+//line views/ybs/user_loginnregister.qtpl:10
+		qw422016.N().S(`✍`)
+//line views/ybs/user_loginnregister.qtpl:10
 	}
-//line views/ybs/user_loginnregister.qtpl:27
-	qw422016.N().S(`
-
-            <div class="pure-control-group">
-                <label for="image"></label>
-                <span class="pure-form-message-inline"><img id="image" onclick="reload()" src="/captcha/`)
-//line views/ybs/user_loginnregister.qtpl:31
-	qw422016.E().S(p.CaptchaId)
-//line views/ybs/user_loginnregister.qtpl:31
-	qw422016.N().S(`.png" alt="Captcha image"></span>
-            </div>
-
-            <div class="pure-control-group">
-                <label for="captchaSolution">验证码： </label>
-                <input id="captchaSolution" type="number">
-            </div>
-
-            <div class="pure-controls">
-                <span id="id-msg"></span>
-                <button type="submit" id="submit" class="pure-button pure-button-primary"> `)
-//line views/ybs/user_loginnregister.qtpl:41
+//line views/ybs/user_loginnregister.qtpl:10
+	qw422016.N().S(`</div>
+    <div style="flex:1;min-width:0;">
+        <h1 class="wk-page-title" style="margin:0 0 6px;font-size:24px;font-weight:700;line-height:1.3;color:var(--wk-text);">`)
+//line views/ybs/user_loginnregister.qtpl:12
 	qw422016.E().S(p.Title)
-//line views/ybs/user_loginnregister.qtpl:41
-	qw422016.N().S(` </button>
-            </div>
-        </fieldset>
-    </form>
-
-    `)
-//line views/ybs/user_loginnregister.qtpl:46
-	if p.HasOtherAuth {
-//line views/ybs/user_loginnregister.qtpl:46
-		qw422016.N().S(`
-    <h2>其它登录方式</h2>
-    `)
-//line views/ybs/user_loginnregister.qtpl:48
-		if p.SiteCf.QQClientID != "" {
-//line views/ybs/user_loginnregister.qtpl:48
-			qw422016.N().S(`
-    <a href="/qqlogin" rel="nofollow"><img src="/static/images/icon_qq_64.png" alt="QQ登录" class="avatar"></a>
-    `)
-//line views/ybs/user_loginnregister.qtpl:50
-		}
-//line views/ybs/user_loginnregister.qtpl:50
-		qw422016.N().S(`
-    `)
-//line views/ybs/user_loginnregister.qtpl:51
-		if p.SiteCf.WeiboClientID != "" {
-//line views/ybs/user_loginnregister.qtpl:51
-			qw422016.N().S(`
-    <a href="/wblogin" rel="nofollow"><img src="/static/images/icon_weibo_64.png" alt="微博登录" class="avatar"></a>
-    `)
-//line views/ybs/user_loginnregister.qtpl:53
-		}
-//line views/ybs/user_loginnregister.qtpl:53
-		qw422016.N().S(`
-    `)
-//line views/ybs/user_loginnregister.qtpl:54
-		if p.SiteCf.GithubClientID != "" {
-//line views/ybs/user_loginnregister.qtpl:54
-			qw422016.N().S(`
-    <a href="/githublogin" rel="nofollow"><img src="/static/images/icon_github_64.png" alt="github登录" class="avatar"></a>
-    `)
-//line views/ybs/user_loginnregister.qtpl:56
-		}
-//line views/ybs/user_loginnregister.qtpl:56
-		qw422016.N().S(`
-    `)
-//line views/ybs/user_loginnregister.qtpl:57
+//line views/ybs/user_loginnregister.qtpl:12
+	qw422016.N().S(`</h1>
+        <p style="margin:0;font-size:13.5px;color:var(--wk-text-muted);line-height:1.6;">`)
+//line views/ybs/user_loginnregister.qtpl:13
+	if p.Act == "login" {
+//line views/ybs/user_loginnregister.qtpl:13
+		qw422016.N().S(`还没有账号？<a href="/register" rel="nofollow" style="font-weight:600;color:var(--wk-accent);">立即注册</a>`)
+//line views/ybs/user_loginnregister.qtpl:13
+	} else {
+//line views/ybs/user_loginnregister.qtpl:13
+		qw422016.N().S(`已有账号？<a href="/login" rel="nofollow" style="font-weight:600;color:var(--wk-accent);">立即登录</a>`)
+//line views/ybs/user_loginnregister.qtpl:13
 	}
-//line views/ybs/user_loginnregister.qtpl:57
-	qw422016.N().S(`
+//line views/ybs/user_loginnregister.qtpl:13
+	qw422016.N().S(`</p>
+    </div>
+</header>
 
-    <script>
-        var captchaId = '`)
-//line views/ybs/user_loginnregister.qtpl:60
-	qw422016.E().S(p.CaptchaId)
-//line views/ybs/user_loginnregister.qtpl:60
-	qw422016.N().S(`';
-        function setSrcQuery(e, q) {
-            var src  = e.src;
-            var p = src.indexOf('?');
-            if (p >= 0) {
-                src = src.substr(0, p);
-            }
-            e.src = src + "?" + q
-        }
+<div id="id-msg" style="display:none;padding:10px 14px;margin-bottom:16px;border-radius:var(--wk-radius-sm);font-size:13.5px;line-height:1.6;"></div>
 
-        function reload() {
-            setSrcQuery(document.getElementById('image'), "reload=" + (new Date()).getTime());
-            document.getElementById('captchaSolution').value = "";
-            return false;
-        }
+<form class="pure-form" action="" method="post" onsubmit="form_post(); return false;">
 
-        function form_post(){
-            let msgEle = document.getElementById("id-msg");
-            let name = document.getElementById('name').value.trim();
-            let password = document.getElementById('password').value.trim();
-            let password2 = document.getElementById('password2').value.trim();
+<div style="margin-bottom:16px;">
+    <label for="name" style="display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--wk-text-muted);margin-bottom:7px;">登录名 <span style="color:var(--wk-danger);font-weight:700;">*</span></label>
+    <input id="name" type="text" value="`)
+//line views/ybs/user_loginnregister.qtpl:23
+	qw422016.E().S(p.DefaultName)
+//line views/ybs/user_loginnregister.qtpl:23
+	qw422016.N().S(`" autocomplete="username" autofocus placeholder="请输入登录名" style="display:block;width:100%;height:44px;padding:0 14px;border:1px solid var(--wk-border-strong);border-radius:var(--wk-radius-sm);background:var(--wk-bg);color:var(--wk-text);font-family:var(--wk-font);font-size:15px;outline:none;">
+</div>
 
-            if(password2) {
-                if(password !== password2) {
-                    msgEle.style.display = "block";
-                    msgEle.style.color = "red";
-                    msgEle.innerText = "两次输入密码不一样";
-                    return false;
-                }
-            }
-
-            let captchaSolution = document.getElementById('captchaSolution').value.trim();
-            if(name && password && captchaSolution){
-                msgEle.style.display = "none";
-                postAjax("/`)
-//line views/ybs/user_loginnregister.qtpl:94
-	qw422016.E().S(p.Act)
-//line views/ybs/user_loginnregister.qtpl:94
-	qw422016.N().S(`", JSON.stringify({'Act': '`)
-//line views/ybs/user_loginnregister.qtpl:94
-	qw422016.E().S(p.Act)
-//line views/ybs/user_loginnregister.qtpl:94
-	qw422016.N().S(`', 'Name': name, 'Password': md5(password), 'CaptchaSolution': captchaSolution, 'CaptchaId': captchaId}), function(data){
-                    let obj = JSON.parse(data)
-                    //console.log(obj);
-                    if(obj.Code === 200) {
-                        window.location.href = "/";
-                        return false;
-                    } else {
-                        msgEle.style.display = "block";
-                        msgEle.style.color = "red";
-                        msgEle.innerText = obj.Msg;
-                        if (obj.Code === 405) {
-                            document.getElementById('image').src = "/captcha/"+obj.NewCaptchaId+".png";
-                            captchaId = obj.NewCaptchaId;
-                            document.getElementById('captchaSolution').value = "";
-                            return false;
-                        }else{
-                            reload();
-                        }
-                    }
-                });
-            }
-            return false;
-        }
-
-    </script>
-
+<div style="margin-bottom:16px;">
+    <label for="password" style="display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--wk-text-muted);margin-bottom:7px;">密码 <span style="color:var(--wk-danger);font-weight:700;">*</span></label>
+    <input id="password" type="password" autocomplete="`)
+//line views/ybs/user_loginnregister.qtpl:28
+	if p.Act == "register" {
+//line views/ybs/user_loginnregister.qtpl:28
+		qw422016.N().S(`new-password`)
+//line views/ybs/user_loginnregister.qtpl:28
+	} else {
+//line views/ybs/user_loginnregister.qtpl:28
+		qw422016.N().S(`current-password`)
+//line views/ybs/user_loginnregister.qtpl:28
+	}
+//line views/ybs/user_loginnregister.qtpl:28
+	qw422016.N().S(`" placeholder="请输入密码" style="display:block;width:100%;height:44px;padding:0 14px;border:1px solid var(--wk-border-strong);border-radius:var(--wk-radius-sm);background:var(--wk-bg);color:var(--wk-text);font-family:var(--wk-font);font-size:15px;outline:none;">
 </div>
 
 `)
-//line views/ybs/user_loginnregister.qtpl:122
+//line views/ybs/user_loginnregister.qtpl:31
+	if p.Act == "register" {
+//line views/ybs/user_loginnregister.qtpl:31
+		qw422016.N().S(`
+<div style="margin-bottom:16px;">
+    <label for="password2" style="display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--wk-text-muted);margin-bottom:7px;">确认密码 <span style="color:var(--wk-danger);font-weight:700;">*</span></label>
+    <input id="password2" type="password" autocomplete="new-password" placeholder="请再次输入密码" style="display:block;width:100%;height:44px;padding:0 14px;border:1px solid var(--wk-border-strong);border-radius:var(--wk-radius-sm);background:var(--wk-bg);color:var(--wk-text);font-family:var(--wk-font);font-size:15px;outline:none;">
+</div>
+`)
+//line views/ybs/user_loginnregister.qtpl:36
+	} else {
+//line views/ybs/user_loginnregister.qtpl:36
+		qw422016.N().S(`
+<input id="password2" type="hidden" value="">
+`)
+//line views/ybs/user_loginnregister.qtpl:38
+	}
+//line views/ybs/user_loginnregister.qtpl:38
+	qw422016.N().S(`
+
+<div style="margin-bottom:16px;">
+    <label for="captchaSolution" style="display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--wk-text-muted);margin-bottom:7px;">验证码 <span style="color:var(--wk-danger);font-weight:700;">*</span> <span style="margin-left:auto;font-weight:500;letter-spacing:0;text-transform:none;font-size:11px;">看不清？点击图片刷新</span></label>
+    <div style="display:grid;grid-template-columns:1fr 128px;gap:10px;align-items:stretch;">
+        <input id="captchaSolution" type="text" inputmode="numeric" autocomplete="off" placeholder="请输入右侧图中的数字" style="display:block;width:100%;height:44px;padding:0 14px;border:1px solid var(--wk-border-strong);border-radius:var(--wk-radius-sm);background:var(--wk-bg);color:var(--wk-text);font-family:var(--wk-font);font-size:15px;outline:none;">
+        <div id="captcha-box" style="display:grid;place-items:center;border:1px solid var(--wk-border-strong);border-radius:var(--wk-radius-sm);background:var(--wk-bg-soft);cursor:pointer;overflow:hidden;position:relative;height:44px;">
+            <img id="image" src="/captcha/`)
+//line views/ybs/user_loginnregister.qtpl:45
+	qw422016.E().S(p.CaptchaId)
+//line views/ybs/user_loginnregister.qtpl:45
+	qw422016.N().S(`.png" alt="Captcha image" onclick="reload()" style="max-width:100%;max-height:100%;display:block;">
+            <span style="position:absolute;inset:0;display:grid;place-items:center;background:rgba(0,0,0,.55);color:#fff;font-size:11.5px;font-weight:600;opacity:0;transition:opacity .15s;pointer-events:none;">点击刷新</span>
+        </div>
+    </div>
+</div>
+
+<div style="display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin:6px 0 20px;font-size:13px;">
+    `)
+//line views/ybs/user_loginnregister.qtpl:52
+	if p.Act == "login" {
+//line views/ybs/user_loginnregister.qtpl:52
+		qw422016.N().S(`
+    <label style="display:inline-flex;align-items:center;gap:8px;color:var(--wk-text-2);cursor:pointer;">
+        <input type="checkbox" id="remember" style="width:16px;height:16px;accent-color:var(--wk-accent);cursor:pointer;margin:0;">
+        记住我
+    </label>
+    <span style="margin-left:auto;"><a href="/forgot" rel="nofollow" style="color:var(--wk-text-muted);font-size:13px;">忘记密码？</a></span>
+    `)
+//line views/ybs/user_loginnregister.qtpl:58
+	}
+//line views/ybs/user_loginnregister.qtpl:58
+	qw422016.N().S(`
+</div>
+
+<button type="submit" id="submit" class="wk-btn-primary" style="display:inline-flex;align-items:center;justify-content:center;gap:8px;width:100%;height:46px;padding:0 22px;border-radius:9px;border:1px solid var(--wk-accent);background:var(--wk-accent);color:#fff;font-family:var(--wk-font);font-size:14.5px;font-weight:650;cursor:pointer;box-shadow:0 2px 10px color-mix(in srgb, var(--wk-accent) 26%, transparent);">
+    `)
+//line views/ybs/user_loginnregister.qtpl:62
+	qw422016.E().S(p.Title)
+//line views/ybs/user_loginnregister.qtpl:62
+	qw422016.N().S(`
+</button>
+
+</form>
+
+`)
+//line views/ybs/user_loginnregister.qtpl:67
+	if p.HasOtherAuth {
+//line views/ybs/user_loginnregister.qtpl:67
+		qw422016.N().S(`
+<div style="display:flex;align-items:center;gap:12px;margin:24px 0 20px;font-size:12px;color:var(--wk-text-muted);text-transform:uppercase;letter-spacing:.08em;">
+    <span style="flex:1;height:1px;background:var(--wk-border);"></span>
+    或
+    <span style="flex:1;height:1px;background:var(--wk-border);"></span>
+</div>
+<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;">
+    `)
+//line views/ybs/user_loginnregister.qtpl:74
+		if p.SiteCf.QQClientID != "" {
+//line views/ybs/user_loginnregister.qtpl:74
+			qw422016.N().S(`
+    <a href="/qqlogin" rel="nofollow" style="display:inline-flex;align-items:center;justify-content:center;gap:7px;height:42px;padding:0 10px;border-radius:8px;border:1px solid var(--wk-border-strong);background:var(--wk-bg);color:var(--wk-text-2);font-size:13px;font-weight:600;text-decoration:none;">🐧 QQ</a>
+    `)
+//line views/ybs/user_loginnregister.qtpl:76
+		}
+//line views/ybs/user_loginnregister.qtpl:76
+		qw422016.N().S(`
+    `)
+//line views/ybs/user_loginnregister.qtpl:77
+		if p.SiteCf.WeiboClientID != "" {
+//line views/ybs/user_loginnregister.qtpl:77
+			qw422016.N().S(`
+    <a href="/wblogin" rel="nofollow" style="display:inline-flex;align-items:center;justify-content:center;gap:7px;height:42px;padding:0 10px;border-radius:8px;border:1px solid var(--wk-border-strong);background:var(--wk-bg);color:var(--wk-text-2);font-size:13px;font-weight:600;text-decoration:none;">🔴 微博</a>
+    `)
+//line views/ybs/user_loginnregister.qtpl:79
+		}
+//line views/ybs/user_loginnregister.qtpl:79
+		qw422016.N().S(`
+    `)
+//line views/ybs/user_loginnregister.qtpl:80
+		if p.SiteCf.GithubClientID != "" {
+//line views/ybs/user_loginnregister.qtpl:80
+			qw422016.N().S(`
+    <a href="/githublogin" rel="nofollow" style="display:inline-flex;align-items:center;justify-content:center;gap:7px;height:42px;padding:0 10px;border-radius:8px;border:1px solid var(--wk-border-strong);background:var(--wk-bg);color:var(--wk-text-2);font-size:13px;font-weight:600;text-decoration:none;">🐙 GitHub</a>
+    `)
+//line views/ybs/user_loginnregister.qtpl:82
+		}
+//line views/ybs/user_loginnregister.qtpl:82
+		qw422016.N().S(`
+</div>
+`)
+//line views/ybs/user_loginnregister.qtpl:84
+	}
+//line views/ybs/user_loginnregister.qtpl:84
+	qw422016.N().S(`
+
+<script>
+var captchaId = '`)
+//line views/ybs/user_loginnregister.qtpl:87
+	qw422016.E().S(p.CaptchaId)
+//line views/ybs/user_loginnregister.qtpl:87
+	qw422016.N().S(`';
+var msgEle = document.getElementById('id-msg');
+
+function setSrcQuery(e, q) {
+    var src = e.src;
+    var p = src.indexOf('?');
+    if (p >= 0) src = src.substr(0, p);
+    e.src = src + '?' + q;
+}
+function reload() {
+    setSrcQuery(document.getElementById('image'), 'reload=' + (new Date()).getTime());
+    document.getElementById('captchaSolution').value = '';
+    return false;
+}
+if (document.getElementById('captcha-box')) {
+    document.getElementById('captcha-box').addEventListener('click', reload);
 }
 
-//line views/ybs/user_loginnregister.qtpl:122
+function showMsg(text, type) {
+    msgEle.className = type || '';
+    msgEle.style.display = 'block';
+    msgEle.innerText = text;
+}
+
+function form_post() {
+    var name = document.getElementById('name').value.trim();
+    var password = document.getElementById('password').value.trim();
+    var password2 = document.getElementById('password2').value.trim();
+    var captchaSolution = document.getElementById('captchaSolution').value.trim();
+
+    if (password2 && password !== password2) { showMsg('两次输入的密码不一致。'); return false; }
+    if (!name) { showMsg('请输入登录名。'); document.getElementById('name').focus(); return false; }
+    if (!password) { showMsg('请输入密码。'); document.getElementById('password').focus(); return false; }
+    if (!captchaSolution) { showMsg('请输入验证码。'); document.getElementById('captchaSolution').focus(); return false; }
+
+    msgEle.style.display = 'none';
+    var submitBtn = document.getElementById('submit');
+    submitBtn.setAttribute('disabled', 'disabled');
+
+    postAjax('/`)
+//line views/ybs/user_loginnregister.qtpl:126
+	qw422016.E().S(p.Act)
+//line views/ybs/user_loginnregister.qtpl:126
+	qw422016.N().S(`', JSON.stringify({
+        'Act': '`)
+//line views/ybs/user_loginnregister.qtpl:127
+	qw422016.E().S(p.Act)
+//line views/ybs/user_loginnregister.qtpl:127
+	qw422016.N().S(`',
+        'Name': name,
+        'Password': md5(password),
+        'CaptchaSolution': captchaSolution,
+        'CaptchaId': captchaId
+    }), function (data) {
+        var obj = JSON.parse(data);
+        if (obj.Code === 200) {
+            showMsg('操作成功，正在跳转…', 'success');
+            setTimeout(function () { window.location.href = '/'; }, 400);
+            return;
+        }
+        showMsg(obj.Msg || '操作失败，请重试。');
+        if (obj.Code === 405 && obj.NewCaptchaId) {
+            captchaId = obj.NewCaptchaId;
+            document.getElementById('image').src = '/captcha/' + obj.NewCaptchaId + '.png';
+            document.getElementById('captchaSolution').value = '';
+            document.getElementById('captchaSolution').focus();
+        } else {
+            reload();
+        }
+        submitBtn.removeAttribute('disabled');
+    });
+    return false;
+}
+
+['name', 'password', 'captchaSolution'].forEach(function (id) {
+    var el = document.getElementById(id);
+    if (el) el.addEventListener('input', function () {
+        if (msgEle.style.display === 'block' && !msgEle.classList.contains('success')) {
+            msgEle.style.display = 'none';
+        }
+    });
+});
+</script>
+
+`)
+//line views/ybs/user_loginnregister.qtpl:163
+}
+
+//line views/ybs/user_loginnregister.qtpl:163
 func (p *UserLogin) WriteMainBody(qq422016 qtio422016.Writer) {
-//line views/ybs/user_loginnregister.qtpl:122
+//line views/ybs/user_loginnregister.qtpl:163
 	qw422016 := qt422016.AcquireWriter(qq422016)
-//line views/ybs/user_loginnregister.qtpl:122
+//line views/ybs/user_loginnregister.qtpl:163
 	p.StreamMainBody(qw422016)
-//line views/ybs/user_loginnregister.qtpl:122
+//line views/ybs/user_loginnregister.qtpl:163
 	qt422016.ReleaseWriter(qw422016)
-//line views/ybs/user_loginnregister.qtpl:122
+//line views/ybs/user_loginnregister.qtpl:163
 }
 
-//line views/ybs/user_loginnregister.qtpl:122
+//line views/ybs/user_loginnregister.qtpl:163
 func (p *UserLogin) MainBody() string {
-//line views/ybs/user_loginnregister.qtpl:122
+//line views/ybs/user_loginnregister.qtpl:163
 	qb422016 := qt422016.AcquireByteBuffer()
-//line views/ybs/user_loginnregister.qtpl:122
+//line views/ybs/user_loginnregister.qtpl:163
 	p.WriteMainBody(qb422016)
-//line views/ybs/user_loginnregister.qtpl:122
+//line views/ybs/user_loginnregister.qtpl:163
 	qs422016 := string(qb422016.B)
-//line views/ybs/user_loginnregister.qtpl:122
+//line views/ybs/user_loginnregister.qtpl:163
 	qt422016.ReleaseByteBuffer(qb422016)
-//line views/ybs/user_loginnregister.qtpl:122
+//line views/ybs/user_loginnregister.qtpl:163
 	return qs422016
-//line views/ybs/user_loginnregister.qtpl:122
+//line views/ybs/user_loginnregister.qtpl:163
 }

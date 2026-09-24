@@ -144,8 +144,9 @@ func (h *BaseHandler) WeiboOauthCallback(c *gin.Context) {
 			})
 			_ = db.HSet(tx, "oauth_tmp_info", mdb.S2b(authorKey), jb)
 		}
+
+		c.Redirect(302, scf.MainDomain+"/register")
 		return nil
 	})
 
-	c.Redirect(302, scf.MainDomain+"/register")
 }

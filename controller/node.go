@@ -87,10 +87,11 @@ func (h *BaseHandler) NodePage(c *gin.Context) {
 			}
 		}
 
+		c.Header("Content-Type", "text/html; charset=utf-8")
+		c.Status(http.StatusOK)
+		ybs.WritePageTemplate(c.Writer, evn)
+
 		return nil
 	})
 
-	c.Header("Content-Type", "text/html; charset=utf-8")
-	c.Status(http.StatusOK)
-	ybs.WritePageTemplate(c.Writer, evn)
 }

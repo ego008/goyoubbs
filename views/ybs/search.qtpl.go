@@ -22,186 +22,204 @@ func (p *SearchPage) StreamMainBody(qw422016 *qt422016.Writer) {
 //line views/ybs/search.qtpl:1
 	qw422016.N().S(`
 
-<div class="index">
+<nav class="wk-breadcrumb">
+    <a href="/">首页</a><span class="sep">/</span>
+    <span class="current">搜索</span>
+</nav>
 
-    <article>
-        <header>
-            <h1 class="entry-title">Search: `)
-//line views/ybs/search.qtpl:7
+<header class="wk-page-head" style="display:flex;align-items:flex-start;gap:16px;padding-bottom:20px;border-bottom:1px solid var(--wk-border);margin-bottom:22px;">
+    <div class="ph-icon" style="flex:0 0 auto;width:44px;height:44px;display:grid;place-items:center;border-radius:12px;font-size:20px;background:linear-gradient(135deg,var(--wk-accent-soft),var(--wk-tag-soft));border:1px solid var(--wk-border);">🔍</div>
+    <div style="flex:1;min-width:0;">
+        <h1 class="wk-page-title" style="margin:0 0 6px;font-size:24px;font-weight:700;line-height:1.3;color:var(--wk-text);">搜索 <span style="background:linear-gradient(180deg,transparent 62%,color-mix(in srgb, var(--wk-accent) 32%, transparent) 62%);padding:0 2px;">「`)
+//line views/ybs/search.qtpl:11
 	qw422016.E().S(p.Q)
-//line views/ybs/search.qtpl:7
-	qw422016.N().S(`</h1>
-        </header>
-    </article>
-
-    `)
 //line views/ybs/search.qtpl:11
-	for _, item := range p.TopicPageInfo.Items {
-//line views/ybs/search.qtpl:11
-		qw422016.N().S(`
-    <article>
+	qw422016.N().S(`」</span></h1>
+        <p class="wk-page-desc" style="margin:0;font-size:13.5px;color:var(--wk-text-muted);line-height:1.6;">找到 <b>`)
+//line views/ybs/search.qtpl:12
+	qw422016.N().D(len(p.TopicPageInfo.Items))
+//line views/ybs/search.qtpl:12
+	qw422016.N().S(`</b> 条结果</p>
+    </div>
+</header>
 
-        <header>
-            `)
-//line views/ybs/search.qtpl:15
-		if item.Comments > 0 {
-//line views/ybs/search.qtpl:15
-			qw422016.N().S(`
-            <a href="/t/`)
-//line views/ybs/search.qtpl:16
-			qw422016.N().DUL(item.ID)
-//line views/ybs/search.qtpl:16
-			qw422016.N().S(`#r`)
-//line views/ybs/search.qtpl:16
-			qw422016.N().DUL(item.Comments)
-//line views/ybs/search.qtpl:16
-			qw422016.N().S(`"><img alt="`)
-//line views/ybs/search.qtpl:16
-			qw422016.E().S(item.Title)
-//line views/ybs/search.qtpl:16
-			qw422016.N().S(` icon" src="/icon/t/`)
-//line views/ybs/search.qtpl:16
-			qw422016.N().DUL(item.ID)
-//line views/ybs/search.qtpl:16
-			qw422016.N().S(`.jpg?r=`)
-//line views/ybs/search.qtpl:16
-			qw422016.N().DUL(item.Comments)
-//line views/ybs/search.qtpl:16
-			qw422016.N().S(`" class="avatar"></a>
-            `)
-//line views/ybs/search.qtpl:17
-		} else {
-//line views/ybs/search.qtpl:17
-			qw422016.N().S(`
-            <a href="/t/`)
-//line views/ybs/search.qtpl:18
-			qw422016.N().DUL(item.ID)
-//line views/ybs/search.qtpl:18
-			qw422016.N().S(`"><img alt="`)
-//line views/ybs/search.qtpl:18
-			qw422016.E().S(item.Title)
-//line views/ybs/search.qtpl:18
-			qw422016.N().S(` icon" src="/avatar/`)
-//line views/ybs/search.qtpl:18
-			qw422016.N().DUL(item.UserId)
-//line views/ybs/search.qtpl:18
-			qw422016.N().S(`.jpg" class="avatar"></a>
-            `)
+<div style="position:relative;margin-bottom:20px;">
+    <svg style="position:absolute;left:14px;top:50%;transform:translateY(-50%);width:17px;height:17px;color:var(--wk-text-muted);pointer-events:none;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+    <form action="/q" method="get" style="margin:0;">
+        <input type="text" name="q" value="`)
 //line views/ybs/search.qtpl:19
-		}
+	qw422016.E().S(p.Q)
 //line views/ybs/search.qtpl:19
-		qw422016.N().S(`
-            <h1 class="entry-title"><a href="/t/`)
-//line views/ybs/search.qtpl:20
-		qw422016.N().DUL(item.ID)
-//line views/ybs/search.qtpl:20
-		qw422016.N().S(`" rel="bookmark">`)
-//line views/ybs/search.qtpl:20
-		qw422016.E().S(item.Title)
-//line views/ybs/search.qtpl:20
-		qw422016.N().S(`</a></h1>
-            <p class="meta">
-                <time datetime="`)
-//line views/ybs/search.qtpl:22
-		qw422016.E().S(item.AddTimeFmt)
-//line views/ybs/search.qtpl:22
-		qw422016.N().S(`" pubdate data-updated="true">`)
-//line views/ybs/search.qtpl:22
-		qw422016.E().S(item.EditTimeFmt)
-//line views/ybs/search.qtpl:22
-		qw422016.N().S(`</time>
-                in <a href="/n/`)
-//line views/ybs/search.qtpl:23
-		qw422016.N().DUL(item.NodeId)
-//line views/ybs/search.qtpl:23
-		qw422016.N().S(`" rel="bookmark">`)
-//line views/ybs/search.qtpl:23
-		qw422016.E().S(item.NodeName)
-//line views/ybs/search.qtpl:23
-		qw422016.N().S(`</a>
-                by <a href="/member/`)
-//line views/ybs/search.qtpl:24
-		qw422016.N().DUL(item.UserId)
-//line views/ybs/search.qtpl:24
-		qw422016.N().S(`" rel="nofollow">`)
-//line views/ybs/search.qtpl:24
-		qw422016.E().S(item.AuthorName)
-//line views/ybs/search.qtpl:24
-		qw422016.N().S(`</a>
-                `)
-//line views/ybs/search.qtpl:25
-		if item.Comments > 0 {
-//line views/ybs/search.qtpl:25
-			qw422016.N().S(`
-                <a class="count" href="/t/`)
-//line views/ybs/search.qtpl:26
-			qw422016.N().DUL(item.ID)
-//line views/ybs/search.qtpl:26
-			qw422016.N().S(`#r`)
-//line views/ybs/search.qtpl:26
-			qw422016.N().DUL(item.Comments)
-//line views/ybs/search.qtpl:26
-			qw422016.N().S(`" title="Comment on `)
-//line views/ybs/search.qtpl:26
-			qw422016.E().S(item.Title)
-//line views/ybs/search.qtpl:26
-			qw422016.N().S(`">`)
-//line views/ybs/search.qtpl:26
-			qw422016.N().DUL(item.Comments)
-//line views/ybs/search.qtpl:26
-			qw422016.N().S(`</a>
-                `)
-//line views/ybs/search.qtpl:27
-		}
-//line views/ybs/search.qtpl:27
-		qw422016.N().S(`
-            </p>
-        </header>
-
-        <div class="entry-content">
-            `)
-//line views/ybs/search.qtpl:32
-		qw422016.E().S(item.FirstCon)
-//line views/ybs/search.qtpl:32
-		qw422016.N().S(`
-        </div>
-
-    </article>
-
-    `)
-//line views/ybs/search.qtpl:37
-	}
-//line views/ybs/search.qtpl:37
-	qw422016.N().S(`
-
+	qw422016.N().S(`" placeholder="输入关键词重新搜索…" autocomplete="off"
+               style="width:100%;height:44px;padding:0 110px 0 42px;border:1px solid var(--wk-border-strong);border-radius:10px;background:var(--wk-bg-soft);color:var(--wk-text);font-size:15px;font-family:var(--wk-font);outline:none;" />
+        <button type="submit" style="position:absolute;right:5px;top:5px;bottom:5px;padding:0 18px;border:0;border-radius:7px;background:var(--wk-accent);color:#fff;font-family:var(--wk-font);font-size:13.5px;font-weight:600;cursor:pointer;">搜索</button>
+    </form>
 </div>
 
+<ul class="wk-list">
+    `)
+//line views/ybs/search.qtpl:26
+	for _, item := range p.TopicPageInfo.Items {
+//line views/ybs/search.qtpl:26
+		qw422016.N().S(`
+    <li class="wk-item">
+        <div class="wk-item-avatar">
+            `)
+//line views/ybs/search.qtpl:29
+		if item.Comments > 0 {
+//line views/ybs/search.qtpl:29
+			qw422016.N().S(`
+            <img alt="`)
+//line views/ybs/search.qtpl:30
+			qw422016.E().S(item.Title)
+//line views/ybs/search.qtpl:30
+			qw422016.N().S(`" src="/icon/t/`)
+//line views/ybs/search.qtpl:30
+			qw422016.N().DUL(item.ID)
+//line views/ybs/search.qtpl:30
+			qw422016.N().S(`.jpg?r=`)
+//line views/ybs/search.qtpl:30
+			qw422016.N().DUL(item.Comments)
+//line views/ybs/search.qtpl:30
+			qw422016.N().S(`" loading="lazy">
+            `)
+//line views/ybs/search.qtpl:31
+		} else {
+//line views/ybs/search.qtpl:31
+			qw422016.N().S(`
+            <img alt="`)
+//line views/ybs/search.qtpl:32
+			qw422016.E().S(item.Title)
+//line views/ybs/search.qtpl:32
+			qw422016.N().S(`" src="/avatar/`)
+//line views/ybs/search.qtpl:32
+			qw422016.N().DUL(item.UserId)
+//line views/ybs/search.qtpl:32
+			qw422016.N().S(`.jpg" loading="lazy">
+            `)
+//line views/ybs/search.qtpl:33
+		}
+//line views/ybs/search.qtpl:33
+		qw422016.N().S(`
+        </div>
+        <div class="wk-item-body">
+            <a class="wk-item-title" href="/t/`)
+//line views/ybs/search.qtpl:36
+		qw422016.N().DUL(item.ID)
+//line views/ybs/search.qtpl:36
+		qw422016.N().S(`">`)
+//line views/ybs/search.qtpl:36
+		qw422016.E().S(item.Title)
+//line views/ybs/search.qtpl:36
+		qw422016.N().S(`</a>
+            <div class="wk-item-meta">
+                <span class="mi"><a class="wk-chip" href="/n/`)
+//line views/ybs/search.qtpl:38
+		qw422016.N().DUL(item.NodeId)
+//line views/ybs/search.qtpl:38
+		qw422016.N().S(`">`)
+//line views/ybs/search.qtpl:38
+		qw422016.E().S(item.NodeName)
+//line views/ybs/search.qtpl:38
+		qw422016.N().S(`</a></span>
+                <span class="mi">👤 <a href="/member/`)
+//line views/ybs/search.qtpl:39
+		qw422016.N().DUL(item.UserId)
+//line views/ybs/search.qtpl:39
+		qw422016.N().S(`">`)
+//line views/ybs/search.qtpl:39
+		qw422016.E().S(item.AuthorName)
+//line views/ybs/search.qtpl:39
+		qw422016.N().S(`</a></span>
+                <span class="mi">🕘 <time datetime="`)
+//line views/ybs/search.qtpl:40
+		qw422016.E().S(item.AddTimeFmt)
+//line views/ybs/search.qtpl:40
+		qw422016.N().S(`">`)
+//line views/ybs/search.qtpl:40
+		qw422016.E().S(item.EditTimeFmt)
+//line views/ybs/search.qtpl:40
+		qw422016.N().S(`</time></span>
+                `)
+//line views/ybs/search.qtpl:41
+		if item.Comments > 0 {
+//line views/ybs/search.qtpl:41
+			qw422016.N().S(`
+                <a class="wk-comment-pill" href="/t/`)
+//line views/ybs/search.qtpl:42
+			qw422016.N().DUL(item.ID)
+//line views/ybs/search.qtpl:42
+			qw422016.N().S(`#r`)
+//line views/ybs/search.qtpl:42
+			qw422016.N().DUL(item.Comments)
+//line views/ybs/search.qtpl:42
+			qw422016.N().S(`">💬 `)
+//line views/ybs/search.qtpl:42
+			qw422016.N().DUL(item.Comments)
+//line views/ybs/search.qtpl:42
+			qw422016.N().S(`</a>
+                `)
+//line views/ybs/search.qtpl:43
+		} else {
+//line views/ybs/search.qtpl:43
+			qw422016.N().S(`
+                <span class="wk-comment-pill is-zero">💬 0</span>
+                `)
+//line views/ybs/search.qtpl:45
+		}
+//line views/ybs/search.qtpl:45
+		qw422016.N().S(`
+            </div>
+            `)
+//line views/ybs/search.qtpl:47
+		if len(item.FirstCon) > 0 {
+//line views/ybs/search.qtpl:47
+			qw422016.N().S(`
+            <p style="margin:6px 0 0;font-size:13.5px;line-height:1.7;color:var(--wk-text-2);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">`)
+//line views/ybs/search.qtpl:48
+			qw422016.E().S(item.FirstCon)
+//line views/ybs/search.qtpl:48
+			qw422016.N().S(`</p>
+            `)
+//line views/ybs/search.qtpl:49
+		}
+//line views/ybs/search.qtpl:49
+		qw422016.N().S(`
+        </div>
+    </li>
+    `)
+//line views/ybs/search.qtpl:52
+	}
+//line views/ybs/search.qtpl:52
+	qw422016.N().S(`
+</ul>
+
 `)
-//line views/ybs/search.qtpl:41
+//line views/ybs/search.qtpl:55
 }
 
-//line views/ybs/search.qtpl:41
+//line views/ybs/search.qtpl:55
 func (p *SearchPage) WriteMainBody(qq422016 qtio422016.Writer) {
-//line views/ybs/search.qtpl:41
+//line views/ybs/search.qtpl:55
 	qw422016 := qt422016.AcquireWriter(qq422016)
-//line views/ybs/search.qtpl:41
+//line views/ybs/search.qtpl:55
 	p.StreamMainBody(qw422016)
-//line views/ybs/search.qtpl:41
+//line views/ybs/search.qtpl:55
 	qt422016.ReleaseWriter(qw422016)
-//line views/ybs/search.qtpl:41
+//line views/ybs/search.qtpl:55
 }
 
-//line views/ybs/search.qtpl:41
+//line views/ybs/search.qtpl:55
 func (p *SearchPage) MainBody() string {
-//line views/ybs/search.qtpl:41
+//line views/ybs/search.qtpl:55
 	qb422016 := qt422016.AcquireByteBuffer()
-//line views/ybs/search.qtpl:41
+//line views/ybs/search.qtpl:55
 	p.WriteMainBody(qb422016)
-//line views/ybs/search.qtpl:41
+//line views/ybs/search.qtpl:55
 	qs422016 := string(qb422016.B)
-//line views/ybs/search.qtpl:41
+//line views/ybs/search.qtpl:55
 	qt422016.ReleaseByteBuffer(qb422016)
-//line views/ybs/search.qtpl:41
+//line views/ybs/search.qtpl:55
 	return qs422016
-//line views/ybs/search.qtpl:41
+//line views/ybs/search.qtpl:55
 }

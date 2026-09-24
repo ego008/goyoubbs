@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/ego008/mdb"
 	"github.com/gin-gonic/gin"
 	"go.etcd.io/bbolt"
 )
@@ -120,6 +121,13 @@ func (h *BaseHandler) MemberPage(c *gin.Context) {
 			User:       user,
 			RegTimeFmt: util.TimeFmt(int64(user.RegTime), "2006-01-02 15:04"),
 		}
+		evn.TopicNum = db.HGetInt(tx, model.TbnUserTopicNum, mdb.I2b(user.ID))
+		evn.CommentNum = db.HGetInt(tx, model.TbnUserCommentNum, mdb.I2b(user.ID))
+		if lstType == "comment" {
+			evn.TopicPageInfo.TotalNum = evn.CommentNum
+		} else {
+			evn.TopicPageInfo.TotalNum = evn.TopicNum
+		}
 		evn.LstType = lstType
 		evn.TitleText = titleText
 
@@ -143,10 +151,11 @@ func (h *BaseHandler) MemberPage(c *gin.Context) {
 			}
 		}
 
+		c.Header("Content-Type", "text/html; charset=utf-8")
+		c.Status(http.StatusOK)
+		ybs.WritePageTemplate(c.Writer, evn)
+
 		return nil
 	})
 
-	c.Header("Content-Type", "text/html; charset=utf-8")
-	c.Status(http.StatusOK)
-	ybs.WritePageTemplate(c.Writer, evn)
 }

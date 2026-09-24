@@ -21,745 +21,1711 @@ var (
 func (p *TopicDetailPage) StreamMainBody(qw422016 *qt422016.Writer) {
 //line views/ybs/topic_detail.qtpl:1
 	qw422016.N().S(`
-<div class="entry">
 
-    <article role="article">
+<style>
+/* 阅读进度条 */
+.wk-progress {
+    position: fixed;
+    top: var(--wk-header-h);
+    left: 0;
+    height: 2px;
+    width: 0%;
+    background: linear-gradient(90deg, var(--wk-accent), var(--wk-tag));
+    z-index: 61;
+    transition: width .08s linear;
+}
 
-        <header>
-            <a href="/member/`)
-//line views/ybs/topic_detail.qtpl:7
-	qw422016.N().DUL(p.TopicFmt.UserId)
-//line views/ybs/topic_detail.qtpl:7
-	qw422016.N().S(`" rel="nofollow"><img alt="`)
-//line views/ybs/topic_detail.qtpl:7
-	qw422016.E().S(p.TopicFmt.Name)
-//line views/ybs/topic_detail.qtpl:7
-	qw422016.N().S(` avatar" src="/avatar/`)
-//line views/ybs/topic_detail.qtpl:7
-	qw422016.N().DUL(p.TopicFmt.UserId)
-//line views/ybs/topic_detail.qtpl:7
-	qw422016.N().S(`.jpg" class="avatar"></a>
-            <h1 class="entry-title">
-                `)
-//line views/ybs/topic_detail.qtpl:9
+/* 标题区 */
+.wk-title {
+    font-size: 35px;
+    line-height: 1.3;
+    font-weight: 700;
+    letter-spacing: -.02em;
+    margin: 0 0 14px;
+    color: var(--wk-text);
+}
+.wk-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 14px;
+    font-size: 14.5px;
+    color: var(--wk-text-muted);
+    padding-bottom: 18px;
+    border-bottom: 1px solid var(--wk-border);
+}
+.wk-meta-item { display: inline-flex; align-items: center; gap: 6px; }
+.wk-meta-item a { color: var(--wk-text-2); font-weight: 500; }
+.wk-meta-item a:hover { color: var(--wk-accent); }
+.wk-meta-item img.wk-avatar { width: 22px; height: 22px; }
+
+/* 文章排版 */
+.wk-article { padding-top: 26px; }
+.wk-article .entry-content {
+    font-size: 17px;
+    line-height: 1.85; 
+    color: var(--wk-text);
+}
+.wk-article .entry-content > *:first-child { margin-top: 0; }
+.wk-article .entry-content p { margin: 0 0 1.05em; }
+.wk-article .entry-content h1,
+.wk-article .entry-content h2,
+.wk-article .entry-content h3,
+.wk-article .entry-content h4 {
+    margin: 1.9em 0 .7em;
+    font-weight: 650;
+    line-height: 1.35;
+    scroll-margin-top: calc(var(--wk-header-h) + 20px);
+    position: relative;
+}
+.wk-article .entry-content h2 {
+    font-size: 24px;
+    padding-bottom: .35em;
+    border-bottom: 1px solid var(--wk-border);
+}
+.wk-article .entry-content h3 { font-size: 20px; }
+.wk-article .entry-content h4 { font-size: 17px; color: var(--wk-text-2); }
+.wk-article .entry-content ul,
+.wk-article .entry-content ol { margin: 0 0 1.1em; padding-left: 1.6em; }
+.wk-article .entry-content li { margin-bottom: .35em; }
+.wk-article .entry-content li > ul,
+.wk-article .entry-content li > ol { margin: .35em 0 0; }
+.wk-article .entry-content blockquote {
+    margin: 0 0 1.1em;
+    padding: 2px 16px;
+    border-left: 3px solid var(--wk-border-strong);
+    color: var(--wk-text-2);
+    background: var(--wk-bg-soft);
+    border-radius: 0 var(--wk-radius-sm) var(--wk-radius-sm) 0;
+}
+.wk-article .entry-content hr {
+    border: 0;
+    border-top: 1px solid var(--wk-border);
+    margin: 2.2em 0;
+}
+.wk-article .entry-content code {
+    font-family: var(--wk-mono);
+    font-size: .88em;
+    padding: .18em .42em;
+    border-radius: 5px;
+    background: var(--wk-code-bg);
+    border: 1px solid var(--wk-border);
+    word-break: break-word;
+}
+.wk-article .entry-content pre {
+    margin: 0;
+    padding: 16px 18px;
+    overflow-x: auto;
+    background: var(--wk-code-bg);
+    font-family: var(--wk-mono);
+    font-size: 14.5px;
+    line-height: 1.7;
+    border-radius: var(--wk-radius);
+    border: 1px solid var(--wk-border);
+    position: relative;
+}
+.wk-article .entry-content pre code {
+    padding: 0;
+    border: 0;
+    background: none;
+    font-size: inherit;
+    color: inherit;
+}
+.wk-article .entry-content img {
+    max-width: 100%;
+    height: auto;
+    border-radius: var(--wk-radius);
+    border: 1px solid var(--wk-border);
+}
+.wk-article .entry-content table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0 0 1.2em;
+    font-size: 14px;
+    display: block;
+    overflow-x: auto;
+}
+.wk-article .entry-content th,
+.wk-article .entry-content td {
+    border: 1px solid var(--wk-border);
+    padding: 8px 12px;
+    text-align: left;
+}
+.wk-article .entry-content th { background: var(--wk-bg-soft); font-weight: 600; }
+.wk-article .entry-content a.external_link::after {
+    content: "↗";
+    font-size: .8em;
+    margin-left: 2px;
+    opacity: .6;
+}
+/* 外链点击计数气泡 */
+.wk-article .entry-content a .clicks,
+.wk-article .entry-content a + .clicks,
+.wk-comment-body a .clicks,
+.wk-comment-body a + .clicks {
+    display: inline-block;
+    margin-left: 4px;
+    padding: 0 5px;
+    font-size: 11.5px;
+    border-radius: 999px;
+    background: var(--wk-bg-soft);
+    border: 1px solid var(--wk-border);
+    color: var(--wk-text-muted);
+    font-variant-numeric: tabular-nums;
+    vertical-align: middle;
+    line-height: 1.6;
+}
+
+/* 标题锚点 */
+.wk-anchor {
+    position: absolute;
+    left: -22px;
+    top: 50%;
+    transform: translateY(-50%);
+    opacity: 0;
+    color: var(--wk-text-muted);
+    font-weight: 400;
+    text-decoration: none !important;
+    transition: opacity .15s;
+    font-size: .85em;
+}
+.wk-article h2:hover .wk-anchor,
+.wk-article h3:hover .wk-anchor,
+.wk-article h4:hover .wk-anchor { opacity: 1; }
+
+/* 代码块复制按钮 */
+.copy-btn {
+    position: absolute;
+    top: 9px;
+    right: 9px;
+    padding: 3px 10px;
+    font-size: 11.5px;
+    font-family: var(--wk-font);
+    color: var(--wk-text-muted);
+    background: color-mix(in srgb, var(--wk-bg) 90%, transparent);
+    border: 1px solid var(--wk-border-strong);
+    border-radius: 6px;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity .15s, background .15s, color .15s;
+    z-index: 2;
+}
+.pre-container { position: relative; margin: 0 0 1.3em; }
+.pre-container:hover .copy-btn { opacity: 1; }
+.copy-btn:hover { color: var(--wk-accent); border-color: var(--wk-accent); background: var(--wk-bg); }
+.copy-btn.copied { color: #16a34a; border-color: #16a34a; opacity: 1; }
+/* 外层 figure 透明，只保留结构，不带背景和边框 */
+.wk-article .entry-content figure,
+.wk-article .entry-content figure.code {
+    background: transparent;
+    border: 0;
+    padding: 0;
+    margin: 0 0 1.3em;
+    position: relative;
+}
+
+/* 真正的代码块背景只落在 .highlight 上 */
+.wk-article .entry-content .highlight {
+    position: relative;
+    margin: 0;
+    background: var(--wk-code-bg);
+    border: 1px solid var(--wk-border);
+    border-radius: var(--wk-radius);
+    overflow: hidden;
+}
+
+/* 左上角语言标签：透明，与代码块融为一体 */
+.wk-article .entry-content figcaption,
+.wk-article .entry-content figure figcaption,
+.wk-article .entry-content figure.code figcaption {
+    background: transparent !important;
+    border: 0;
+    color: var(--wk-text-muted);
+    font-size: .85em;
+    font-weight: 500;
+    padding: 10px 18px 0;
+    margin: 0;
+    line-height: 1.5;
+}
+
+/* 评论区的代码块同样处理，保证一致 */
+.wk-comment-body figure,
+.wk-comment-body figure.code {
+    background: transparent;
+    border: 0;
+    padding: 0;
+    margin: 0 0 1em;
+}
+.wk-comment-body .highlight {
+    background: var(--wk-code-bg);
+    border: 1px solid var(--wk-border);
+    border-radius: var(--wk-radius);
+    overflow: hidden;
+}
+.wk-comment-body figcaption,
+.wk-comment-body figure figcaption {
+    background: transparent !important;
+    border: 0;
+    color: var(--wk-text-muted);
+    font-size: .85em;
+    padding: 10px 16px 0;
+    margin: 0;
+}
+
+/* 标签行 */
+.wk-tags {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin: 34px 0 0;
+    padding-top: 20px;
+    border-top: 1px solid var(--wk-border);
+}
+.wk-tags-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--wk-text-muted);
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    margin-right: 2px;
+}
+.wk-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 9px;
+    border-radius: 999px;
+    font-size: 12.5px;
+    font-weight: 600;
+    background: var(--wk-accent-soft);
+    color: var(--wk-accent);
+    border: 1px solid color-mix(in srgb, var(--wk-accent) 24%, transparent);
+    text-decoration: none !important;
+}
+.wk-badge:hover { background: color-mix(in srgb, var(--wk-accent) 16%, transparent); }
+
+/* 上下篇 */
+.wk-pager {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin: 30px 0 0;
+}
+.wk-pager a {
+    display: block;
+    padding: 13px 16px;
+    border: 1px solid var(--wk-border);
+    border-radius: var(--wk-radius);
+    text-decoration: none !important;
+    background: var(--wk-bg);
+    transition: border-color .15s, background .15s, transform .15s;
+}
+.wk-pager a:hover {
+    border-color: var(--wk-accent);
+    background: var(--wk-accent-soft);
+    transform: translateY(-1px);
+}
+.wk-pager .wk-pager-dir { display: block; font-size: 12.5px; color: var(--wk-text-muted); margin-bottom: 3px; }
+.wk-pager .wk-pager-title {
+    display: block;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--wk-text);
+    line-height: 1.4;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+}
+.wk-pager .wk-pager-next { text-align: right; }
+
+/* 评论区 */
+.wk-section-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 56px 0 22px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--wk-border);
+}
+.wk-section-head h2 { margin: 0; font-size: 20px; font-weight: 650; letter-spacing: -.01em; }
+.wk-section-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 22px;
+    height: 20px;
+    padding: 0 7px;
+    border-radius: 999px;
+    background: var(--wk-bg-soft);
+    border: 1px solid var(--wk-border);
+    color: var(--wk-text-muted);
+    font-size: 12px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+}
+.wk-comment {
+    position: relative;
+    padding: 18px 20px;
+    margin-bottom: 12px;
+    border: 1px solid var(--wk-border);
+    border-radius: var(--wk-radius);
+    background: var(--wk-bg);
+    transition: border-color .15s, box-shadow .15s;
+}
+.wk-comment:hover { border-color: var(--wk-border-strong); }
+.wk-comment:target {
+    border-color: var(--wk-accent);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--wk-accent) 15%, transparent);
+}
+.wk-comment-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+.wk-comment-head .wk-avatar { width: 30px; height: 30px; flex: 0 0 auto; }
+.wk-comment-author { font-size: 15px; font-weight: 650; color: var(--wk-text); text-decoration: none !important; }
+.wk-comment-author:hover { color: var(--wk-accent); }
+.wk-comment-time { font-size: 13px; color: var(--wk-text-muted); font-style: normal; }
+.wk-comment-actions { margin-left: auto; display: flex; align-items: center; gap: 4px; }
+.wk-comment-actions a,
+.wk-comment-actions button {
+    display: inline-flex;
+    align-items: center;
+    height: 26px;
+    padding: 0 9px;
+    border-radius: 6px;
+    border: 1px solid transparent;
+    background: transparent;
+    color: var(--wk-text-muted);
+    font-size: 12px;
+    font-family: var(--wk-font);
+    cursor: pointer;
+    text-decoration: none !important;
+    transition: background .12s, color .12s, border-color .12s;
+}
+.wk-comment-actions a:hover,
+.wk-comment-actions button:hover {
+    background: var(--wk-bg-soft);
+    border-color: var(--wk-border);
+    color: var(--wk-accent);
+}
+.wk-comment-idx {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 6px;
+    border-radius: 5px;
+    background: var(--wk-bg-soft);
+    border: 1px solid var(--wk-border);
+    color: var(--wk-text-muted);
+    font-size: 12px;
+    font-weight: 700;
+    text-decoration: none !important;
+}
+.wk-comment-idx:hover { color: var(--wk-accent); border-color: var(--wk-accent); }
+.wk-comment-body {
+    font-size: 16px;
+    line-height: 1.78;
+    color: var(--wk-text-2);
+    padding-left: 40px;
+}
+.wk-comment-body > *:first-child { margin-top: 0; }
+.wk-comment-body > *:last-child { margin-bottom: 0; }
+.wk-comment-body p { margin: 0 0 .85em; }
+.wk-comment-body h3 { font-size: 16.5px; margin: 1.2em 0 .5em; color: var(--wk-text); }
+.wk-comment-body code {
+    font-family: var(--wk-mono);
+    font-size: .88em;
+    padding: .15em .4em;
+    border-radius: 5px;
+    background: var(--wk-code-bg);
+    border: 1px solid var(--wk-border);
+}
+.wk-comment-body pre {
+    padding: 14px 16px;
+    margin: 0 0 1em;
+    overflow-x: auto;
+    background: var(--wk-code-bg);
+    border: 1px solid var(--wk-border);
+    border-radius: var(--wk-radius);
+    font-family: var(--wk-mono);
+    font-size: 14px;
+    line-height: 1.6;
+}
+.wk-comment-body figure.code {margin:0 0 1.3em;}
+.wk-comment-body pre code { padding: 0; border: 0; background: none; }
+
+/* 评论表单 */
+.wk-form-wrap {
+    margin-top: 26px;
+    border: 1px solid var(--wk-border);
+    border-radius: var(--wk-radius);
+    background: var(--wk-bg);
+    overflow: hidden;
+}
+.wk-form-head {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 12px 16px;
+    background: var(--wk-bg-soft);
+    border-bottom: 1px solid var(--wk-border);
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--wk-text-2);
+}
+.wk-form-head .wk-avatar { width: 22px; height: 22px; }
+.wk-form-body { padding: 14px 16px 16px; }
+#id-comment {
+    display: block;
+    width: 100%;
+    min-height: 130px;
+    padding: 12px 14px;
+    border: 1px solid var(--wk-border-strong);
+    border-radius: var(--wk-radius-sm);
+    background: var(--wk-bg);
+    color: var(--wk-text);
+    font-family: var(--wk-font);
+    font-size: 16px;
+    line-height: 1.7;
+    resize: vertical;
+    outline: none;
+    transition: border-color .15s, box-shadow .15s;
+}
+#id-comment:focus {
+    border-color: var(--wk-accent);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--wk-accent) 15%, transparent);
+}
+/* 评论正文里的图片、表格、引用也做同样约束 */
+.wk-comment-body img {
+    max-width: 100%;
+    height: auto;
+    border-radius: var(--wk-radius);
+    border: 1px solid var(--wk-border);
+}
+.wk-comment-body blockquote {
+    margin: 0 0 .85em;
+    padding: 2px 14px;
+    border-left: 3px solid var(--wk-border-strong);
+    color: var(--wk-text-2);
+    background: var(--wk-bg-soft);
+    border-radius: 0 var(--wk-radius-sm) var(--wk-radius-sm) 0;
+}
+.wk-comment-body table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0 0 1em;
+    font-size: 13.5px;
+    display: block;
+    overflow-x: auto;
+}
+.wk-comment-body th,
+.wk-comment-body td {
+    border: 1px solid var(--wk-border);
+    padding: 6px 10px;
+    text-align: left;
+}
+.wk-comment-body th { background: var(--wk-bg-soft); font-weight: 600; }
+
+.wk-form-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin-top: 12px;
+}
+.wk-form-toolbar .wk-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 33px;
+    padding: 0 15px;
+    border-radius: 7px;
+    border: 1px solid var(--wk-border-strong);
+    background: var(--wk-bg);
+    color: var(--wk-text-2);
+    font-size: 14px;
+    font-family: var(--wk-font);
+    font-weight: 500;
+    cursor: pointer;
+    transition: background .14s, border-color .14s, color .14s;
+}
+.wk-form-toolbar .wk-btn:hover {
+    border-color: var(--wk-accent);
+    color: var(--wk-accent);
+    background: var(--wk-accent-soft);
+}
+.wk-form-toolbar .wk-btn-primary {
+    background: var(--wk-accent);
+    border-color: var(--wk-accent);
+    color: #fff;
+}
+.wk-form-toolbar .wk-btn-primary:hover {
+    background: color-mix(in srgb, var(--wk-accent) 85%, #000);
+    border-color: color-mix(in srgb, var(--wk-accent) 85%, #000);
+    color: #fff;
+}
+.wk-file-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 33px;
+    padding: 0 15px;
+    border-radius: 7px;
+    border: 1px dashed var(--wk-border-strong);
+    color: var(--wk-text-muted);
+    font-size: 14px;
+    cursor: pointer;
+    transition: border-color .14s, color .14s;
+}
+.wk-file-label:hover { border-color: var(--wk-accent); color: var(--wk-accent); }
+.wk-file-label input[type=file] { display: none; }
+#id-msg { display: none; font-size: 13px; color: var(--wk-text-muted); margin-left: auto; }
+#id-preview {
+    display: none;
+    margin-top: 16px;
+    padding: 16px;
+    border: 1px solid var(--wk-border);
+    border-radius: var(--wk-radius-sm);
+    background: var(--wk-bg-soft);
+    font-size: 14.5px;
+    line-height: 1.72;
+    color: var(--wk-text-2);
+}
+
+/* 目录项层级 */
+/* 本页目录 */
+#toc-panel .wk-toc-title {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .07em;
+    text-transform: uppercase;
+    color: var(--wk-text-muted);
+    margin: 0 0 10px;
+    padding-left: 10px;
+}
+.wk-toc {
+    list-style: none;
+    margin: 0 0 26px;
+    padding: 0;
+}
+.wk-toc li { margin: 0; }
+.wk-toc a {
+    display: block;
+    padding: 4px 10px;
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--wk-text-muted);
+    border-left: 2px solid transparent;
+    text-decoration: none !important;
+    transition: color .12s, border-color .12s, background .12s;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.wk-toc a:hover {
+    color: var(--wk-accent);
+    background: var(--wk-bg-soft);
+}
+.wk-toc a.is-active {
+    color: var(--wk-accent);
+    border-left-color: var(--wk-accent);
+    font-weight: 600;
+    background: var(--wk-accent-soft);
+}
+.wk-toc li.toc-h3 a { padding-left: 22px; font-size: 13.5px; }
+.wk-toc li.toc-h4 a { padding-left: 34px; font-size: 13px; }
+
+/* ============================================================
+   Pygments / Chroma 代码高亮配色（Solarized Light）
+   后端渲染的 class：.k .c .s .n .nf .nt .o .p .m .nb .na .no .nc .nv ...
+   ============================================================ */
+
+/* 代码块外观 */
+/* 外层 figure 透明，只保留结构，不带背景和边框 */
+.wk-article .entry-content figure,
+.wk-article .entry-content figure.code {
+    background: transparent;
+    border: 0;
+    padding: 0;
+    margin: 0 0 1.3em;
+    position: relative;
+}
+
+.wk-article .entry-content .highlight pre {
+    margin: 0;
+    padding: 16px 18px;
+    background: transparent;
+    border: 0;
+    overflow-x: auto;
+    font-family: var(--wk-mono);
+    font-size: 14.5px;
+    line-height: 1.7;
+    color: var(--wk-text);
+}
+.wk-article .entry-content .highlight code {
+    background: transparent;
+    border: 0;
+    padding: 0;
+    font-size: inherit;
+    color: inherit;
+}
+
+/* 行号列（如果后端输出 gutter） */
+.wk-article .entry-content .highlight .gutter,
+.wk-article .entry-content .highlight .lntd:first-child {
+    padding: 0;
+    background: var(--wk-bg-soft);
+    border-right: 1px solid var(--wk-border);
+    user-select: none;
+    text-align: right;
+    color: var(--wk-text-muted);
+    font-family: var(--wk-mono);
+    font-size: 13px;
+    vertical-align: top;
+    min-width: 48px;
+}
+.wk-article .entry-content .highlight .gutter pre,
+.wk-article .entry-content .highlight .lntd:first-child pre {
+    padding: 16px 12px 16px 16px;
+    color: var(--wk-text-muted);
+}
+.wk-article .entry-content .highlight .code,
+.wk-article .entry-content .highlight .lntd:last-child {
+    padding: 0;
+    vertical-align: top;
+}
+.wk-article .entry-content .highlight table {
+    width: 100%;
+    border: 0;
+    margin: 0;
+    border-collapse: collapse;
+}
+.wk-article .entry-content .highlight td {
+    border: 0;
+    padding: 0;
+}
+.wk-article .entry-content .highlight .line {
+    display: block;
+    min-height: 1.7em;
+}
+.wk-article .entry-content .highlight .line-numbers {
+    color: var(--wk-text-muted);
+    background: transparent;
+}
+.wk-article .entry-content .highlight figcaption {
+    color: var(--wk-text-muted);
+    font-size: .85em;
+    padding: 8px 18px;
+    border-bottom: 1px solid var(--wk-border);
+}
+
+/* ===== Solarized Light 配色 ===== */
+.highlight .c, .highlight .ch, .highlight .cm, .highlight .c1, .highlight .cs, .highlight .cp {
+    color: #93a1a1;
+    font-style: italic;
+}
+.highlight .k, .highlight .kc, .highlight .kd, .highlight .kn, .highlight .kp, .highlight .kr, .highlight .kt {
+    color: #cb4b16;
+}
+.highlight .o, .highlight .ow {
+    color: #586e75;
+    font-weight: bold;
+}
+.highlight .p, .highlight .pi {
+    color: #586e75;
+}
+.highlight .s, .highlight .s1, .highlight .s2, .highlight .sb, .highlight .sc, .highlight .sd, .highlight .se, .highlight .sh, .highlight .si, .highlight .sx, .highlight .sr, .highlight .ss {
+    color: #2aa198;
+}
+.highlight .m, .highlight .mb, .highlight .mf, .highlight .mh, .highlight .mi, .highlight .mo {
+    color: #2aa198;
+}
+.highlight .n, .highlight .na, .highlight .nv, .highlight .vg, .highlight .vi, .highlight .vm {
+    color: #268bd2;
+}
+.highlight .nb, .highlight .bp {
+    color: #859900;
+}
+.highlight .nc, .highlight .nn {
+    color: #d33682;
+}
+.highlight .no {
+    color: #b58900;
+}
+.highlight .nf, .highlight .fm {
+    color: #268bd2;
+    font-weight: bold;
+}
+.highlight .nt {
+    color: #268bd2;
+    font-weight: bold;
+}
+.highlight .nl {
+    color: #859900;
+}
+.highlight .ne {
+    color: #268bd2;
+    font-weight: bold;
+}
+.highlight .err {
+    color: #dc322f;
+    background: transparent;
+}
+.highlight .gd { color: #586e75; background-color: #f3c8c8; }
+.highlight .gi { color: #586e75; background-color: #e3e7c8; }
+.highlight .gh { color: #93a1a1; }
+.highlight .gu { color: #6c71c4; }
+.highlight .gs { font-weight: bold; }
+
+/* ===== 深色模式：Solarized Dark 配色 ===== */
+@media (prefers-color-scheme: dark) {
+    .wk-article .entry-content .highlight {
+        background: #0d1117;
+        border-color: #30363d;
+    }
+    .wk-article .entry-content .highlight .gutter,
+    .wk-article .entry-content .highlight .lntd:first-child {
+        background: #161b22;
+        border-right-color: #30363d;
+        color: #6e7681;
+    }
+    .highlight .c, .highlight .ch, .highlight .cm, .highlight .c1, .highlight .cs, .highlight .cp {
+        color: #8b949e;
+    }
+    .highlight .k, .highlight .kc, .highlight .kd, .highlight .kn, .highlight .kp, .highlight .kr, .highlight .kt {
+        color: #ff7b72;
+    }
+    .highlight .o, .highlight .ow { color: #c9d1d9; }
+    .highlight .p, .highlight .pi { color: #c9d1d9; }
+    .highlight .s, .highlight .s1, .highlight .s2, .highlight .sb, .highlight .sc, .highlight .sd,
+    .highlight .se, .highlight .sh, .highlight .si, .highlight .sx, .highlight .sr, .highlight .ss {
+        color: #a5d6ff;
+    }
+    .highlight .m, .highlight .mb, .highlight .mf, .highlight .mh, .highlight .mi, .highlight .mo {
+        color: #79c0ff;
+    }
+    .highlight .n, .highlight .na, .highlight .nv, .highlight .vg, .highlight .vi, .highlight .vm {
+        color: #79c0ff;
+    }
+    .highlight .nb, .highlight .bp { color: #d2a8ff; }
+    .highlight .nc, .highlight .nn { color: #ffa657; }
+    .highlight .no { color: #79c0ff; }
+    .highlight .nf, .highlight .fm { color: #d2a8ff; }
+    .highlight .nt { color: #7ee787; }
+    .highlight .nl { color: #79c0ff; }
+    .highlight .ne { color: #ffa657; }
+    .highlight .err { color: #f85149; }
+    .highlight .gd { color: #ffdcd7; background-color: #67060c; }
+    .highlight .gi { color: #aff5b4; background-color: #033a16; }
+    .highlight .gh { color: #8b949e; }
+    .highlight .gu { color: #d2a8ff; }
+}
+
+/* 响应式 */
+@media (max-width: 640px) {
+    .wk-title { font-size: 23px; }
+    .wk-pager { grid-template-columns: 1fr; }
+    .wk-pager .wk-pager-next { text-align: left; }
+    .wk-comment-body { padding-left: 0; }
+}
+</style>
+
+<div class="wk-progress" id="wk-progress"></div>
+
+<nav class="wk-breadcrumb">
+    <a href="/">首页</a><span class="sep">/</span>
+    <a href="/n/`)
+//line views/ybs/topic_detail.qtpl:822
+	qw422016.N().DUL(p.TopicFmt.NodeId)
+//line views/ybs/topic_detail.qtpl:822
+	qw422016.N().S(`">`)
+//line views/ybs/topic_detail.qtpl:822
+	qw422016.E().S(p.DefaultNode.Name)
+//line views/ybs/topic_detail.qtpl:822
+	qw422016.N().S(`</a><span class="sep">/</span>
+    <span class="current">`)
+//line views/ybs/topic_detail.qtpl:823
 	qw422016.E().S(p.TopicFmt.Title)
-//line views/ybs/topic_detail.qtpl:9
-	qw422016.N().S(`
-            </h1>
-            <p class="meta">
-                <span class="categories">📁 <a class="category" href="/n/`)
-//line views/ybs/topic_detail.qtpl:12
-	qw422016.N().DUL(p.TopicFmt.NodeId)
-//line views/ybs/topic_detail.qtpl:12
-	qw422016.N().S(`" rel="category tag">`)
-//line views/ybs/topic_detail.qtpl:12
-	qw422016.E().S(p.DefaultNode.Name)
-//line views/ybs/topic_detail.qtpl:12
-	qw422016.N().S(`</a></span>
-                `)
-//line views/ybs/topic_detail.qtpl:13
-	qw422016.N().S(p.TopicFmt.ClockEmoji)
-//line views/ybs/topic_detail.qtpl:13
-	qw422016.N().S(` <time datetime="`)
-//line views/ybs/topic_detail.qtpl:13
-	qw422016.E().S(p.TopicFmt.AddTimeFmt)
-//line views/ybs/topic_detail.qtpl:13
-	qw422016.N().S(`" pubdate data-updated="true">`)
-//line views/ybs/topic_detail.qtpl:13
-	qw422016.E().S(p.TopicFmt.AddTimeFmt)
-//line views/ybs/topic_detail.qtpl:13
-	qw422016.N().S(`</time>
-                by <a href="/member/`)
-//line views/ybs/topic_detail.qtpl:14
+//line views/ybs/topic_detail.qtpl:823
+	qw422016.N().S(`</span>
+</nav>
+
+<div style="margin-bottom:20px;">
+    <h1 class="wk-title">`)
+//line views/ybs/topic_detail.qtpl:827
+	qw422016.E().S(p.TopicFmt.Title)
+//line views/ybs/topic_detail.qtpl:827
+	qw422016.N().S(`</h1>
+    <div class="wk-meta">
+        <span class="wk-meta-item">
+            <img class="wk-avatar" src="/avatar/`)
+//line views/ybs/topic_detail.qtpl:830
 	qw422016.N().DUL(p.TopicFmt.UserId)
-//line views/ybs/topic_detail.qtpl:14
-	qw422016.N().S(`" rel="nofollow">`)
-//line views/ybs/topic_detail.qtpl:14
+//line views/ybs/topic_detail.qtpl:830
+	qw422016.N().S(`.jpg" alt="`)
+//line views/ybs/topic_detail.qtpl:830
 	qw422016.E().S(p.TopicFmt.Name)
-//line views/ybs/topic_detail.qtpl:14
+//line views/ybs/topic_detail.qtpl:830
+	qw422016.N().S(` avatar">
+            <a href="/member/`)
+//line views/ybs/topic_detail.qtpl:831
+	qw422016.N().DUL(p.TopicFmt.UserId)
+//line views/ybs/topic_detail.qtpl:831
+	qw422016.N().S(`">`)
+//line views/ybs/topic_detail.qtpl:831
+	qw422016.E().S(p.TopicFmt.Name)
+//line views/ybs/topic_detail.qtpl:831
 	qw422016.N().S(`</a>
-                `)
-//line views/ybs/topic_detail.qtpl:15
-	if p.CurrentUser.Flag >= 99 {
-//line views/ybs/topic_detail.qtpl:15
-		qw422016.N().S(`
-                &bull; <a rel="bookmark" href="/admin/topic/edit?id=`)
-//line views/ybs/topic_detail.qtpl:16
-		qw422016.N().DUL(p.TopicFmt.ID)
-//line views/ybs/topic_detail.qtpl:16
-		qw422016.N().S(`&back=here">Edit</a>
-                `)
-//line views/ybs/topic_detail.qtpl:17
-	}
-//line views/ybs/topic_detail.qtpl:17
-	qw422016.N().S(`
-            </p>
-        </header>
-
-        <div class="markdown-body entry-content">
-            `)
-//line views/ybs/topic_detail.qtpl:22
-	qw422016.N().S(p.TopicFmt.ContentFmt)
-//line views/ybs/topic_detail.qtpl:22
-	qw422016.N().S(`
-        </div>
-
-        `)
-//line views/ybs/topic_detail.qtpl:25
-	if len(p.TopicFmt.Relative) > 0 {
-//line views/ybs/topic_detail.qtpl:25
-		qw422016.N().S(`
-        <section>
-            <h4 class="seealso-title">💘 相关文章</h4>
-            <ul class="seealso">
-                `)
-//line views/ybs/topic_detail.qtpl:29
-		for _, v := range p.TopicFmt.Relative {
-//line views/ybs/topic_detail.qtpl:29
-			qw422016.N().S(`
-                <li><a href="/t/`)
-//line views/ybs/topic_detail.qtpl:30
-			qw422016.N().DUL(v.ID)
-//line views/ybs/topic_detail.qtpl:30
-			qw422016.N().S(`" rel="bookmark">`)
-//line views/ybs/topic_detail.qtpl:30
-			qw422016.E().S(v.Title)
-//line views/ybs/topic_detail.qtpl:30
-			qw422016.N().S(`</a></li>
-                `)
-//line views/ybs/topic_detail.qtpl:31
-		}
-//line views/ybs/topic_detail.qtpl:31
-		qw422016.N().S(`
-            </ul>
-        </section>
-        `)
-//line views/ybs/topic_detail.qtpl:34
-	}
-//line views/ybs/topic_detail.qtpl:34
-	qw422016.N().S(`
-
-        <footer>
-
-            <p class="meta gray">
-                <span class="categories">
-                    📁 Category: <a class="category" href="/n/`)
-//line views/ybs/topic_detail.qtpl:40
-	qw422016.N().DUL(p.TopicFmt.NodeId)
-//line views/ybs/topic_detail.qtpl:40
-	qw422016.N().S(`" rel="category tag">`)
-//line views/ybs/topic_detail.qtpl:40
-	qw422016.E().S(p.DefaultNode.Name)
-//line views/ybs/topic_detail.qtpl:40
-	qw422016.N().S(`</a>
-                </span>
-                `)
-//line views/ybs/topic_detail.qtpl:42
-	if len(p.TagLst) > 0 {
-//line views/ybs/topic_detail.qtpl:42
-		qw422016.N().S(`
-                <span class="categories">🏷️ Tags:
-                    `)
-//line views/ybs/topic_detail.qtpl:44
-		for _, tag := range p.TagLst {
-//line views/ybs/topic_detail.qtpl:44
-			qw422016.N().S(`
-                    <a class="tag" href="/tag/`)
-//line views/ybs/topic_detail.qtpl:45
-			qw422016.N().U(tag.Name)
-//line views/ybs/topic_detail.qtpl:45
-			qw422016.N().S(`" rel="tag">`)
-//line views/ybs/topic_detail.qtpl:45
-			qw422016.E().S(tag.Name)
-//line views/ybs/topic_detail.qtpl:45
-			qw422016.N().S(`</a>
-                    `)
-//line views/ybs/topic_detail.qtpl:46
-		}
-//line views/ybs/topic_detail.qtpl:46
-		qw422016.N().S(`
-                </span>
-                `)
-//line views/ybs/topic_detail.qtpl:48
-	}
-//line views/ybs/topic_detail.qtpl:48
-	qw422016.N().S(`
-                <span class="categories">
-                💬 <a href="#comments">Comments (`)
-//line views/ybs/topic_detail.qtpl:50
+        </span>
+        <span class="wk-meta-item">🕘 更新于 <time datetime="`)
+//line views/ybs/topic_detail.qtpl:833
+	qw422016.E().S(p.TopicFmt.AddTimeFmt)
+//line views/ybs/topic_detail.qtpl:833
+	qw422016.N().S(`">`)
+//line views/ybs/topic_detail.qtpl:833
+	qw422016.E().S(p.TopicFmt.AddTimeFmt)
+//line views/ybs/topic_detail.qtpl:833
+	qw422016.N().S(`</time></span>
+        <span class="wk-meta-item">💬 `)
+//line views/ybs/topic_detail.qtpl:834
 	qw422016.N().DUL(p.TopicFmt.Comments)
-//line views/ybs/topic_detail.qtpl:50
-	qw422016.N().S(`)</a> 😊 PageView (`)
-//line views/ybs/topic_detail.qtpl:50
+//line views/ybs/topic_detail.qtpl:834
+	qw422016.N().S(` 条评论</span>
+        <span class="wk-meta-item">👁 `)
+//line views/ybs/topic_detail.qtpl:835
 	qw422016.N().DUL(p.TopicFmt.Views)
-//line views/ybs/topic_detail.qtpl:50
-	qw422016.N().S(`)
-                </span>
-            </p>
-
-            <ul class="seealso">
-                `)
-//line views/ybs/topic_detail.qtpl:55
-	if p.NewTopic.ID > 0 {
-//line views/ybs/topic_detail.qtpl:55
+//line views/ybs/topic_detail.qtpl:835
+	qw422016.N().S(` 次浏览</span>
+        `)
+//line views/ybs/topic_detail.qtpl:836
+	if p.CurrentUser.Flag >= 99 {
+//line views/ybs/topic_detail.qtpl:836
 		qw422016.N().S(`
-                <li>上一篇 › <a class="next" href="/t/`)
-//line views/ybs/topic_detail.qtpl:56
-		qw422016.N().DUL(p.NewTopic.ID)
-//line views/ybs/topic_detail.qtpl:56
-		qw422016.N().S(`" rel="next">`)
-//line views/ybs/topic_detail.qtpl:56
-		qw422016.E().S(p.NewTopic.Title)
-//line views/ybs/topic_detail.qtpl:56
-		qw422016.N().S(`</a></li>
-                `)
-//line views/ybs/topic_detail.qtpl:57
+        <span style="margin-left:auto;">
+            <a href="/admin/topic/edit?id=`)
+//line views/ybs/topic_detail.qtpl:838
+		qw422016.N().DUL(p.TopicFmt.ID)
+//line views/ybs/topic_detail.qtpl:838
+		qw422016.N().S(`&back=here"
+               style="display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 12px;border-radius:7px;border:1px solid var(--wk-border-strong);background:transparent;color:var(--wk-text-2);font-size:13px;text-decoration:none;">✎ 编辑本页</a>
+        </span>
+        `)
+//line views/ybs/topic_detail.qtpl:841
 	}
-//line views/ybs/topic_detail.qtpl:57
+//line views/ybs/topic_detail.qtpl:841
 	qw422016.N().S(`
-                `)
-//line views/ybs/topic_detail.qtpl:58
-	if p.OldTopic.ID > 0 {
-//line views/ybs/topic_detail.qtpl:58
-		qw422016.N().S(`
-                <li>下一篇 › <a class="prev" href="/t/`)
-//line views/ybs/topic_detail.qtpl:59
-		qw422016.N().DUL(p.OldTopic.ID)
-//line views/ybs/topic_detail.qtpl:59
-		qw422016.N().S(`" rel="prev">`)
-//line views/ybs/topic_detail.qtpl:59
-		qw422016.E().S(p.OldTopic.Title)
-//line views/ybs/topic_detail.qtpl:59
-		qw422016.N().S(`</a></li>
-                `)
-//line views/ybs/topic_detail.qtpl:60
-	}
-//line views/ybs/topic_detail.qtpl:60
+    </div>
+</div>
+
+<article class="wk-article" role="article">
+    <div class="entry-content markdown-body">
+        `)
+//line views/ybs/topic_detail.qtpl:847
+	qw422016.N().S(p.TopicFmt.ContentFmt)
+//line views/ybs/topic_detail.qtpl:847
 	qw422016.N().S(`
-            </ul>
-
-        </footer>
-
-    </article>
+    </div>
 
     `)
-//line views/ybs/topic_detail.qtpl:67
-	if len(p.CommentLst) > 0 {
-//line views/ybs/topic_detail.qtpl:67
+//line views/ybs/topic_detail.qtpl:850
+	if len(p.TagLst) > 0 {
+//line views/ybs/topic_detail.qtpl:850
 		qw422016.N().S(`
-    <section>
-        <h1 class="br-nav">评论</h1>
-        <div id="comments">
-            <h2 class="comments bot-line">共`)
-//line views/ybs/topic_detail.qtpl:71
-		qw422016.N().DUL(p.TopicFmt.Comments)
-//line views/ybs/topic_detail.qtpl:71
-		qw422016.N().S(`条关于"`)
-//line views/ybs/topic_detail.qtpl:71
-		qw422016.E().S(p.TopicFmt.Title)
-//line views/ybs/topic_detail.qtpl:71
-		qw422016.N().S(`"的评论</h2>
-            `)
-//line views/ybs/topic_detail.qtpl:72
-		for _, item := range p.CommentLst {
-//line views/ybs/topic_detail.qtpl:72
+    <div class="wk-tags">
+        <span class="wk-tags-label">标签</span>
+        `)
+//line views/ybs/topic_detail.qtpl:853
+		for _, tag := range p.TagLst {
+//line views/ybs/topic_detail.qtpl:853
 			qw422016.N().S(`
-            <article id="r`)
-//line views/ybs/topic_detail.qtpl:73
-			qw422016.N().DUL(item.ID)
-//line views/ybs/topic_detail.qtpl:73
-			qw422016.N().S(`">
-                <header>
-                    <a href="/member/`)
-//line views/ybs/topic_detail.qtpl:75
-			qw422016.N().DUL(item.UserId)
-//line views/ybs/topic_detail.qtpl:75
-			qw422016.N().S(`" rel="nofollow"><img alt="`)
-//line views/ybs/topic_detail.qtpl:75
-			qw422016.E().S(item.Name)
-//line views/ybs/topic_detail.qtpl:75
-			qw422016.N().S(` avatar" src="/avatar/`)
-//line views/ybs/topic_detail.qtpl:75
-			qw422016.N().DUL(item.UserId)
-//line views/ybs/topic_detail.qtpl:75
-			qw422016.N().S(`.jpg" class="avatar"></a>
-                    <div class="meta gray5">
-                        <a href="`)
-//line views/ybs/topic_detail.qtpl:77
-			qw422016.E().S(item.Link)
-//line views/ybs/topic_detail.qtpl:77
-			qw422016.N().S(`" class="comment-count comment-id">#`)
-//line views/ybs/topic_detail.qtpl:77
-			qw422016.N().DUL(item.ID)
-//line views/ybs/topic_detail.qtpl:77
-			qw422016.N().S(`</a> <a href="/member/`)
-//line views/ybs/topic_detail.qtpl:77
-			qw422016.N().DUL(item.UserId)
-//line views/ybs/topic_detail.qtpl:77
-			qw422016.N().S(`" rel="nofollow">`)
-//line views/ybs/topic_detail.qtpl:77
-			qw422016.E().S(item.Name)
-//line views/ybs/topic_detail.qtpl:77
+        <a class="wk-badge" href="/tag/`)
+//line views/ybs/topic_detail.qtpl:854
+			qw422016.N().U(tag.Name)
+//line views/ybs/topic_detail.qtpl:854
+			qw422016.N().S(`">`)
+//line views/ybs/topic_detail.qtpl:854
+			qw422016.E().S(tag.Name)
+//line views/ybs/topic_detail.qtpl:854
 			qw422016.N().S(`</a>
-                        `)
-//line views/ybs/topic_detail.qtpl:78
-			if p.CurrentUser.Flag >= 99 {
-//line views/ybs/topic_detail.qtpl:78
-				qw422016.N().S(`
-                        <a href="/admin/comment/edit?tid=`)
-//line views/ybs/topic_detail.qtpl:79
-				qw422016.N().DUL(item.TopicId)
-//line views/ybs/topic_detail.qtpl:79
-				qw422016.N().S(`&cid=`)
-//line views/ybs/topic_detail.qtpl:79
-				qw422016.N().DUL(item.ID)
-//line views/ybs/topic_detail.qtpl:79
-				qw422016.N().S(`&back=here">Edit</a>
-                        `)
-//line views/ybs/topic_detail.qtpl:80
-			}
-//line views/ybs/topic_detail.qtpl:80
-			qw422016.N().S(`
-                        <a rel="nofollow" class="right" href="#respond" onclick="replyTo('`)
-//line views/ybs/topic_detail.qtpl:81
-			qw422016.E().S(item.Name)
-//line views/ybs/topic_detail.qtpl:81
-			qw422016.N().S(`',`)
-//line views/ybs/topic_detail.qtpl:81
-			qw422016.N().DUL(item.ID)
-//line views/ybs/topic_detail.qtpl:81
-			qw422016.N().S(`)">回复</a>
-                        <br>
-                        <time datetime="`)
-//line views/ybs/topic_detail.qtpl:83
-			qw422016.N().DL(item.AddTime)
-//line views/ybs/topic_detail.qtpl:83
-			qw422016.N().S(`" pubdate data-updated="true"><em>`)
-//line views/ybs/topic_detail.qtpl:83
-			qw422016.E().S(item.AddTimeFmt)
-//line views/ybs/topic_detail.qtpl:83
-			qw422016.N().S(`</em></time>
-                    </div>
-                </header>
-                <div class="markdown-body entry-content">
-                    `)
-//line views/ybs/topic_detail.qtpl:87
-			qw422016.N().S(item.ContentFmt)
-//line views/ybs/topic_detail.qtpl:87
-			qw422016.N().S(`
-                </div>
-            </article>
-            `)
-//line views/ybs/topic_detail.qtpl:90
+        `)
+//line views/ybs/topic_detail.qtpl:855
 		}
-//line views/ybs/topic_detail.qtpl:90
+//line views/ybs/topic_detail.qtpl:855
 		qw422016.N().S(`
-        </div>
-    </section>
+    </div>
     `)
-//line views/ybs/topic_detail.qtpl:93
+//line views/ybs/topic_detail.qtpl:857
 	}
-//line views/ybs/topic_detail.qtpl:93
+//line views/ybs/topic_detail.qtpl:857
 	qw422016.N().S(`
 
-    <section id="respond">
-        <h2 class="br-nav">写一条评论</h2>
-        <div class="write-comment pure-form">
-            <form action="" method="post" id="commentform">
-                <textarea name="comment" id="id-comment" class="pure-u-1" placeholder="* 字符限制 `)
-//line views/ybs/topic_detail.qtpl:99
-	qw422016.N().D(p.SiteCf.CommentConMaxLen)
-//line views/ybs/topic_detail.qtpl:99
-	qw422016.N().S(`"></textarea>
-                `)
-//line views/ybs/topic_detail.qtpl:100
-	if p.CurrentUser.ID > 0 {
-//line views/ybs/topic_detail.qtpl:100
+    `)
+//line views/ybs/topic_detail.qtpl:859
+	if p.NewTopic.ID > 0 || p.OldTopic.ID > 0 {
+//line views/ybs/topic_detail.qtpl:859
 		qw422016.N().S(`
-                <div class="pure-button-group">
-                `)
-//line views/ybs/topic_detail.qtpl:102
-		if p.SiteCf.CloseReply && p.CurrentUser.Flag < 99 {
-//line views/ybs/topic_detail.qtpl:102
+    <nav class="wk-pager">
+        `)
+//line views/ybs/topic_detail.qtpl:861
+		if p.NewTopic.ID > 0 {
+//line views/ybs/topic_detail.qtpl:861
 			qw422016.N().S(`
-                    <input id="btn-preview" type="button" value="评论已关闭" name="submit" onclick="return false;" class="pure-button" disabled="" />
-                `)
-//line views/ybs/topic_detail.qtpl:104
+        <a class="wk-pager-prev" href="/t/`)
+//line views/ybs/topic_detail.qtpl:862
+			qw422016.N().DUL(p.NewTopic.ID)
+//line views/ybs/topic_detail.qtpl:862
+			qw422016.N().S(`" rel="next">
+            <span class="wk-pager-dir">← 上一篇</span>
+            <span class="wk-pager-title">`)
+//line views/ybs/topic_detail.qtpl:864
+			qw422016.E().S(p.NewTopic.Title)
+//line views/ybs/topic_detail.qtpl:864
+			qw422016.N().S(`</span>
+        </a>
+        `)
+//line views/ybs/topic_detail.qtpl:866
 		} else {
-//line views/ybs/topic_detail.qtpl:104
+//line views/ybs/topic_detail.qtpl:866
 			qw422016.N().S(`
-                    <input id="btn-preview" type="button" value="预览" name="submit" onclick="previewComment(); return false;" class="pure-button button-success" />
-                    <input id="btn-submit" type="button" value="发表" name="submit" onclick="submitComment(); return false;" class="pure-button pure-button-primary" />
+        <span></span>
+        `)
+//line views/ybs/topic_detail.qtpl:868
+		}
+//line views/ybs/topic_detail.qtpl:868
+		qw422016.N().S(`
+        `)
+//line views/ybs/topic_detail.qtpl:869
+		if p.OldTopic.ID > 0 {
+//line views/ybs/topic_detail.qtpl:869
+			qw422016.N().S(`
+        <a class="wk-pager-next" href="/t/`)
+//line views/ybs/topic_detail.qtpl:870
+			qw422016.N().DUL(p.OldTopic.ID)
+//line views/ybs/topic_detail.qtpl:870
+			qw422016.N().S(`" rel="prev">
+            <span class="wk-pager-dir">下一篇 →</span>
+            <span class="wk-pager-title">`)
+//line views/ybs/topic_detail.qtpl:872
+			qw422016.E().S(p.OldTopic.Title)
+//line views/ybs/topic_detail.qtpl:872
+			qw422016.N().S(`</span>
+        </a>
+        `)
+//line views/ybs/topic_detail.qtpl:874
+		}
+//line views/ybs/topic_detail.qtpl:874
+		qw422016.N().S(`
+    </nav>
+    `)
+//line views/ybs/topic_detail.qtpl:876
+	}
+//line views/ybs/topic_detail.qtpl:876
+	qw422016.N().S(`
+</article>
+
+`)
+//line views/ybs/topic_detail.qtpl:879
+	if len(p.CommentLst) > 0 {
+//line views/ybs/topic_detail.qtpl:879
+		qw422016.N().S(`
+<section id="comments" style="margin-top:40px;">
+    <div class="wk-section-head">
+        <h2>评论</h2>
+        <span class="wk-section-count">`)
+//line views/ybs/topic_detail.qtpl:883
+		qw422016.N().DUL(p.TopicFmt.Comments)
+//line views/ybs/topic_detail.qtpl:883
+		qw422016.N().S(`</span>
+    </div>
+    <div id="comment-list">
+        `)
+//line views/ybs/topic_detail.qtpl:886
+		for _, item := range p.CommentLst {
+//line views/ybs/topic_detail.qtpl:886
+			qw422016.N().S(`
+        <article class="wk-comment" id="r`)
+//line views/ybs/topic_detail.qtpl:887
+			qw422016.N().DUL(item.ID)
+//line views/ybs/topic_detail.qtpl:887
+			qw422016.N().S(`">
+            <div class="wk-comment-head">
+                <img class="wk-avatar" src="/avatar/`)
+//line views/ybs/topic_detail.qtpl:889
+			qw422016.N().DUL(item.UserId)
+//line views/ybs/topic_detail.qtpl:889
+			qw422016.N().S(`.jpg" alt="`)
+//line views/ybs/topic_detail.qtpl:889
+			qw422016.E().S(item.Name)
+//line views/ybs/topic_detail.qtpl:889
+			qw422016.N().S(` avatar" loading="lazy">
+                <a class="wk-comment-author" href="/member/`)
+//line views/ybs/topic_detail.qtpl:890
+			qw422016.N().DUL(item.UserId)
+//line views/ybs/topic_detail.qtpl:890
+			qw422016.N().S(`">`)
+//line views/ybs/topic_detail.qtpl:890
+			qw422016.E().S(item.Name)
+//line views/ybs/topic_detail.qtpl:890
+			qw422016.N().S(`</a>
+                <a class="wk-comment-idx" href="`)
+//line views/ybs/topic_detail.qtpl:891
+			qw422016.E().S(item.Link)
+//line views/ybs/topic_detail.qtpl:891
+			qw422016.N().S(`">#`)
+//line views/ybs/topic_detail.qtpl:891
+			qw422016.N().DUL(item.ID)
+//line views/ybs/topic_detail.qtpl:891
+			qw422016.N().S(`</a>
+                <time class="wk-comment-time" datetime="`)
+//line views/ybs/topic_detail.qtpl:892
+			qw422016.N().DL(item.AddTime)
+//line views/ybs/topic_detail.qtpl:892
+			qw422016.N().S(`">`)
+//line views/ybs/topic_detail.qtpl:892
+			qw422016.E().S(item.AddTimeFmt)
+//line views/ybs/topic_detail.qtpl:892
+			qw422016.N().S(`</time>
+                <div class="wk-comment-actions">
                     `)
-//line views/ybs/topic_detail.qtpl:107
-			if !p.SiteCf.UploadLimit || (p.SiteCf.UploadLimit && p.CurrentUser.Flag >= 99) {
-//line views/ybs/topic_detail.qtpl:107
+//line views/ybs/topic_detail.qtpl:894
+			if p.CurrentUser.Flag >= 99 {
+//line views/ybs/topic_detail.qtpl:894
 				qw422016.N().S(`
-                    <input id="fileUpload" type="file" accept="image/*,video/*,audio/*" onChange="uploadFile()" class="pure-button" name="fileUpload" style="font-size: .8334em;width: 95px;" />
+                    <a href="/admin/comment/edit?tid=`)
+//line views/ybs/topic_detail.qtpl:895
+				qw422016.N().DUL(item.TopicId)
+//line views/ybs/topic_detail.qtpl:895
+				qw422016.N().S(`&cid=`)
+//line views/ybs/topic_detail.qtpl:895
+				qw422016.N().DUL(item.ID)
+//line views/ybs/topic_detail.qtpl:895
+				qw422016.N().S(`&back=here">编辑</a>
                     `)
-//line views/ybs/topic_detail.qtpl:109
+//line views/ybs/topic_detail.qtpl:896
 			}
-//line views/ybs/topic_detail.qtpl:109
+//line views/ybs/topic_detail.qtpl:896
 			qw422016.N().S(`
-                    <button id="insert-break" type="button" class="pure-button">插入分割线</button>
-                `)
-//line views/ybs/topic_detail.qtpl:111
-		}
-//line views/ybs/topic_detail.qtpl:111
-		qw422016.N().S(`
+                    <button type="button" onclick="replyTo('`)
+//line views/ybs/topic_detail.qtpl:897
+			qw422016.E().S(item.Name)
+//line views/ybs/topic_detail.qtpl:897
+			qw422016.N().S(`',`)
+//line views/ybs/topic_detail.qtpl:897
+			qw422016.N().DUL(item.ID)
+//line views/ybs/topic_detail.qtpl:897
+			qw422016.N().S(`);return false;">回复</button>
                 </div>
-                <span id="id-msg"></span>
+            </div>
+            <div class="wk-comment-body markdown-body">
                 `)
-//line views/ybs/topic_detail.qtpl:114
-	} else {
-//line views/ybs/topic_detail.qtpl:114
-		qw422016.N().S(`
-                <a href="/login" rel="nofollow" class="pure-button">登录发表评论</a>
-                `)
-//line views/ybs/topic_detail.qtpl:116
-	}
-//line views/ybs/topic_detail.qtpl:116
-	qw422016.N().S(`
-            </form>
-        </div>
-        <div id="id-preview" class="markdown-body entry-content"></div>
-
-        <script>
-
-            var toReplyId = 0;
-            var conEle = document.getElementById("id-comment");
-            var msgEle = document.getElementById("id-msg");
-            var reviewEle = document.getElementById("id-preview");
-
-            `)
-//line views/ybs/topic_detail.qtpl:128
-	if p.CurrentUser.ID > 0 {
-//line views/ybs/topic_detail.qtpl:128
-		qw422016.N().S(`
-                document.getElementById("insert-break").addEventListener('click', function (event) {
-                    let break_line = "\n`)
-//line views/ybs/topic_detail.qtpl:130
-		qw422016.N().S(p.ReadMoreBreak)
-//line views/ybs/topic_detail.qtpl:130
-		qw422016.N().S(`\n";
-                    let pos = conEle.selectionStart;
-                    let con = conEle.value;
-                    conEle.value = con.slice(0, pos) + break_line + con.slice(pos);
-                }, false);
-                function previewComment() {
-                    var con = conEle.value.trim();
-                    if (con === "") {
-                        conEle.focus();
-                        return
-                    }
-                    postAjax("/content/preview", JSON.stringify({Act: "commentPreview", Content: con}), function(data){
-                        var obj = JSON.parse(data)
-                        //console.log(obj);
-                        if(obj.Code === 200) {
-                            msgEle.style.display = "none";
-                            reviewEle.innerHTML = obj.Html;
-                            reviewEle.style.display = "block";
-                        }else{
-                            reviewEle.innerHTML = "";
-                            reviewEle.style.display = "none";
-                            msgEle.innerText = obj.Msg;
-                        }
-                    });
-                }
-                function submitComment() {
-                    var con = conEle.value.trim();
-                    if (con === "") {
-                        conEle.focus();
-                        return
-                    }
-                    postAjax("/t/`)
-//line views/ybs/topic_detail.qtpl:161
-		qw422016.N().DUL(p.TopicFmt.ID)
-//line views/ybs/topic_detail.qtpl:161
-		qw422016.N().S(`", JSON.stringify({Content: con, ReplyId: toReplyId}), function(data){
-                        var obj = JSON.parse(data)
-                        msgEle.innerText = obj.Msg;
-                        conEle.focus();
-                        conEle.value = "";
-                        toReplyId = 0;
-                        if(obj.Code === 200) {
-                            window.location.href = "/t/`)
-//line views/ybs/topic_detail.qtpl:168
-		qw422016.N().DUL(p.TopicFmt.ID)
-//line views/ybs/topic_detail.qtpl:168
-		qw422016.N().S(`#r"+obj.Tid;
-                            window.location.reload(true);
-                            return;
-                        } else if (obj.Code === 201) {
-                            window.location.href = "/member/`)
-//line views/ybs/topic_detail.qtpl:172
-		qw422016.N().DUL(p.CurrentUser.ID)
-//line views/ybs/topic_detail.qtpl:172
-		qw422016.N().S(`?type=comment";
-                            return;
-                        }
-                        reviewEle.style.display = "none";
-                        msgEle.style.display = "block";
-                    });
-                }
-                `)
-//line views/ybs/topic_detail.qtpl:179
-		if !p.SiteCf.UploadLimit || (p.SiteCf.UploadLimit && p.CurrentUser.Flag >= 99) {
-//line views/ybs/topic_detail.qtpl:179
+//line views/ybs/topic_detail.qtpl:901
+			qw422016.N().S(item.ContentFmt)
+//line views/ybs/topic_detail.qtpl:901
 			qw422016.N().S(`
-                document.addEventListener('paste', function (evt) {
-                    var url = "/file/upload";
-                    var items = evt.clipboardData && evt.clipboardData.items;
-                    var file = null;
-                    if(items && items.length) {
-                        for(var i=0; i!==items.length; i++) {
-                            var iType = items[i].type;
-                            if(iType.indexOf('image') !== -1 || iType.indexOf('video') !== -1 || iType.indexOf('audio') !== -1) {
-                                file = items[i].getAsFile();
-                                if(!!!file) {
-                                    continue;
-                                }
-
-                                // upload file object.
-                                var form = new FormData();
-                                form.append('file', file);
-
-                                postAjax("/file/upload", form, function(data){
-                                    let obj = JSON.parse(data)
-                                    //console.log(obj);
-                                    if(obj.Code === 200) {
-                                        let img_url = "\n" + s2tag(obj.Url, `)
-//line views/ybs/topic_detail.qtpl:201
-			qw422016.E().V(p.SiteCf.AutoDecodeMp4)
-//line views/ybs/topic_detail.qtpl:201
-			qw422016.N().S(`) + "\n";
-                                        let pos = conEle.selectionStart;
-                                        let con = conEle.value;
-                                        conEle.value = con.slice(0, pos) + img_url + con.slice(pos);
-                                    }else{
-                                        console.warn(obj.Msg);
-                                    }
-                                });
-                            }
-                        }
-                    }
-                });
-                function uploadFile() {
-                    let form = new FormData();
-                    form.append("file", fileUpload.files[0]);
-                    postAjax("/file/upload", form, function(data){
-                        let obj = JSON.parse(data)
-                        if(obj.Code === 200) {
-                            let img_url = "\n" + s2tag(obj.Url, `)
-//line views/ybs/topic_detail.qtpl:219
-			qw422016.E().V(p.SiteCf.AutoDecodeMp4)
-//line views/ybs/topic_detail.qtpl:219
-			qw422016.N().S(`) + "\n";
-                            let pos = conEle.selectionStart;
-                            let con = conEle.value;
-                            conEle.value = con.slice(0, pos) + img_url + con.slice(pos);
-                        }else{
-                            console.warn(obj.Msg);
-                        }
-                    });
-                }
-                `)
-//line views/ybs/topic_detail.qtpl:228
+            </div>
+        </article>
+        `)
+//line views/ybs/topic_detail.qtpl:904
 		}
-//line views/ybs/topic_detail.qtpl:228
+//line views/ybs/topic_detail.qtpl:904
 		qw422016.N().S(`
-            `)
-//line views/ybs/topic_detail.qtpl:229
+    </div>
+</section>
+`)
+//line views/ybs/topic_detail.qtpl:907
 	}
-//line views/ybs/topic_detail.qtpl:229
+//line views/ybs/topic_detail.qtpl:907
 	qw422016.N().S(`
 
-            function replyTo(name, cid) {
-                toReplyId = parseInt(cid, 10);
-                var con = conEle.value;
-                document.getElementsByTagName('textarea')[0].focus();
-                conEle.value = " @"+name+" #" + cid + " " + con;
-                return false
-            }
+<section id="respond" style="margin-top:40px;">
+    <div class="wk-section-head">
+        <h2>写评论</h2>
+    </div>
 
-            function linkClick() {
-                //console.log("ele clicked:"+this.href);
-                var curEle = this;
-                postAjax("/get/link/count", JSON.stringify({Act: "set", Items: [this.href]}), function(data){
-                    var obj = JSON.parse(data)
-                    if(obj.Code===200) {
-                        var num = obj.Num;
-                        var nextEle = curEle.nextElementSibling;
-                        if(nextEle && nextEle.nodeType === 1) {
-                            nextEle.innerHTML = num;
-                            nextEle.title = num + "次点击"
-                        }else{
-                            var newNode = document.createElement('span');
-                            newNode.innerHTML = num;
-                            newNode.classList.toggle("clicks");
-                            newNode.title = num + "次点击"
-                            curEle.after(newNode);
-                        }
-                    }
-                });
-            }
-
-            function getContentLinkCount() {
-                var urlEleDict = {};
-                var linkDict = {};
-                var conLst = document.querySelectorAll(".entry-content a");
-                for (var i = 0, max = conLst.length; i < max; i++) {
-                    var aEle = conLst[i];
-                    if(!aEle.classList.contains('anchor') && !aEle.getAttribute("href").startsWith('/name/')) {
-                        var fullLink = aEle.href;
-                        linkDict[aEle.href] = null;
-                        if (urlEleDict.hasOwnProperty(fullLink)) {
-                            urlEleDict[fullLink].push(aEle)
-                        }else{
-                            urlEleDict[fullLink] = [aEle];
-                        }
-                        if(aEle.getAttribute("target")==="_blank"){
-                            aEle.classList.toggle("external_link");
-                        }
-                        aEle.addEventListener("click", linkClick);
-                    }
-                }
-                var linkArray = Object.keys(linkDict);
-                if(linkArray.length > 0) {
-                    postAjax("/get/link/count", JSON.stringify({Items: linkArray}), function(data){
-                        var obj = JSON.parse(data)
-                        if(obj.Code===200) {
-                            Object.keys(obj.Info).forEach(function(key) {
-                                var num = obj.Info[key];
-                                if (urlEleDict.hasOwnProperty(key)) {
-                                    for (var i = 0, max = urlEleDict[key].length; i < max; i++) {
-                                        var newNode = document.createElement('span');
-                                        newNode.innerHTML = num;
-                                        newNode.classList.toggle("clicks");
-                                        newNode.title = num + "次点击"
-                                        var tmpEle = urlEleDict[key][i];
-                                        tmpEle.after(newNode);
-                                    }
-                                }
-                            });
-                        }
-                    });
-                }
-            }
-
-let audioLst = Array.from(document.querySelectorAll(".markdown-body audio"), audio =>audio.src);
-if(audioLst.length>1){
-    let curIndex = 0;
-    const audio = document.createElement('audio');
-    audio.controls = true;
-    audio.src = audioLst[curIndex];
-
-    let mainEle = document.querySelector(".markdown-body");
-    mainEle.insertAdjacentElement('afterbegin', audio);
-
-    audio.addEventListener("ended", (event) => {
-        if(curIndex<audioLst.length-1){
-            curIndex++;
-        }else{
-            curIndex = 0;
-        }
-        audio.src = audioLst[curIndex];
-        console.log(audio.src);
-        audio.play();
-    });
-}
-
-function setCopyBtn(){
-    // 遍历所有pre元素
-    document.querySelectorAll('pre').forEach(pre => {
-    const container = pre.parentNode;
-    container.classList.add('pre-container');
-
-    // 创建复制按钮
-    const btn = document.createElement('button');
-    btn.className = 'copy-btn';
-    btn.textContent = '复制';
-
-    // 添加点击事件
     `)
-//line views/ybs/topic_detail.qtpl:338
+//line views/ybs/topic_detail.qtpl:914
 	if p.CurrentUser.ID > 0 {
-//line views/ybs/topic_detail.qtpl:338
+//line views/ybs/topic_detail.qtpl:914
 		qw422016.N().S(`
-    btn.addEventListener('click', async () => {
-      try {
-        // 获取纯文本内容（自动去除HTML标签）
-        const text = pre.textContent;
-
-        // 现代浏览器API
-        await navigator.clipboard.writeText(text);
-
-        // 反馈效果
-        btn.textContent = '✓ 已复制';
-        btn.classList.add('copied');
-        setTimeout(() => {
-          btn.textContent = '复制';
-          btn.classList.remove('copied');
-        }, 1500);
-      } catch (err) {
-        // 兼容旧浏览器方案
-        const textarea = document.createElement('textarea');
-        textarea.value = pre.textContent;
-        document.body.appendChild(textarea);
-        textarea.select();
-        document.execCommand('copy');
-        document.body.removeChild(textarea);
-        btn.textContent = '✓ 已复制';
-        setTimeout(() => btn.textContent = '复制', 1500);
-      }
-    });
+    <div class="wk-form-wrap">
+        <div class="wk-form-head">
+            <img class="wk-avatar" src="/avatar/`)
+//line views/ybs/topic_detail.qtpl:917
+		qw422016.N().DUL(p.CurrentUser.ID)
+//line views/ybs/topic_detail.qtpl:917
+		qw422016.N().S(`.jpg" alt="`)
+//line views/ybs/topic_detail.qtpl:917
+		qw422016.E().S(p.CurrentUser.Name)
+//line views/ybs/topic_detail.qtpl:917
+		qw422016.N().S(` avatar">
+            <span>以 <strong>`)
+//line views/ybs/topic_detail.qtpl:918
+		qw422016.E().S(p.CurrentUser.Name)
+//line views/ybs/topic_detail.qtpl:918
+		qw422016.N().S(`</strong> 身份发表</span>
+        </div>
+        <div class="wk-form-body">
+            `)
+//line views/ybs/topic_detail.qtpl:921
+		if p.SiteCf.CloseReply && p.CurrentUser.Flag < 99 {
+//line views/ybs/topic_detail.qtpl:921
+			qw422016.N().S(`
+            <div style="padding:14px 0;text-align:center;color:var(--wk-text-muted);font-size:13.5px;">评论已关闭</div>
+            `)
+//line views/ybs/topic_detail.qtpl:923
+		} else {
+//line views/ybs/topic_detail.qtpl:923
+			qw422016.N().S(`
+            <form action="" method="post" id="commentform">
+                <textarea name="comment" id="id-comment"
+                          placeholder="写下你的想法… 支持 Markdown，可直接粘贴图片 / 视频 / 音频"
+                          maxlength="`)
+//line views/ybs/topic_detail.qtpl:927
+			qw422016.N().D(p.SiteCf.CommentConMaxLen)
+//line views/ybs/topic_detail.qtpl:927
+			qw422016.N().S(`"></textarea>
+                <div class="wk-form-toolbar">
+                    <button id="btn-submit" type="button" class="wk-btn wk-btn-primary"
+                            onclick="submitComment(); return false;">发表</button>
+                    <button id="btn-preview" type="button" class="wk-btn"
+                            onclick="previewComment(); return false;">预览</button>
+                    `)
+//line views/ybs/topic_detail.qtpl:933
+			if !p.SiteCf.UploadLimit || (p.SiteCf.UploadLimit && p.CurrentUser.Flag >= 99) {
+//line views/ybs/topic_detail.qtpl:933
+				qw422016.N().S(`
+                    <label class="wk-file-label" for="fileUpload">📎 上传附件</label>
+                    <input id="fileUpload" type="file" accept="image/*,video/*,audio/*"
+                           onChange="uploadFile()" name="fileUpload">
+                    `)
+//line views/ybs/topic_detail.qtpl:937
+			}
+//line views/ybs/topic_detail.qtpl:937
+			qw422016.N().S(`
+                    <button id="insert-break" type="button" class="wk-btn">插入分割线</button>
+                    <span id="id-msg"></span>
+                </div>
+            </form>
+            `)
+//line views/ybs/topic_detail.qtpl:942
+		}
+//line views/ybs/topic_detail.qtpl:942
+		qw422016.N().S(`
+            <div id="id-preview" class="markdown-body"></div>
+        </div>
+    </div>
     `)
-//line views/ybs/topic_detail.qtpl:366
+//line views/ybs/topic_detail.qtpl:946
+	} else {
+//line views/ybs/topic_detail.qtpl:946
+		qw422016.N().S(`
+    <div style="padding:24px;text-align:center;border:1px solid var(--wk-border);border-radius:var(--wk-radius);background:var(--wk-bg);">
+        <a href="/login" rel="nofollow"
+           style="display:inline-flex;align-items:center;height:38px;padding:0 22px;border-radius:9px;background:var(--wk-accent);color:#fff;font-size:14px;font-weight:650;text-decoration:none;">登录发表评论</a>
+    </div>
+    `)
+//line views/ybs/topic_detail.qtpl:951
 	}
-//line views/ybs/topic_detail.qtpl:366
+//line views/ybs/topic_detail.qtpl:951
 	qw422016.N().S(`
+</section>
 
-    container.appendChild(btn);
-    });
-}
+<div id="wk-detail-aside-source" style="display:none">
 
-            docReady(function() {
-                getContentLinkCount();
-                setCopyBtn();
-            });
+    <nav id="toc-panel">
+        <h4 class="wk-toc-title">本页目录</h4>
+        <ul class="wk-toc" id="toc-list"></ul>
+    </nav>
 
-        </script>
+    <div class="wk-info-card">
+        <h4>页面信息</h4>
+        <div class="wk-info-row">
+            <span class="k">分类</span>
+            <span class="v"><a href="/n/`)
+//line views/ybs/topic_detail.qtpl:965
+	qw422016.N().DUL(p.TopicFmt.NodeId)
+//line views/ybs/topic_detail.qtpl:965
+	qw422016.N().S(`">`)
+//line views/ybs/topic_detail.qtpl:965
+	qw422016.E().S(p.DefaultNode.Name)
+//line views/ybs/topic_detail.qtpl:965
+	qw422016.N().S(`</a></span>
+        </div>
+        <div class="wk-info-row">
+            <span class="k">作者</span>
+            <span class="v"><a href="/member/`)
+//line views/ybs/topic_detail.qtpl:969
+	qw422016.N().DUL(p.TopicFmt.UserId)
+//line views/ybs/topic_detail.qtpl:969
+	qw422016.N().S(`">`)
+//line views/ybs/topic_detail.qtpl:969
+	qw422016.E().S(p.TopicFmt.Name)
+//line views/ybs/topic_detail.qtpl:969
+	qw422016.N().S(`</a></span>
+        </div>
+        <div class="wk-info-row">
+            <span class="k">发布</span>
+            <span class="v">`)
+//line views/ybs/topic_detail.qtpl:973
+	qw422016.E().S(p.TopicFmt.AddTimeFmt)
+//line views/ybs/topic_detail.qtpl:973
+	qw422016.N().S(`</span>
+        </div>
+        <div class="wk-info-row">
+            <span class="k">浏览</span>
+            <span class="v">`)
+//line views/ybs/topic_detail.qtpl:977
+	qw422016.N().DUL(p.TopicFmt.Views)
+//line views/ybs/topic_detail.qtpl:977
+	qw422016.N().S(` 次</span>
+        </div>
+        <div class="wk-info-row">
+            <span class="k">评论</span>
+            <span class="v">`)
+//line views/ybs/topic_detail.qtpl:981
+	qw422016.N().DUL(p.TopicFmt.Comments)
+//line views/ybs/topic_detail.qtpl:981
+	qw422016.N().S(` 条</span>
+        </div>
+    </div>
 
-    </section>
+    `)
+//line views/ybs/topic_detail.qtpl:985
+	if len(p.TopicFmt.Relative) > 0 {
+//line views/ybs/topic_detail.qtpl:985
+		qw422016.N().S(`
+    <nav>
+        <h4 class="wk-toc-title">相关文章</h4>
+        <ul class="wk-rel-list">
+            `)
+//line views/ybs/topic_detail.qtpl:989
+		for _, v := range p.TopicFmt.Relative {
+//line views/ybs/topic_detail.qtpl:989
+			qw422016.N().S(`
+            <li><a href="/t/`)
+//line views/ybs/topic_detail.qtpl:990
+			qw422016.N().DUL(v.ID)
+//line views/ybs/topic_detail.qtpl:990
+			qw422016.N().S(`">`)
+//line views/ybs/topic_detail.qtpl:990
+			qw422016.E().S(v.Title)
+//line views/ybs/topic_detail.qtpl:990
+			qw422016.N().S(`</a></li>
+            `)
+//line views/ybs/topic_detail.qtpl:991
+		}
+//line views/ybs/topic_detail.qtpl:991
+		qw422016.N().S(`
+        </ul>
+    </nav>
+    `)
+//line views/ybs/topic_detail.qtpl:994
+	}
+//line views/ybs/topic_detail.qtpl:994
+	qw422016.N().S(`
 
 </div>
 
+<script>
+/* 1) 把详情页右栏内容搬到 .wk-toc-col，替换 base 的通用 Aside */
+(function () {
+    function moveAside() {
+        var source = document.getElementById('wk-detail-aside-source');
+        var target = document.querySelector('.wk-toc-col');
+        if (!source || !target) return false;
+        // 防止重复执行
+        if (source.dataset.moved === '1') return true;
+        target.innerHTML = '';
+        while (source.firstChild) {
+            target.appendChild(source.firstChild);
+        }
+        source.dataset.moved = '1';
+        source.remove();
+        return true;
+    }
+
+    // 立即尝试一次（如果 DOM 已经就绪）
+    if (moveAside()) return;
+
+    // 否则等 DOM 解析完再试
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', moveAside);
+    }
+    // 双保险：load 事件再兜底一次
+    window.addEventListener('load', moveAside);
+})();
+
+/* 2) 阅读进度条 */
+(function () {
+    var bar = document.getElementById('wk-progress');
+    var article = document.querySelector('.wk-article');
+    if (!bar || !article) return;
+    function onScroll() {
+        var rect = article.getBoundingClientRect();
+        var total = rect.height - window.innerHeight;
+        var passed = -rect.top;
+        var pct = total > 0 ? Math.min(100, Math.max(0, (passed / total) * 100)) : 0;
+        bar.style.width = pct + '%';
+    }
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll);
+    onScroll();
+})();
+
+/* 3) Wiki 目录自动生成 + 滚动高亮 */
+(function () {
+    var content = document.querySelector('.wk-article .entry-content');
+    var tocList = document.getElementById('toc-list');
+    var tocPanel = document.getElementById('toc-panel');
+    if (!content || !tocList) return;
+
+    var headings = content.querySelectorAll('h2, h3, h4');
+    if (!headings.length) {
+        if (tocPanel) tocPanel.style.display = 'none';
+        return;
+    }
+
+    var links = [];
+    Array.prototype.forEach.call(headings, function (h, i) {
+        if (!h.id) h.id = 'wk-heading-' + i;
+
+        var anchor = document.createElement('a');
+        anchor.className = 'wk-anchor';
+        anchor.href = '#' + h.id;
+        anchor.textContent = '#';
+        anchor.setAttribute('aria-hidden', 'true');
+        h.insertBefore(anchor, h.firstChild);
+
+        var li = document.createElement('li');
+        li.className = 'toc-' + h.tagName.toLowerCase();
+        var a = document.createElement('a');
+        a.href = '#' + h.id;
+        a.textContent = h.textContent.replace(/^#/, '').trim();
+        li.appendChild(a);
+        tocList.appendChild(li);
+        links.push({ el: h, link: a });
+    });
+
+    var ticking = false;
+    function updateActive() {
+        var offset = 100;
+        var current = links[0];
+        for (var i = 0; i < links.length; i++) {
+            if (links[i].el.getBoundingClientRect().top - offset <= 0) {
+                current = links[i];
+            } else break;
+        }
+        links.forEach(function (item) {
+            item.link.classList.toggle('is-active', item === current);
+        });
+        ticking = false;
+    }
+    window.addEventListener('scroll', function () {
+        if (!ticking) { requestAnimationFrame(updateActive); ticking = true; }
+    }, { passive: true });
+    updateActive();
+})();
+
+/* 4) 代码块复制按钮 */
+(function () {
+    function fallbackCopy(text) {
+        var ta = document.createElement('textarea');
+        ta.value = text;
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.select();
+        try { document.execCommand('copy'); } catch (e) {}
+        document.body.removeChild(ta);
+    }
+    function addCopyBtn(container) {
+        if (container.querySelector('.copy-btn')) return;
+        container.classList.add('pre-container');
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'copy-btn';
+        btn.textContent = '复制';
+        btn.addEventListener('click', function () {
+            var text = container.querySelector('pre').textContent;
+            function done() {
+                btn.textContent = '✓ 已复制';
+                btn.classList.add('copied');
+                setTimeout(function () {
+                    btn.textContent = '复制';
+                    btn.classList.remove('copied');
+                }, 1500);
+            }
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text).then(done).catch(function () { fallbackCopy(text); done(); });
+            } else {
+                fallbackCopy(text); done();
+            }
+        });
+        container.appendChild(btn);
+    }
+    document.querySelectorAll('.markdown-body pre').forEach(function (pre) {
+        addCopyBtn(pre.parentNode);
+    });
+    // 暴露给评论预览
+    window.__addCopyBtn = addCopyBtn;
+})();
+
+/* 5) 评论相关 */
+var toReplyId = 0;
+var conEle = document.getElementById('id-comment');
+var msgEle = document.getElementById('id-msg');
+var reviewEle = document.getElementById('id-preview');
+
+if (document.getElementById('insert-break') && conEle) {
+    document.getElementById('insert-break').addEventListener('click', function () {
+        var breakLine = '\n`)
+//line views/ybs/topic_detail.qtpl:1150
+	qw422016.N().S(p.ReadMoreBreak)
+//line views/ybs/topic_detail.qtpl:1150
+	qw422016.N().S(`\n';
+        var pos = conEle.selectionStart;
+        var con = conEle.value;
+        conEle.value = con.slice(0, pos) + breakLine + con.slice(pos);
+    }, false);
+}
+
+function previewComment() {
+    var con = conEle.value.trim();
+    if (con === '') { conEle.focus(); return; }
+    postAjax('/content/preview', JSON.stringify({Act: 'commentPreview', Content: con}), function (data) {
+        var obj = JSON.parse(data);
+        if (obj.Code === 200) {
+            msgEle.style.display = 'none';
+            reviewEle.innerHTML = obj.Html;
+            reviewEle.style.display = 'block';
+            // 预览里的代码块也加复制按钮
+            reviewEle.querySelectorAll('pre').forEach(function (pre) {
+                if (window.__addCopyBtn) window.__addCopyBtn(pre.parentNode);
+            });
+        } else {
+            reviewEle.innerHTML = '';
+            reviewEle.style.display = 'none';
+            msgEle.innerText = obj.Msg;
+            msgEle.style.display = 'block';
+        }
+    });
+}
+
+function submitComment() {
+    var con = conEle.value.trim();
+    if (con === '') { conEle.focus(); return; }
+    postAjax('/t/`)
+//line views/ybs/topic_detail.qtpl:1182
+	qw422016.N().DUL(p.TopicFmt.ID)
+//line views/ybs/topic_detail.qtpl:1182
+	qw422016.N().S(`', JSON.stringify({Content: con, ReplyId: toReplyId}), function (data) {
+        var obj = JSON.parse(data);
+        msgEle.innerText = obj.Msg;
+        msgEle.style.display = 'block';
+        conEle.focus();
+        conEle.value = '';
+        toReplyId = 0;
+        if (obj.Code === 200) {
+            window.location.href = '/t/`)
+//line views/ybs/topic_detail.qtpl:1190
+	qw422016.N().DUL(p.TopicFmt.ID)
+//line views/ybs/topic_detail.qtpl:1190
+	qw422016.N().S(`#r' + obj.Tid;
+            window.location.reload(true);
+            return;
+        } else if (obj.Code === 201) {
+            window.location.href = '/member/`)
+//line views/ybs/topic_detail.qtpl:1194
+	qw422016.N().DUL(p.CurrentUser.ID)
+//line views/ybs/topic_detail.qtpl:1194
+	qw422016.N().S(`?type=comment';
+            return;
+        }
+        reviewEle.style.display = 'none';
+    });
+}
+
+function uploadFile() {
+    var fileUpload = document.getElementById('fileUpload');
+    if (!fileUpload || !fileUpload.files || !fileUpload.files.length) return;
+    var form = new FormData();
+    form.append('file', fileUpload.files[0]);
+    postAjax('/file/upload', form, function (data) {
+        var obj = JSON.parse(data);
+        if (obj.Code === 200) {
+            var img_url = '\n' + s2tag(obj.Url, `)
+//line views/ybs/topic_detail.qtpl:1209
+	qw422016.E().V(p.SiteCf.AutoDecodeMp4)
+//line views/ybs/topic_detail.qtpl:1209
+	qw422016.N().S(`) + '\n';
+            var pos = conEle.selectionStart;
+            var con = conEle.value;
+            conEle.value = con.slice(0, pos) + img_url + con.slice(pos);
+        } else {
+            console.warn(obj.Msg);
+        }
+    });
+}
+
+function replyTo(name, cid) {
+    toReplyId = parseInt(cid, 10);
+    if (!conEle) return false;
+    conEle.focus();
+    var prefix = ' @' + name + ' #' + cid + ' ';
+    if (conEle.value.indexOf(prefix.trim()) === -1) {
+        conEle.value = prefix + conEle.value;
+    }
+    var respond = document.getElementById('respond');
+    if (respond) respond.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    return false;
+}
+
+/* 粘贴上传 */
 `)
-//line views/ybs/topic_detail.qtpl:383
+//line views/ybs/topic_detail.qtpl:1233
+	if p.CurrentUser.ID > 0 && (!p.SiteCf.UploadLimit || (p.SiteCf.UploadLimit && p.CurrentUser.Flag >= 99)) {
+//line views/ybs/topic_detail.qtpl:1233
+		qw422016.N().S(`
+document.addEventListener('paste', function (evt) {
+    var items = evt.clipboardData && evt.clipboardData.items;
+    if (!items || !items.length) return;
+    if (document.activeElement !== conEle) return;
+    for (var i = 0; i < items.length; i++) {
+        var iType = items[i].type || '';
+        if (iType.indexOf('image') !== -1 || iType.indexOf('video') !== -1 || iType.indexOf('audio') !== -1) {
+            var file = items[i].getAsFile();
+            if (!file) continue;
+            evt.preventDefault();
+            var form = new FormData();
+            form.append('file', file);
+            postAjax('/file/upload', form, function (data) {
+                var obj = JSON.parse(data);
+                if (obj.Code === 200) {
+                    var img_url = '\n' + s2tag(obj.Url, `)
+//line views/ybs/topic_detail.qtpl:1249
+		qw422016.E().V(p.SiteCf.AutoDecodeMp4)
+//line views/ybs/topic_detail.qtpl:1249
+		qw422016.N().S(`) + '\n';
+                    var pos = conEle.selectionStart;
+                    var con = conEle.value;
+                    conEle.value = con.slice(0, pos) + img_url + con.slice(pos);
+                } else { console.warn(obj.Msg); }
+            });
+            break;
+        }
+    }
+});
+`)
+//line views/ybs/topic_detail.qtpl:1259
+	}
+//line views/ybs/topic_detail.qtpl:1259
+	qw422016.N().S(`
+
+/* 6) 链接点击计数 */
+function linkClick() {
+    var curEle = this;
+    postAjax('/get/link/count', JSON.stringify({ Act: 'set', Items: [this.href] }), function (data) {
+        var obj = JSON.parse(data);
+        if (!obj || obj.Code !== 200) return;
+        var num = obj.Num;
+        var nextEle = curEle.nextElementSibling;
+        if (nextEle && nextEle.nodeType === 1) {
+            // 已经有计数元素：直接更新
+            nextEle.innerHTML = num;
+            nextEle.title = num + '次点击';
+            // 确保它有 clicks class（防止旧数据残留）
+            if (!nextEle.classList.contains('clicks')) {
+                nextEle.classList.add('clicks');
+            }
+        } else {
+            // 首次点击：新建计数元素
+            var newNode = document.createElement('span');
+            newNode.innerHTML = num;
+            newNode.classList.add('clicks');
+            newNode.title = num + '次点击';
+            curEle.after(newNode);
+        }
+    });
 }
 
-//line views/ybs/topic_detail.qtpl:383
+(function () {
+    var urlEleDict = {};
+    var linkDict = {};
+    var conLst = document.querySelectorAll('.entry-content a');
+    for (var i = 0; i < conLst.length; i++) {
+        var aEle = conLst[i];
+        var href = aEle.getAttribute('href') || '';
+        if (aEle.classList.contains('wk-anchor')) continue;
+        if (href.startsWith('#')) continue;
+        if (!aEle.classList.contains('anchor') && !href.startsWith('/name/')) {
+            var fullLink = aEle.href;
+            linkDict[fullLink] = null;
+            if (urlEleDict.hasOwnProperty(fullLink)) {
+                urlEleDict[fullLink].push(aEle);
+            } else {
+                urlEleDict[fullLink] = [aEle];
+            }
+            if (aEle.getAttribute('target') === '_blank') {
+                aEle.classList.add('external_link');
+            }
+            aEle.addEventListener('click', linkClick);
+        }
+    }
+    var linkArray = Object.keys(linkDict);
+    if (linkArray.length > 0) {
+        postAjax('/get/link/count', JSON.stringify({ Items: linkArray }), function (data) {
+            var obj = JSON.parse(data);
+            if (obj.Code === 200) {
+                Object.keys(obj.Info).forEach(function (key) {
+                    var num = obj.Info[key];
+                    if (urlEleDict.hasOwnProperty(key)) {
+                        for (var i = 0; i < urlEleDict[key].length; i++) {
+                            var newNode = document.createElement('span');
+                            newNode.innerHTML = num;
+                            newNode.classList.add('clicks');
+                            urlEleDict[key][i].after(newNode);
+                        }
+                    }
+                });
+            }
+        });
+    }
+})();
+</script>
+
+`)
+//line views/ybs/topic_detail.qtpl:1333
+}
+
+//line views/ybs/topic_detail.qtpl:1333
 func (p *TopicDetailPage) WriteMainBody(qq422016 qtio422016.Writer) {
-//line views/ybs/topic_detail.qtpl:383
+//line views/ybs/topic_detail.qtpl:1333
 	qw422016 := qt422016.AcquireWriter(qq422016)
-//line views/ybs/topic_detail.qtpl:383
+//line views/ybs/topic_detail.qtpl:1333
 	p.StreamMainBody(qw422016)
-//line views/ybs/topic_detail.qtpl:383
+//line views/ybs/topic_detail.qtpl:1333
 	qt422016.ReleaseWriter(qw422016)
-//line views/ybs/topic_detail.qtpl:383
+//line views/ybs/topic_detail.qtpl:1333
 }
 
-//line views/ybs/topic_detail.qtpl:383
+//line views/ybs/topic_detail.qtpl:1333
 func (p *TopicDetailPage) MainBody() string {
-//line views/ybs/topic_detail.qtpl:383
+//line views/ybs/topic_detail.qtpl:1333
 	qb422016 := qt422016.AcquireByteBuffer()
-//line views/ybs/topic_detail.qtpl:383
+//line views/ybs/topic_detail.qtpl:1333
 	p.WriteMainBody(qb422016)
-//line views/ybs/topic_detail.qtpl:383
+//line views/ybs/topic_detail.qtpl:1333
 	qs422016 := string(qb422016.B)
-//line views/ybs/topic_detail.qtpl:383
+//line views/ybs/topic_detail.qtpl:1333
 	qt422016.ReleaseByteBuffer(qb422016)
-//line views/ybs/topic_detail.qtpl:383
+//line views/ybs/topic_detail.qtpl:1333
 	return qs422016
-//line views/ybs/topic_detail.qtpl:383
+//line views/ybs/topic_detail.qtpl:1333
 }

@@ -1,17 +1,15 @@
-This is a base page template. All the other template pages implement this interface.
-
+// base.qtpl
 {% interface
 Page {
-	Header()
-	Banner()
-	MainBodyNav()
-	MainBody()
-	Aside()
-	Footer()
+    Header()
+    Banner()
+    MainBodyNav()
+    MainBody()
+    Aside()
+    Footer()
 }
 %}
 
-Page prints a page implementing Page interface.
 {% func PageTemplate(p Page) %}
 <!DOCTYPE html>
 <html lang="zh-cmn-Hans">
@@ -24,75 +22,444 @@ Page prints a page implementing Page interface.
     <meta content="black" name="apple-mobile-web-app-status-bar-style" />
     <meta name="format-detection" content="telephone=no" />
     <link rel="shortcut icon" href="/static/favicon.png" type="image/x-icon" />
-    <link rel="top" title="Back to Top" href="#" />
-    <!--[if lte IE 8]>
-    <link rel="stylesheet" href="/static/css/grids-responsive-old-ie-min.css">
-    <![endif]-->
-    <!--[if gt IE 8]><!-->
-    <link rel="stylesheet" href="/static/css/grids-responsive-min.css">
-    <!--<![endif]-->
 </head>
 
 <body>
 <a name="top"></a>
-<header role="banner" class="header-wrap">
-    <div class="home-menu pure-menu pure-menu-horizontal">
+
+<!-- ===== 顶部导航 ===== -->
+<header class="wk-header">
+    <div class="wk-header-inner">
         {%= p.Banner() %}
     </div>
 </header>
 
-<div id="main" class="main-wrap">
-    <div id="content" class="pure-g">
-        <div class="pure-u-1 pure-u-sm-17-24">
-            <div class="main-left-body">
+<!-- ===== 三栏主体 ===== -->
+<div class="wk-shell">
+    <!-- 左栏：导航 -->
+    <aside class="wk-sidebar">
+        {%= p.MainBodyNav() %}
+    </aside>
 
-                {%= p.MainBodyNav() %}
-
-                {%= p.MainBody() %}
-
-            </div>
+    <!-- 中栏：内容 -->
+    <main class="wk-main">
+        <div class="wk-content">
+            {%= p.MainBody() %}
         </div>
-        <div class="pure-u-1 pure-u-sm-7-24">
-            <div class="main-right-body">
-                {%= p.Aside() %}
-            </div>
-        </div>
-    </div>
+    </main>
+
+    <!-- 右栏：侧边栏 -->
+    <aside class="wk-toc-col">
+        {%= p.Aside() %}
+    </aside>
 </div>
 
-<footer role="contentinfo">
+<button class="wk-top" id="go-to-top" aria-label="回到顶部">▲</button>
+
+<footer role="contentinfo" class="wk-foot">
     {%= p.Footer() %}
 </footer>
-<a rel="nofollow" href="#top" class="top" id="go-to-top">▲</a>
+
 <script>
-(function (window, document) {
-    let scrollToTopBtn = document.getElementById("go-to-top");
-    document.addEventListener("scroll", function () {
-        let top = window.scrollY || document.documentElement.scrollTop;
-        scrollToTopBtn.classList.toggle('visible', top > 1000);
+/* ===== 回到顶部 ===== */
+(function () {
+    var btn = document.getElementById('go-to-top');
+    if (!btn) return;
+    window.addEventListener('scroll', function () {
+        btn.classList.toggle('visible', (window.scrollY || document.documentElement.scrollTop) > 600);
+    }, { passive: true });
+    btn.addEventListener('click', function () {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     });
-    scrollToTopBtn.addEventListener("click", function () {
-         window.scrollTo({
-             top: 0,
-             behavior: "smooth"
-         });
-    });
-})(this, this.document);
+})();
 </script>
 </body>
 </html>
 {% endfunc %}
 
 
-// Header bg
 {% func (p *BasePage) Header() %}
 <title>{%s p.Title %}</title>
 <meta name="description" content="{%s p.Description %}">
 <meta name="keywords" content="{%s p.Keywords %}">
 <link rel="canonical" href="{%s p.Canonical %}">
 <link href="/feed" rel="alternate" title="{%s p.SiteCf.Name %}" type="application/atom+xml">
-<link rel="stylesheet" href="/static/css/main.css?v={%s p.SiteCf.SelfHash %}" type="text/css">
+
+<style>
+/* ===== Wiki 风格全局样式 ===== */
+:root {
+  --wk-bg:            #ffffff;
+  --wk-bg-soft:       #f7f8fa;
+  --wk-bg-sidebar:    #fbfbfc;
+  --wk-border:        #e6e8eb;
+  --wk-border-strong: #d6dae0;
+  --wk-text:          #1f2328;
+  --wk-text-2:        #4a5158;
+  --wk-text-muted:    #7a838d;
+  --wk-accent:        #3b82f6;
+  --wk-accent-soft:   #eff6ff;
+  --wk-tag:           #8b5cf6;
+  --wk-tag-soft:      #f5f3ff;
+  --wk-user:          #0ea5e9;
+  --wk-user-soft:     #f0f9ff;
+  --wk-warn:          #f59e0b;
+  --wk-warn-soft:     #fffbeb;
+  --wk-warn-border:   #fde68a;
+  --wk-danger:        #ef4444;
+  --wk-danger-soft:   #fef2f2;
+  --wk-success:       #22c55e;
+  --wk-success-soft:  #f0fdf4;
+  --wk-link:          #0969da;
+  --wk-code-bg:       #f6f8fa;
+  --wk-radius:        8px;
+  --wk-radius-sm:     6px;
+  --wk-header-h:      58px;
+  --wk-sidebar-w:     264px;
+  --wk-toc-w:         236px;
+  --wk-content-max:   860px;
+  --wk-font:          -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+                      "Hiragino Sans GB", "Microsoft YaHei", "Helvetica Neue",
+                      Helvetica, Arial, sans-serif;
+  --wk-mono:          ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas,
+                      "Liberation Mono", monospace;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --wk-bg:            #14161a;
+    --wk-bg-soft:       #1a1d22;
+    --wk-bg-sidebar:    #17191e;
+    --wk-border:        #2a2e35;
+    --wk-border-strong: #363b44;
+    --wk-text:          #e6e8eb;
+    --wk-text-2:        #b6bdc6;
+    --wk-text-muted:    #8b939e;
+    --wk-accent:        #60a5fa;
+    --wk-accent-soft:   #1c2836;
+    --wk-tag:           #a78bfa;
+    --wk-tag-soft:      #241c36;
+    --wk-user:          #38bdf8;
+    --wk-user-soft:     #14293a;
+    --wk-warn:          #fbbf24;
+    --wk-warn-soft:     #2a2008;
+    --wk-warn-border:   #5a4318;
+    --wk-danger:        #f87171;
+    --wk-danger-soft:   #2a1518;
+    --wk-success:       #4ade80;
+    --wk-success-soft:  #14291d;
+    --wk-link:          #6cb6ff;
+    --wk-code-bg:       #1c1f24;
+  }
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; scroll-padding-top: calc(var(--wk-header-h) + 20px); }
+
+body {
+  margin: 0;
+  font-family: var(--wk-font);
+  font-size: 16.5px;
+  line-height: 1.75;
+  color: var(--wk-text);
+  background: var(--wk-bg);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+a { color: var(--wk-link); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+/* ===== 顶部导航 ===== */
+.wk-header {
+  position: sticky; top: 0; z-index: 60;
+  height: var(--wk-header-h);
+  background: color-mix(in srgb, var(--wk-bg) 88%, transparent);
+  backdrop-filter: saturate(180%) blur(12px);
+  -webkit-backdrop-filter: saturate(180%) blur(12px);
+  border-bottom: 1px solid var(--wk-border);
+}
+.wk-header-inner {
+  height: 100%; display: flex; align-items: center; gap: 16px;
+  padding: 0 20px; max-width: 1680px; margin: 0 auto;
+}
+.wk-brand {
+  display: flex; align-items: center; gap: 10px;
+  font-weight: 700; font-size: 16px;
+  color: var(--wk-text); text-decoration: none !important; white-space: nowrap;
+}
+.wk-brand:hover { color: var(--wk-accent); }
+.wk-brand-mark {
+  width: 28px; height: 28px; display: grid; place-items: center;
+  border-radius: 7px; background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+  color: #fff; font-size: 14px; font-weight: 800; letter-spacing: -.5px;
+}
+.wk-search { flex: 1; max-width: 420px; position: relative; }
+.wk-search input {
+  width: 100%; height: 36px; padding: 0 12px 0 34px;
+  border: 1px solid var(--wk-border-strong); border-radius: 7px;
+  background: var(--wk-bg-soft); color: var(--wk-text);
+  font-size: 14.5px; outline: none;
+  transition: border-color .15s, background .15s, box-shadow .15s;
+}
+.wk-search input::placeholder { color: var(--wk-text-muted); }
+.wk-search input:focus {
+  border-color: var(--wk-accent); background: var(--wk-bg);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--wk-accent) 18%, transparent);
+}
+.wk-search svg {
+  position: absolute; left: 11px; top: 50%; transform: translateY(-50%);
+  width: 15px; height: 15px; color: var(--wk-text-muted); pointer-events: none;
+}
+.wk-header-actions { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+.wk-avatar { width: 30px; height: 30px; border-radius: 50%; object-fit: cover; border: 1px solid var(--wk-border); display: block; }
+.wk-btn-ghost {
+  display: inline-flex; align-items: center; gap: 6px;
+  height: 32px; padding: 0 12px; border-radius: 7px;
+  border: 1px solid var(--wk-border-strong); background: transparent;
+  color: var(--wk-text-2); font-size: 14px; cursor: pointer;
+  text-decoration: none !important; position: relative;
+  transition: background .15s, border-color .15s, color .15s;
+}
+.wk-btn-ghost:hover { background: var(--wk-bg-soft); border-color: var(--wk-accent); color: var(--wk-accent); }
+.wk-btn-primary {
+  display: inline-flex; align-items: center; gap: 6px;
+  height: 32px; padding: 0 14px; border-radius: 7px;
+  border: 1px solid var(--wk-accent); background: var(--wk-accent);
+  color: #fff !important; font-size: 14px; font-weight: 600;
+  cursor: pointer; text-decoration: none !important;
+  transition: background .15s, transform .1s;
+}
+.wk-btn-primary:hover { background: color-mix(in srgb, var(--wk-accent) 85%, #000); border-color: color-mix(in srgb, var(--wk-accent) 85%, #000); }
+.wk-btn-primary:active { transform: translateY(1px); }
+
+/* 角标 */
+.wk-badge-count {
+  position: absolute; top: -5px; right: -6px;
+  min-width: 17px; height: 17px; padding: 0 5px;
+  display: inline-flex; align-items: center; justify-content: center;
+  border-radius: 999px; background: var(--wk-danger); color: #fff;
+  font-size: 10.5px; font-weight: 700; font-variant-numeric: tabular-nums;
+  border: 2px solid var(--wk-bg); line-height: 1;
+}
+.wk-badge-count.warn { background: var(--wk-warn); }
+.wk-btn-ghost.has-unread { border-color: color-mix(in srgb, var(--wk-danger) 34%, transparent); background: var(--wk-danger-soft); color: var(--wk-danger); }
+.wk-btn-ghost.has-unread:hover { border-color: var(--wk-danger); background: color-mix(in srgb, var(--wk-danger) 12%, transparent); color: var(--wk-danger); }
+.wk-btn-ghost.has-review { border-color: var(--wk-warn-border); background: var(--wk-warn-soft); color: var(--wk-warn); }
+.wk-btn-ghost.has-review:hover { border-color: var(--wk-warn); background: color-mix(in srgb, var(--wk-warn) 12%, transparent); color: var(--wk-warn); }
+
+/* ===== 三栏布局 ===== */
+.wk-shell {
+  display: grid;
+  grid-template-columns: var(--wk-sidebar-w) minmax(0, 1fr) var(--wk-toc-w);
+  gap: 0; max-width: 1680px; margin: 0 auto;
+  min-height: calc(100vh - var(--wk-header-h));
+}
+
+/* ===== 左栏导航 ===== */
+.wk-sidebar {
+  border-right: 1px solid var(--wk-border); background: var(--wk-bg-sidebar);
+  padding: 22px 14px 60px;
+  position: sticky; top: var(--wk-header-h);
+  height: calc(100vh - var(--wk-header-h));
+  overflow-y: auto; overscroll-behavior: contain;
+}
+.wk-sidebar::-webkit-scrollbar { width: 8px; }
+.wk-sidebar::-webkit-scrollbar-thumb { background: var(--wk-border-strong); border-radius: 4px; }
+.wk-side-title {
+  display: flex; align-items: center; gap: 7px;
+  font-size: 12px; font-weight: 700; letter-spacing: .07em;
+  text-transform: uppercase; color: var(--wk-text-muted);
+  padding: 0 10px; margin: 0 0 8px;
+}
+.wk-side-group { margin-bottom: 26px; }
+.wk-navlist { list-style: none; margin: 0; padding: 0; }
+.wk-navlist li { margin: 0; }
+.wk-navlist a {
+  display: flex; align-items: center; gap: 8px;
+  padding: 6px 10px; border-radius: var(--wk-radius-sm);
+  font-size: 15px; line-height: 1.45; color: var(--wk-text-2);
+  text-decoration: none !important; white-space: nowrap;
+  overflow: hidden; text-overflow: ellipsis;
+  transition: background .12s, color .12s;
+}
+.wk-navlist a:hover { background: color-mix(in srgb, var(--wk-accent) 9%, transparent); color: var(--wk-accent); }
+.wk-navlist a.is-active { background: var(--wk-accent-soft); color: var(--wk-accent); font-weight: 600; box-shadow: inset 3px 0 0 var(--wk-accent); }
+.wk-navlist a .lbl { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.wk-navlist .wk-count { font-size: 12px; color: var(--wk-text-muted); font-variant-numeric: tabular-nums; }
+.wk-navlist .wk-pill {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 20px; height: 18px; padding: 0 6px;
+  border-radius: 999px; font-size: 10.5px; font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.wk-navlist .wk-pill.danger { background: var(--wk-danger-soft); border: 1px solid color-mix(in srgb, var(--wk-danger) 30%, transparent); color: var(--wk-danger); }
+.wk-navlist .wk-pill.warn { background: var(--wk-warn-soft); border: 1px solid var(--wk-warn-border); color: var(--wk-warn); }
+.wk-navlist a.is-unread { background: var(--wk-danger-soft); color: var(--wk-danger); font-weight: 600; border: 1px solid color-mix(in srgb, var(--wk-danger) 20%, transparent); }
+.wk-navlist a.is-review { background: var(--wk-warn-soft); color: var(--wk-warn); font-weight: 600; border: 1px solid var(--wk-warn-border); }
+
+/* ===== 中栏内容 ===== */
+.wk-main { min-width: 0; padding: 0 0 80px; }
+.wk-content { max-width: var(--wk-content-max); margin: 0 auto; padding: 28px 40px 0; }
+
+/* ===== 右栏 ===== */
+.wk-toc-col {
+  border-left: 1px solid var(--wk-border); background: var(--wk-bg);
+  padding: 26px 16px 60px;
+  position: sticky; top: var(--wk-header-h);
+  height: calc(100vh - var(--wk-header-h));
+  overflow-y: auto; overscroll-behavior: contain;
+}
+.wk-toc-title {
+  font-size: 12px; font-weight: 700; letter-spacing: .07em;
+  text-transform: uppercase; color: var(--wk-text-muted);
+  margin: 0 0 10px; padding-left: 10px;
+}
+.wk-toc-title.mt { margin-top: 26px; }
+.wk-info-card {
+  border: 1px solid var(--wk-border); border-radius: var(--wk-radius);
+  background: var(--wk-bg-soft); padding: 14px 15px; margin-bottom: 22px;
+}
+.wk-info-card h4 {
+  margin: 0 0 11px; font-size: 12px; font-weight: 700;
+  letter-spacing: .07em; text-transform: uppercase; color: var(--wk-text-muted);
+}
+.wk-info-row { display: flex; align-items: baseline; gap: 8px; font-size: 14px; line-height: 1.7; color: var(--wk-text-2); }
+.wk-info-row + .wk-info-row { margin-top: 5px; }
+.wk-info-row .k { flex: 0 0 40px; color: var(--wk-text-muted); }
+.wk-info-row .v { flex: 1; min-width: 0; word-break: break-word; }
+.wk-info-row .v a { color: var(--wk-text-2); }
+.wk-info-row .v a:hover { color: var(--wk-accent); }
+.wk-stat-bar { display: flex; flex-direction: column; gap: 12px; }
+.wk-stat-item { font-size: 12.5px; }
+.wk-stat-item .top { display: flex; justify-content: space-between; margin-bottom: 4px; color: var(--wk-text-2); }
+.wk-stat-item .top b { color: var(--wk-text); font-variant-numeric: tabular-nums; font-weight: 650; }
+.wk-stat-item .track { height: 6px; border-radius: 999px; background: var(--wk-bg-soft); border: 1px solid var(--wk-border); overflow: hidden; }
+.wk-stat-item .fill { height: 100%; border-radius: 999px; background: linear-gradient(90deg, #3b82f6, #8b5cf6); }
+.wk-rel-list { list-style: none; margin: 0; padding: 0; }
+.wk-rel-list li { margin: 0 0 2px; }
+.wk-rel-list a {
+  display: block; padding: 5px 10px; border-radius: var(--wk-radius-sm);
+  font-size: 14px; line-height: 1.5; color: var(--wk-text-2);
+  text-decoration: none !important; transition: background .12s, color .12s;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.wk-rel-list a:hover { background: var(--wk-accent-soft); color: var(--wk-accent); }
+.wk-recent-comments { list-style: none; margin: 0; padding: 0; }
+.wk-recent-comments li { display: flex; gap: 9px; padding: 8px 10px; border-radius: var(--wk-radius-sm); font-size: 14px; line-height: 1.5; transition: background .12s; }
+.wk-recent-comments li:hover { background: var(--wk-bg-soft); }
+.wk-recent-comments img { flex: 0 0 auto; width: 20px; height: 20px; border-radius: 50%; border: 1px solid var(--wk-border); }
+.wk-recent-comments a { color: var(--wk-text-2); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-decoration: none !important; }
+.wk-recent-comments a:hover { color: var(--wk-accent); }
+.wk-links { list-style: none; margin: 0; padding: 0; }
+.wk-links li { margin: 0 0 2px; }
+.wk-links a { display: flex; align-items: center; gap: 7px; padding: 6px 10px; border-radius: var(--wk-radius-sm); font-size: 14px; color: var(--wk-text-2); text-decoration: none !important; transition: background .12s, color .12s; }
+.wk-links a:hover { background: var(--wk-bg-soft); color: var(--wk-accent); }
+.wk-links a::before { content: "↗"; font-size: 11px; opacity: .55; }
+
+/* ===== 标签云 ===== */
+.wk-tagcloud { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 6px; }
+.wk-tagcloud a { display: inline-flex; align-items: center; gap: 4px; padding: 3px 9px; border-radius: 999px; border: 1px solid var(--wk-border); background: var(--wk-bg); color: var(--wk-text-2); font-size: 13.5px; text-decoration: none !important; transition: all .12s; }
+.wk-tagcloud a:hover { border-color: var(--wk-tag); color: var(--wk-tag); background: var(--wk-tag-soft); }
+.wk-tagcloud a .n { font-size: 12px; color: var(--wk-text-muted); font-variant-numeric: tabular-nums; }
+
+/* ===== 回到顶部 ===== */
+.wk-top {
+  position: fixed; right: 26px; bottom: 26px; width: 40px; height: 40px;
+  display: grid; place-items: center; border-radius: 50%;
+  border: 1px solid var(--wk-border-strong); background: var(--wk-bg);
+  color: var(--wk-text-2); font-size: 15px; cursor: pointer;
+  opacity: 0; visibility: hidden; transform: translateY(8px);
+  transition: opacity .2s, transform .2s, visibility .2s, color .15s, border-color .15s;
+  box-shadow: 0 4px 14px rgba(0,0,0,.09); z-index: 50;
+}
+.wk-top.visible { opacity: 1; visibility: visible; transform: translateY(0); }
+.wk-top:hover { color: var(--wk-accent); border-color: var(--wk-accent); }
+
+/* ===== 页脚 ===== */
+.wk-foot { border-top: 1px solid var(--wk-border); padding: 26px 20px; text-align: center; color: var(--wk-text-muted); font-size: 12.5px; }
+.wk-foot a { color: var(--wk-text-muted); }
+.wk-foot a:hover { color: var(--wk-accent); }
+
+/* ===== 响应式 ===== */
+@media (max-width: 1280px) {
+  :root { --wk-toc-w: 0px; }
+  .wk-shell { grid-template-columns: var(--wk-sidebar-w) minmax(0, 1fr); }
+  .wk-toc-col { display: none; }
+}
+@media (max-width: 960px) {
+  :root { --wk-sidebar-w: 0px; }
+  .wk-shell { grid-template-columns: minmax(0, 1fr); }
+  .wk-sidebar { display: none; }
+  .wk-content { padding-left: 22px; padding-right: 22px; }
+}
+@media (max-width: 640px) {
+  .wk-header-inner { padding: 0 14px; gap: 10px; }
+  .wk-search { max-width: none; }
+  .wk-header-actions .wk-label { display: none; }
+  .wk-content { padding-left: 16px; padding-right: 16px; }
+  .wk-top { right: 14px; bottom: 14px; }
+}
+
+/* ===== 页面内容组件（所有页面共用）===== */
+.wk-breadcrumb { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; font-size: 12.5px; color: var(--wk-text-muted); margin-bottom: 18px; }
+.wk-breadcrumb a { color: var(--wk-text-muted); }
+.wk-breadcrumb a:hover { color: var(--wk-accent); }
+.wk-breadcrumb .sep { opacity: .5; }
+.wk-breadcrumb .current { color: var(--wk-text-2); }
+
+.wk-page-head { display: flex; align-items: flex-start; gap: 16px; padding-bottom: 20px; border-bottom: 1px solid var(--wk-border); margin-bottom: 22px; }
+.wk-page-head .ph-icon { flex: 0 0 auto; width: 44px; height: 44px; display: grid; place-items: center; border-radius: 12px; font-size: 20px; background: linear-gradient(135deg, var(--wk-accent-soft), var(--wk-tag-soft)); border: 1px solid var(--wk-border); }
+.wk-page-title { margin: 0 0 6px; font-size: 24px; font-weight: 700; line-height: 1.3; letter-spacing: -.02em; color: var(--wk-text); }
+.wk-page-desc { margin: 0; font-size: 13.5px; color: var(--wk-text-muted); line-height: 1.6; }
+
+.wk-list { list-style: none; margin: 0; padding: 0; }
+.wk-item { display: flex; gap: 14px; padding: 18px 14px; margin: 0 -14px; border-radius: var(--wk-radius); border-bottom: 1px solid var(--wk-border); transition: background .13s; }
+.wk-item:last-child { border-bottom: 0; }
+.wk-item:hover { background: var(--wk-bg-soft); border-bottom-color: transparent; }
+.wk-item-avatar { flex: 0 0 auto; width: 40px; height: 40px; border-radius: 9px; overflow: hidden; border: 1px solid var(--wk-border); background: var(--wk-bg-soft); }
+.wk-item-avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.wk-item-body { flex: 1; min-width: 0; }
+.wk-item-title { display: inline-block; font-size: 16px; font-weight: 620; line-height: 1.45; color: var(--wk-text); text-decoration: none !important; margin: 0 0 6px; transition: color .12s; word-break: break-word; }
+.wk-item-title:hover { color: var(--wk-accent); }
+.wk-item-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; font-size: 12.5px; color: var(--wk-text-muted); line-height: 1.6; }
+.wk-item-meta .mi { display: inline-flex; align-items: center; gap: 5px; }
+.wk-item-meta a { color: var(--wk-text-muted); }
+.wk-item-meta a:hover { color: var(--wk-accent); }
+.wk-item-meta time { font-variant-numeric: tabular-nums; }
+
+.wk-chip { display: inline-flex; align-items: center; padding: 1px 8px; border-radius: 999px; font-size: 11.5px; font-weight: 600; background: var(--wk-bg-soft); border: 1px solid var(--wk-border); color: var(--wk-text-2); text-decoration: none !important; transition: all .12s; }
+.wk-chip:hover { border-color: var(--wk-accent); color: var(--wk-accent); background: var(--wk-accent-soft); }
+
+.wk-comment-pill { display: inline-flex; align-items: center; gap: 4px; padding: 1px 8px; border-radius: 999px; background: var(--wk-accent-soft); border: 1px solid color-mix(in srgb, var(--wk-accent) 24%, transparent); color: var(--wk-accent) !important; font-size: 11.5px; font-weight: 600; font-variant-numeric: tabular-nums; text-decoration: none !important; transition: background .13s; }
+.wk-comment-pill:hover { background: color-mix(in srgb, var(--wk-accent) 16%, transparent); }
+.wk-comment-pill.is-zero { background: var(--wk-bg-soft); border-color: var(--wk-border); color: var(--wk-text-muted) !important; font-weight: 500; }
+.wk-comment-pill.is-hot { background: #fef2f2; border-color: #fecaca; color: #dc2626 !important; }
+
+.wk-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding: 12px 0 4px; margin-bottom: 4px; }
+.wk-toolbar-label { font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--wk-text-muted); }
+.wk-seg { display: inline-flex; padding: 2px; border-radius: 8px; background: var(--wk-bg-soft); border: 1px solid var(--wk-border); }
+.wk-seg button { border: 0; background: transparent; font-family: var(--wk-font); font-size: 12.5px; color: var(--wk-text-2); padding: 5px 12px; border-radius: 6px; cursor: pointer; transition: background .13s, color .13s; }
+.wk-seg button:hover { color: var(--wk-accent); }
+.wk-seg button.is-active { background: var(--wk-bg); color: var(--wk-accent); font-weight: 600; box-shadow: 0 1px 3px rgba(0,0,0,.07); }
+.wk-toolbar .wk-spacer { margin-left: auto; }
+
+.wk-pagination { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 34px 0 0; padding-top: 22px; border-top: 1px solid var(--wk-border); }
+.wk-pagination .wk-page-info { font-size: 13px; color: var(--wk-text-muted); }
+.wk-pagination .wk-page-info b { color: var(--wk-text); font-variant-numeric: tabular-nums; }
+.wk-page-btn { display: inline-flex; align-items: center; gap: 6px; height: 36px; padding: 0 16px; border-radius: 8px; border: 1px solid var(--wk-border-strong); background: var(--wk-bg); color: var(--wk-text-2); font-size: 13.5px; font-weight: 500; text-decoration: none !important; transition: all .14s; }
+.wk-page-btn:hover { border-color: var(--wk-accent); color: var(--wk-accent); background: var(--wk-accent-soft); }
+.wk-page-btn.is-disabled { opacity: .4; pointer-events: none; }
+
+/* 代码块复制按钮 */
+.copy-btn { position: absolute; top: 9px; right: 9px; padding: 3px 10px; font-size: 11.5px; font-family: var(--wk-font); color: var(--wk-text-muted); background: color-mix(in srgb, var(--wk-bg) 90%, transparent); border: 1px solid var(--wk-border-strong); border-radius: 6px; cursor: pointer; opacity: 0; transition: opacity .15s, background .15s, color .15s; z-index: 2; }
+.pre-container:hover .copy-btn { opacity: 1; }
+.copy-btn:hover { color: var(--wk-accent); border-color: var(--wk-accent); background: var(--wk-bg); }
+.copy-btn.copied { color: #16a34a; border-color: #16a34a; opacity: 1; }
+pre { position: relative; }
+</style>
+
 <script src="/static/js/main.js?v={%s p.SiteCf.SelfHash %}"></script>
+<script src="/static/js/md5.min.js" type="text/javascript"></script>
 
 {% if len(p.JsonLd)>0 %}
 <script type="application/ld+json">
@@ -107,167 +474,231 @@ Page prints a page implementing Page interface.
 {% if len(p.SiteCf.HeaderPartCon)>0 %}
 {%s= p.SiteCf.HeaderPartCon %}
 {% endif %}
-
 {% endfunc %}
-// Header ed
 
-// Banner bg
+
 {% func (p *BasePage) Banner() %}
-<a href="/" class="pure-menu-heading pure-menu-link">{%s p.SiteCf.Name %}</a>
-<div class="sf">
-    <form action="/q" method="get" class="pure-form">
-        <input type="text" name="q" class="pure-input-rounded" placeholder="站内搜索" autocomplete="off" />
+<a href="/" class="wk-brand">
+    <span class="wk-brand-mark">G</span>
+    <span>{%s p.SiteCf.Name %}</span>
+</a>
+
+<div class="wk-search">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+         stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <circle cx="11" cy="11" r="7"></circle>
+        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+    </svg>
+    <form action="/q" method="get">
+        <input type="text" name="q" placeholder="搜索文档、标签或内容…" autocomplete="off" />
     </form>
 </div>
-<ul class="pure-menu-list">
-    {% if p.CurrentUser.ID > 0 %}
-    <li class="pure-menu-item pure-menu-has-children pure-menu-allow-hover">
-        <a href="#" id="menuLink1" class="pure-menu-link" style="padding: .5em 1em;"><img class="avatar" src="/avatar/{%dul p.CurrentUser.ID %}.jpg" alt="{%s p.CurrentUser.Name %} avatar"/></a>
-        <ul class="pure-menu-children">
-            <li class="pure-menu-item"><a href="/setting" class="pure-menu-link">设置</a></li>
-            <li class="pure-menu-item"><a href="/logout" class="pure-menu-link menu-item-divided">退出</a></li>
-        </ul>
-    </li>
-    {% else %}
-    <li class="pure-menu-item"><a href="/login" rel="nofollow" class="pure-menu-link">登录</a></li>
-    <li class="pure-menu-item"><a href="/register" rel="nofollow" class="pure-menu-link">注册</a></li>
+
+<div class="wk-header-actions">
+{% if p.CurrentUser.ID > 0 %}
+    {% if p.HasMsg %}
+    <a class="wk-btn-ghost has-unread" href="/my/msg" title="未读信息">
+        <span>✉</span><span class="wk-label">未读信息</span>
+        {% if p.MsgNum > 0 %}<span class="wk-badge-count">{%d p.MsgNum %}</span>{% endif %}
+    </a>
     {% endif %}
-</ul>
-{% endfunc %}
-// Banner ed
 
-// MainBodyNav bg
-{% func (p *BasePage) MainBodyNav() %}
-{% if p.CurrentUser.ID>0 %}
-<div class="body-nav box bot-line">
-    <div class="pure-button-group">
-        {% if p.CurrentUser.Flag == 0 %}
-        <span class="pure-button button-warning">您已被管理员禁用</span>
-        {% else %}
-        {% if p.CurrentUser.Flag == 1 %}
-        <span class="pure-button button-warning">请等待管理员审核</span>
+    {% if p.CurrentUser.Flag >= 99 %}
+        {% if p.HasTopicReview %}
+        <a class="wk-btn-ghost has-review" href="/admin/topic/review" title="待审帖子">
+            <span>📝</span><span class="wk-label">待审帖子</span>
+            {% if p.TopicReviewNum > 0 %}<span class="wk-badge-count warn">{%d p.TopicReviewNum %}</span>{% endif %}
+        </a>
         {% endif %}
-        {% if p.CurrentUser.Flag >= 5 %}
-        {% if p.HasMsg %}
-        <a class="pure-button button-warning" href="/my/msg">未读信息</a>
+        {% if p.HasReplyReview %}
+        <a class="wk-btn-ghost has-review" href="/admin/comment/review" title="待审评论">
+            <span>💬</span><span class="wk-label">待审评论</span>
+            {% if p.ReplyReviewNum > 0 %}<span class="wk-badge-count warn">{%d p.ReplyReviewNum %}</span>{% endif %}
+        </a>
         {% endif %}
-        <a class="pure-button pure-button-primary" href="/topic/add?nid={%dul p.DefaultNode.ID %}">发帖</a>
-        {% endif %}
-        {% if p.CurrentUser.Flag >= 99 %}
-            {% if p.HasTopicReview %}
-            <a class="pure-button button-warning" href="/admin/topic/review">审帖</a>
-            {% endif %}
-            {% if p.HasReplyReview %}
-            <a class="pure-button button-warning" href="/admin/comment/review">审评</a>
-            {% endif %}
-            <a class="pure-button" href="/admin/node">节点</a>
-            <a class="pure-button" href="/admin/user">用户</a>
-            <a class="pure-button" href="/admin/link">链接</a>
-            <a class="pure-button" href="/admin/site/conf">设置</a>
-        {% endif %}
-        {% endif %}
-    </div>
-</div>
+    {% endif %}
+
+    <a class="wk-btn-primary" href="/topic/add?nid={%dul p.DefaultNode.ID %}">
+        <span>＋</span><span class="wk-label">发帖</span>
+    </a>
+    <a href="/member/{%dul p.CurrentUser.ID %}" title="{%s p.CurrentUser.Name %}">
+        <img class="wk-avatar" src="/avatar/{%dul p.CurrentUser.ID %}.jpg" alt="{%s p.CurrentUser.Name %} avatar">
+    </a>
+{% else %}
+    <a class="wk-btn-ghost" href="/login" rel="nofollow">登录</a>
+    <a class="wk-btn-primary" href="/register" rel="nofollow">注册</a>
 {% endif %}
+</div>
 {% endfunc %}
-// MainBodyNav ed
 
-// MainBody bg
-{% func (p *BasePage) MainBody() %}
-This is a base MainBody
-{% endfunc %}
-// MainBody ed
 
-// Aside bg
-{% func (p *BasePage) Aside() %}
-<aside class="sidebar">
-
-    {% if len(p.RecentComment)>0 %}
-    <section>
-        <h1>💬 最近评论</h1>
-        <ul id="recent_comments">
-            {% for k := range p.RecentComment %}
+MainBodyNav：左栏导航
+{% func (p *BasePage) MainBodyNav() %}
+{% if p.CurrentUser.ID > 0 %}
+    {% if p.HasMsg || p.HasTopicReview || p.HasReplyReview %}
+    <div class="wk-side-group">
+        <h3 class="wk-side-title"><span>🔔</span> 待我处理</h3>
+        <ul class="wk-navlist">
+            {% if p.HasMsg %}
             <li>
-                <img alt="{%s p.RecentComment[k].Name %} avatar" src="/avatar/{%dul p.RecentComment[k].UserId %}.jpg" class="avatar"> <a href="{%s p.RecentComment[k].Link %}">{%s p.RecentComment[k].Content %}</a>
+                <a href="/my/msg" class="is-unread">
+                    <span class="lbl">✉ 未读信息</span>
+                    <span class="wk-pill danger">{%d p.MsgNum %}</span>
+                </a>
+            </li>
+            {% endif %}
+            {% if p.HasTopicReview && p.CurrentUser.Flag >= 99 %}
+            <li>
+                <a href="/admin/topic/review" class="is-review">
+                    <span class="lbl">📝 待审帖子</span>
+                    <span class="wk-pill warn">{%d p.TopicReviewNum %}</span>
+                </a>
+            </li>
+            {% endif %}
+            {% if p.HasReplyReview && p.CurrentUser.Flag >= 99 %}
+            <li>
+                <a href="/admin/comment/review" class="is-review">
+                    <span class="lbl">💬 待审评论</span>
+                    <span class="wk-pill warn">{%d p.ReplyReviewNum %}</span>
+                </a>
+            </li>
+            {% endif %}
+        </ul>
+    </div>
+    {% endif %}
+
+    {% if len(p.NodeLst) > 0 %}
+    <div class="wk-side-group">
+        <h3 class="wk-side-title"><span>📁</span> 分类</h3>
+        <ul class="wk-navlist">
+            {% for k := range p.NodeLst %}
+            <li>
+                <a href="/n/{%dul p.NodeLst[k].ID %}" class="{% if p.DefaultNode.ID == p.NodeLst[k].ID %}is-active{% endif %}">
+                    <span class="lbl">{%s p.NodeLst[k].Name %}</span>
+                    <span class="wk-count">{%dul p.NodeLst[k].TopicNum %}</span>
+                </a>
             </li>
             {% endfor %}
         </ul>
-    </section>
+    </div>
     {% endif %}
 
-    {% if len(p.NodeLst)>0 %}
-    <section>
-        <h1>📁 分类</h1>
-        <div id="top-category-list">
-            {% for k := range p.NodeLst %}
-            <a href="/n/{%dul p.NodeLst[k].ID %}">{%s p.NodeLst[k].Name %}<span class="tag_meta">({%dul p.NodeLst[k].TopicNum %})</span></a>
-            {% endfor %}
-        </div>
-    </section>
-    {% endif %}
-
-    {% if len(p.RangeTopicLst)>0 %}
-    <section>
-        <h1>📝 最近浏览</h1>
-        <ul id="recent_posts">
-            {% for k := range p.RangeTopicLst %}
-            <li><a href="/t/{%dul p.RangeTopicLst[k].ID %}">{%s p.RangeTopicLst[k].Title %}</a></li>
-            {% endfor %}
-        </ul>
-    </section>
-    {% endif %}
-
-    {% if len(p.TagCloud)>0 %}
-    <section>
-        <h1>🏷️ 标签</h1>
-        <div id="tag-cloud">
+    {% if len(p.TagCloud) > 0 %}
+    <div class="wk-side-group">
+        <h3 class="wk-side-title"><span>🏷</span> 热门标签</h3>
+        <div class="wk-tagcloud">
             {% for k := range p.TagCloud %}
-            <a href="/tag/{%u p.TagCloud[k].Name %}">{%s p.TagCloud[k].Name %}<span class="tag-meta">({%d p.TagCloud[k].Size %})</span></a>
+            <a href="/tag/{%u p.TagCloud[k].Name %}">{%s p.TagCloud[k].Name %} <span class="n">{%d p.TagCloud[k].Size %}</span></a>
             {% endfor %}
         </div>
-    </section>
+    </div>
     {% endif %}
 
-    {% if len(p.LinkLst)>0 %}
-    <section>
-        <h1>🔗 链接</h1>
-        <ul id="link-cloud">
-            {% for k := range p.LinkLst %}
-            <li><a href="{%s p.LinkLst[k].Url %}" target="_blank">{%s p.LinkLst[k].Name %}</a></li>
+    {% if len(p.RangeTopicLst) > 0 %}
+    <div class="wk-side-group">
+        <h3 class="wk-side-title"><span>🕘</span> 最近浏览</h3>
+        <ul class="wk-navlist">
+            {% for k := range p.RangeTopicLst %}
+            <li><a href="/t/{%dul p.RangeTopicLst[k].ID %}"><span class="lbl">{%s p.RangeTopicLst[k].Title %}</span></a></li>
             {% endfor %}
         </ul>
-    </section>
+    </div>
     {% endif %}
-
-    {% if p.SiteInfo.NodeNum > 0 %}
-    <section>
-        <h1>💡 本站已稳定运行 {%s p.SiteInfo.Days %}</h1>
-        <ul id="site-info">
-            <li>会员: {%dul p.SiteInfo.UserNum %}</li>
-            <li>帖子: {%dul p.SiteInfo.PostNum %}</li>
-            <li>回复: {%dul p.SiteInfo.ReplyNum %}</li>
-            <li>分类: {%dul p.SiteInfo.NodeNum %}</li>
-            <li>标签: {%dul p.SiteInfo.TagNum %}</li>
-            <li>{%s p.SiteInfo.WeekNum %}</li>
-        </ul>
-    </section>
-    {% endif %}
-
-</aside>
-
+{% endif %}
 {% endfunc %}
-// Aside ed
 
-// Footer bg
+
+{% func (p *BasePage) Aside() %}
+{% if p.HasMsg || p.HasTopicReview || p.HasReplyReview %}
+<div class="wk-todo-card" style="border:1px solid var(--wk-border);border-radius:12px;background:var(--wk-bg-soft);padding:14px 15px;margin-bottom:22px;overflow:hidden;">
+    <h4 style="margin:0 0 12px;font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--wk-text-muted);display:flex;align-items:center;gap:6px;">
+        <span>🔔</span> 待我处理
+    </h4>
+    <ul style="list-style:none;margin:0;padding:0;">
+        {% if p.HasMsg %}
+        <li style="margin-bottom:6px;">
+            <a href="/my/msg" style="display:flex;align-items:center;gap:10px;padding:9px 11px;border-radius:8px;border:1px solid color-mix(in srgb, var(--wk-danger) 24%, transparent);background:var(--wk-danger-soft);text-decoration:none;">
+                <span style="width:26px;height:26px;display:grid;place-items:center;border-radius:7px;background:var(--wk-bg);border:1px solid color-mix(in srgb, var(--wk-danger) 30%, transparent);font-size:12.5px;">✉</span>
+                <span style="flex:1;min-width:0;">
+                    <span style="display:block;font-size:13px;font-weight:650;color:var(--wk-danger);line-height:1.35;">未读信息</span>
+                    <span style="display:block;font-size:11.5px;color:var(--wk-text-muted);line-height:1.4;margin-top:1px;">被 @ 或回复时提醒</span>
+                </span>
+                <span style="display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:20px;padding:0 7px;border-radius:999px;background:var(--wk-danger);color:#fff;font-size:11px;font-weight:700;">{%d p.MsgNum %}</span>
+            </a>
+        </li>
+        {% endif %}
+        {% if p.HasTopicReview && p.CurrentUser.Flag >= 99 %}
+        <li style="margin-bottom:6px;">
+            <a href="/admin/topic/review" style="display:flex;align-items:center;gap:10px;padding:9px 11px;border-radius:8px;border:1px solid var(--wk-warn-border);background:var(--wk-warn-soft);text-decoration:none;">
+                <span style="width:26px;height:26px;display:grid;place-items:center;border-radius:7px;background:var(--wk-bg);border:1px solid var(--wk-warn-border);font-size:12.5px;">📝</span>
+                <span style="flex:1;min-width:0;">
+                    <span style="display:block;font-size:13px;font-weight:650;color:var(--wk-warn);line-height:1.35;">待审帖子</span>
+                    <span style="display:block;font-size:11.5px;color:var(--wk-text-muted);line-height:1.4;margin-top:1px;">新帖等待审核</span>
+                </span>
+                <span style="display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:20px;padding:0 7px;border-radius:999px;background:var(--wk-warn);color:#fff;font-size:11px;font-weight:700;">{%d p.TopicReviewNum %}</span>
+            </a>
+        </li>
+        {% endif %}
+        {% if p.HasReplyReview && p.CurrentUser.Flag >= 99 %}
+        <li>
+            <a href="/admin/comment/review" style="display:flex;align-items:center;gap:10px;padding:9px 11px;border-radius:8px;border:1px solid var(--wk-warn-border);background:var(--wk-warn-soft);text-decoration:none;">
+                <span style="width:26px;height:26px;display:grid;place-items:center;border-radius:7px;background:var(--wk-bg);border:1px solid var(--wk-warn-border);font-size:12.5px;">💬</span>
+                <span style="flex:1;min-width:0;">
+                    <span style="display:block;font-size:13px;font-weight:650;color:var(--wk-warn);line-height:1.35;">待审评论</span>
+                    <span style="display:block;font-size:11.5px;color:var(--wk-text-muted);line-height:1.4;margin-top:1px;">评论等待审核</span>
+                </span>
+                <span style="display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:20px;padding:0 7px;border-radius:999px;background:var(--wk-warn);color:#fff;font-size:11px;font-weight:700;">{%d p.ReplyReviewNum %}</span>
+            </a>
+        </li>
+        {% endif %}
+    </ul>
+</div>
+{% endif %}
+
+{% if len(p.RecentComment) > 0 %}
+<nav>
+    <h4 class="wk-toc-title">最近评论</h4>
+    <ul class="wk-recent-comments">
+        {% for k := range p.RecentComment %}
+        <li>
+            <img src="/avatar/{%dul p.RecentComment[k].UserId %}.jpg" alt="{%s p.RecentComment[k].Name %} avatar" loading="lazy">
+            <a href="{%s p.RecentComment[k].Link %}">{%s p.RecentComment[k].Content %}</a>
+        </li>
+        {% endfor %}
+    </ul>
+</nav>
+{% endif %}
+
+{% if p.SiteInfo.NodeNum > 0 %}
+<div class="wk-info-card" style="margin-top:22px;">
+    <h4>站点概览</h4>
+    <div class="wk-info-row"><span class="k">运行</span><span class="v">{%s p.SiteInfo.Days %}</span></div>
+    <div class="wk-info-row"><span class="k">帖子</span><span class="v"><b>{%dul p.SiteInfo.PostNum %}</b></span></div>
+    <div class="wk-info-row"><span class="k">回复</span><span class="v"><b>{%dul p.SiteInfo.ReplyNum %}</b></span></div>
+    <div class="wk-info-row"><span class="k">会员</span><span class="v"><b>{%dul p.SiteInfo.UserNum %}</b></span></div>
+    <div class="wk-info-row"><span class="k">分类</span><span class="v">{%dul p.SiteInfo.NodeNum %}</span></div>
+    <div class="wk-info-row"><span class="k">标签</span><span class="v">{%dul p.SiteInfo.TagNum %}</span></div>
+</div>
+{% endif %}
+
+{% if len(p.LinkLst) > 0 %}
+<nav style="margin-top:22px;">
+    <h4 class="wk-toc-title">友情链接</h4>
+    <ul class="wk-links">
+        {% for k := range p.LinkLst %}
+        <li><a href="{%s p.LinkLst[k].Url %}" target="_blank" rel="noopener">{%s p.LinkLst[k].Name %}</a></li>
+        {% endfor %}
+    </ul>
+</nav>
+{% endif %}
+{% endfunc %}
+
+
 {% func (p *BasePage) Footer() %}
 <p>
-    Copyright &copy; <a href="/">{%s p.SiteCf.Name %}</a> -
-    <span class="credit">Powered by <a href="https://youbbs.org">goYouBBS</a> - <a href="#">&uarr;Go Top</a> </span>
+    Copyright &copy; <a href="/">{%s p.SiteCf.Name %}</a> · Powered by <a href="https://youbbs.org">goYouBBS</a>
 </p>
-
 {% if len(p.SiteCf.FooterPartHtml)>0 %}
 {%s= p.SiteCf.FooterPartHtml %}
 {% endif %}
-
 {% endfunc %}
-// Footer ed

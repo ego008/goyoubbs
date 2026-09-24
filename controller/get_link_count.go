@@ -110,10 +110,11 @@ func (h *BaseHandler) GetLinkCount(c *gin.Context) {
 			info[u64ToLink[enLinkI64]] = strconv.FormatUint(mdb.B2i(val), 10)
 			return nil
 		})
+
+		rsp.Code = 200
+		rsp.Info = info
+		_ = json.NewEncoder(c.Writer).Encode(rsp)
+
 		return nil
 	})
-
-	rsp.Code = 200
-	rsp.Info = info
-	_ = json.NewEncoder(c.Writer).Encode(rsp)
 }

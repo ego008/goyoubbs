@@ -267,8 +267,6 @@ func (h *BaseHandler) UserLoginPost(c *gin.Context) {
 	}
 
 	h.DelCookie(c, "openid")
-
-	//
 	h.DelCookie(c, "token")
 
 	rsp := response{}
