@@ -63,8 +63,10 @@ func (app *Application) Init(addr, sdbDir string, assetFs *embed.FS) {
 		SiteConfLoad(&scf, db, tx)
 
 		// 简单识别本地开发 go run main.go
-		// /var/folders/bw/8bnjyv6j4k73h6j2qwh9s7xr0000gn/T/go-build1539771127/b001/exe/main
-		scf.IsDevMod = strings.HasSuffix(os.Args[0], "exe/main")
+		// 获取当前执行程序的绝对路径，判断是否以系统的临时目录为前缀
+		if exePath, err3 := os.Executable(); err3 == nil && strings.HasPrefix(exePath, os.TempDir()) {
+			scf.IsDevMod = true
+		}
 
 		scf.SelfHash = util.HashFile(os.Args[0])
 		log.Println("SelfHash:", scf.SelfHash)
