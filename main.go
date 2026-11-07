@@ -46,12 +46,17 @@ func main() {
 	go cr.MainCronJob()
 
 	// 初始化 Gin 引擎
-	router := gin.New()
-	router.Use(gin.Logger(), gin.Recovery())
+	var router *gin.Engine
 
-	// 开发模式下挂载无缓存中间件（需要确保 mdw.RspNoCache 适配了 gin.HandlerFunc）
 	if myApp.Cf.Site.IsDevMod {
+		gin.SetMode(gin.DebugMode)
+		router = gin.Default()
+		// 挂载无缓存中间件（需要确保 mdw.RspNoCache 适配了 gin.HandlerFunc）
 		router.Use(mdw.RspNoCache())
+	} else {
+		gin.SetMode(gin.ReleaseMode)
+		router = gin.New()
+		router.Use(gin.Recovery())
 	}
 
 	// 挂载路由（请注意修改 controller.RouterReload 使其接收 *gin.Engine 或将 router 挂载到 myApp）
